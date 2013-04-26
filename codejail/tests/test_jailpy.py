@@ -156,7 +156,7 @@ class TestMalware(JailCodeHelpers, unittest.TestCase):
 
     def test_find_other_sandboxes(self):
         res = jailpy(code=dedent("""
-            import os;
+            import os
             places = [
                 "..", "/tmp", "/", "/home", "/etc",
                 "/var"
