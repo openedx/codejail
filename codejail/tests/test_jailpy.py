@@ -127,7 +127,15 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         self.assertEqual(res.stdout, "Reading google\n")
         self.assertIn("IOError", res.stderr)
 
-    # TODO: fork
+    def test_cant_fork(self):
+        res = jailpy(code=dedent("""\
+                import os
+                print "Forking"
+                child_ppid = os.fork()
+                """))
+        self.assertNotEqual(res.status, 0)
+        self.assertEqual(res.stdout, "Forking\n")
+        self.assertIn("OSError", res.stderr)
 
 
 class TestMalware(JailCodeHelpers, unittest.TestCase):
