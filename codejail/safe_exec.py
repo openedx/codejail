@@ -14,7 +14,8 @@ log = logging.getLogger(__name__)
 
 
 class SafeExecException(Exception):
-    """Python code running in the sandbox has failed.
+    """
+    Python code running in the sandbox has failed.
 
     The message will be the stdout of the sandboxed process, which will usually
     contain the original exception message.
@@ -24,7 +25,8 @@ class SafeExecException(Exception):
 
 
 def safe_exec(code, globals_dict, files=None, python_path=None):
-    """Execute code as "exec" does, but safely.
+    """
+    Execute code as "exec" does, but safely.
 
     `code` is a string of Python code.  `globals_dict` is used as the globals
     during execution.  Modifications the code makes to `globals_dict` are
@@ -105,7 +107,8 @@ def safe_exec(code, globals_dict, files=None, python_path=None):
 
 
 def json_safe(d):
-    """Return only the JSON-safe part of d.
+    """
+    Return only the JSON-safe part of d.
 
     Used to emulate reading data through a serialization straw.
 
@@ -128,7 +131,8 @@ def json_safe(d):
 
 
 def not_safe_exec(code, globals_dict, files=None, python_path=None):
-    """Another implementation of `safe_exec`, but not safe.
+    """
+    Another implementation of `safe_exec`, but not safe.
 
     This can be swapped in for debugging problems in sandboxed Python code.
 

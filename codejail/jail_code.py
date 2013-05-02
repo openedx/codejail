@@ -27,7 +27,8 @@ COMMANDS = {}
 
 
 def configure(command, bin_path, user=None):
-    """Configure a command for `jail_code` to use.
+    """
+    Configure a command for `jail_code` to use.
 
     `command` is the abstract command you're configuring, such as "python" or
     "node".  `bin_path` is the path to the binary.  `user`, if provided, is
@@ -47,7 +48,8 @@ def configure(command, bin_path, user=None):
 
 
 def is_configured(command):
-    """Has `jail_code` been configured for `command`?
+    """
+    Has `jail_code` been configured for `command`?
 
     Returns true if the abstract command `command` has been configured for use
     in the `jail_code` function.
@@ -63,13 +65,16 @@ if hasattr(sys, 'real_prefix'):
 
 
 class JailResult(object):
-    """A passive object for us to return from jail_code."""
+    """
+    A passive object for us to return from jail_code.
+    """
     def __init__(self):
         self.stdout = self.stderr = self.status = None
 
 
 def jail_code(command, code=None, files=None, argv=None, stdin=None):
-    """Run code in a jailed subprocess.
+    """
+    Run code in a jailed subprocess.
 
     `command` is an abstract command ("python", "node", ...) that must have
     been configured using `configure`.
