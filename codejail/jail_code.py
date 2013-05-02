@@ -64,6 +64,33 @@ if hasattr(sys, 'real_prefix'):
         configure("python", sys.prefix + "-sandbox/bin/python", "sandbox")
 
 
+# Configurable limits
+
+LIMITS = {
+    # CPU seconds, defaulting to 1.
+    "CPU":  1,
+}
+
+
+def set_limit(limit_name, value):
+    """
+    Set a limit for `jail_code`.
+
+    `limit_name` is a string, the name of the limit to set. `value` is the
+    value to use for that limit.  The type, meaning, default, and range of
+    accepted values depend on `limit_name`.
+
+    There is currently only one limit defined:
+
+        * `"CPU"`: the maximum number of CPU seconds the jailed code can use.
+            The value is an integer, defaulting to 1.
+
+    Limits are process-wide, and will affect all future calls to jail_code.
+
+    """
+    LIMITS[limit_name] = value
+
+
 class JailResult(object):
     """
     A passive object for us to return from jail_code.
@@ -141,7 +168,10 @@ def set_process_limits():
     """
     Set limits on this processs, to be used first in a child process.
     """
-    resource.setrlimit(resource.RLIMIT_CPU, (1, 1))     # 1 second of CPU--not wall clock time
+    # CPU seconds, not wall clock time.
+    cpu = LIMITS["CPU"]
+    resource.setrlimit(resource.RLIMIT_CPU, (cpu, cpu))
+
     resource.setrlimit(resource.RLIMIT_NPROC, (0, 0))   # no subprocesses
     resource.setrlimit(resource.RLIMIT_FSIZE, (0, 0))   # no files
 

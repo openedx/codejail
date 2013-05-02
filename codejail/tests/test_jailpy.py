@@ -84,7 +84,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
 
 class TestLimits(JailCodeHelpers, unittest.TestCase):
     def test_cant_use_too_much_memory(self):
-        res = jailpy(code="print sum(range(100000000))")
+        res = jailpy(code="print len(range(100000000))")
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, "")
 
