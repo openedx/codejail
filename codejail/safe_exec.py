@@ -13,6 +13,16 @@ from codejail.util import temp_directory, change_directory
 log = logging.getLogger(__name__)
 
 
+class SafeExecException(Exception):
+    """Python code running in the sandbox has failed.
+
+    The message will be the stdout of the sandboxed process, which will usually
+    contain the original exception message.
+
+    """
+    pass
+
+
 def safe_exec(code, globals_dict, files=None, python_path=None):
     """Execute code as "exec" does, but safely.
 
@@ -20,7 +30,10 @@ def safe_exec(code, globals_dict, files=None, python_path=None):
     during execution.  Modifications the code makes to `globals_dict` are
     reflected in the dictionary on return.
 
-    Returns None.  Changes made by `code` are visible in `globals_dict`.
+    Returns None.  Changes made by `code` are visible in `globals_dict`.  If
+    the code raises an exception, this function will raise `SafeExecException`
+    with the stderr of the sandbox process, which usually includes the original
+    exception message and traceback.
 
     """
     the_code = []
@@ -87,7 +100,7 @@ def safe_exec(code, globals_dict, files=None, python_path=None):
 
     res = jail_code.jail_code("python", code=jailed_code, stdin=stdin, files=files)
     if res.status != 0:
-        raise Exception("Couldn't execute jailed code: %s" % res.stderr)
+        raise SafeExecException("Couldn't execute jailed code: %s" % res.stderr)
     globals_dict.update(json.loads(res.stdout))
 
 
@@ -137,6 +150,11 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None):
                 sys.path.extend(python_path)
             try:
                 exec code in g_dict
+            except Exception as e:
+                # Wrap the exception in a SafeExecException, but we don't
+                # try here to include the traceback, since this is just a
+                # substitute implementation.
+                raise SafeExecException("{0.__class__.__name__}: {0!s}".format(e))
             finally:
                 sys.path = original_path
 

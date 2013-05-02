@@ -5,7 +5,7 @@ import textwrap
 import unittest
 from nose.plugins.skip import SkipTest
 
-from codejail.safe_exec import safe_exec, not_safe_exec
+from codejail.safe_exec import safe_exec, not_safe_exec, SafeExecException
 
 
 class SafeExecTests(object):
@@ -54,6 +54,15 @@ class SafeExecTests(object):
             a = 1723
             """), g)
         self.assertEqual(g['a'], 1723)
+
+    def test_raising_exceptions(self):
+        g = {}
+        with self.assertRaises(SafeExecException) as cm:
+            self.safe_exec(textwrap.dedent("""\
+                raise ValueError("That's not how you pour soup!")
+                """), g)
+        msg = str(cm.exception)
+        self.assertIn("ValueError: That's not how you pour soup!", msg)
 
 
 class TestSafeExec(SafeExecTests, unittest.TestCase):
