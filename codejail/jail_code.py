@@ -37,7 +37,7 @@ def configure(command, bin_path, user=None):
     """
     cmd_argv = []
     if user:
-        cmd_argv.extend(['sudo', '-u', 'sandbox'])
+        cmd_argv.extend(['sudo', '-u', user])
     cmd_argv.append(bin_path)
 
     # Command-specific arguments
