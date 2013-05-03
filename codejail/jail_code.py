@@ -68,7 +68,9 @@ if hasattr(sys, 'real_prefix'):
 
 LIMITS = {
     # CPU seconds, defaulting to 1.
-    "CPU":  1,
+    "CPU": 1,
+    # Total process virutal memory, in bytes, defaulting to 30 Mb.
+    "VMEM": 30000000,
 }
 
 
@@ -168,17 +170,17 @@ def set_process_limits():
     """
     Set limits on this processs, to be used first in a child process.
     """
+    # No subprocesses or files
+    resource.setrlimit(resource.RLIMIT_NPROC, (0, 0))
+    resource.setrlimit(resource.RLIMIT_FSIZE, (0, 0))
+
     # CPU seconds, not wall clock time.
     cpu = LIMITS["CPU"]
     resource.setrlimit(resource.RLIMIT_CPU, (cpu, cpu))
 
-    resource.setrlimit(resource.RLIMIT_NPROC, (0, 0))   # no subprocesses
-    resource.setrlimit(resource.RLIMIT_FSIZE, (0, 0))   # no files
-
-    mem = 32 * (2 ** 20)     # 32 MB should be enough for anyone, right? :)
-    resource.setrlimit(resource.RLIMIT_STACK, (mem, mem))
-    resource.setrlimit(resource.RLIMIT_RSS, (mem, mem))
-    resource.setrlimit(resource.RLIMIT_DATA, (mem, mem))
+    # Total process virtual memory.
+    vmem = LIMITS["VMEM"]
+    resource.setrlimit(resource.RLIMIT_AS, (vmem, vmem))
 
 
 class ProcessKillerThread(threading.Thread):

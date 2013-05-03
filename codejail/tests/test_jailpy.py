@@ -84,14 +84,14 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
 
 class TestLimits(JailCodeHelpers, unittest.TestCase):
     def test_cant_use_too_much_memory(self):
-        res = jailpy(code="print len(range(100000000))")
-        self.assertNotEqual(res.status, 0)
+        res = jailpy(code="print len(bytearray(50000000))")
         self.assertEqual(res.stdout, "")
+        self.assertNotEqual(res.status, 0)
 
     def test_cant_use_too_much_cpu(self):
         res = jailpy(code="print sum(xrange(100000000))")
-        self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, "")
+        self.assertNotEqual(res.status, 0)
 
     def test_cant_use_too_much_time(self):
         raise SkipTest  # TODO: test this once we can kill sleeping processes.
