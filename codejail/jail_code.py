@@ -82,10 +82,13 @@ def set_limit(limit_name, value):
     value to use for that limit.  The type, meaning, default, and range of
     accepted values depend on `limit_name`.
 
-    There is currently only one limit defined:
+    These limits are available:
 
         * `"CPU"`: the maximum number of CPU seconds the jailed code can use.
             The value is an integer, defaulting to 1.
+
+        * `"VMEM"`: the total virtual memory available to the jailed code, in
+            bytes.  The default is 30 Mb.
 
     Limits are process-wide, and will affect all future calls to jail_code.
 

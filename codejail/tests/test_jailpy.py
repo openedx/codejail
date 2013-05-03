@@ -5,7 +5,7 @@ import textwrap
 import unittest
 from nose.plugins.skip import SkipTest
 
-from codejail.jail_code import jail_code, is_configured
+from codejail.jail_code import jail_code, is_configured, set_limit, LIMITS
 
 dedent = textwrap.dedent
 
@@ -84,6 +84,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
 
 class TestLimits(JailCodeHelpers, unittest.TestCase):
     def test_cant_use_too_much_memory(self):
+        # Default is 30Mb, try to get a 50Mb object.
         res = jailpy(code="print len(bytearray(50000000))")
         self.assertEqual(res.stdout, "")
         self.assertNotEqual(res.status, 0)
@@ -136,6 +137,28 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, "Forking\n")
         self.assertIn("OSError", res.stderr)
+
+
+class TestChangingLimits(JailCodeHelpers, unittest.TestCase):
+    def setUp(self):
+        super(TestChangingLimits, self).setUp()
+        self.old_vm = LIMITS['VMEM']
+
+    def tearDown(self):
+        set_limit('VMEM', self.old_vm)
+        super(TestChangingLimits, self).tearDown()
+
+    def test_changing_vmem_limit(self):
+        # This will fail (default is 30Mb)
+        res = jailpy(code="print len(bytearray(50000000))")
+        self.assertEqual(res.stdout, "")
+        self.assertNotEqual(res.status, 0)
+
+        # Up the limit, it will succeed
+        set_limit('VMEM', 600000000)
+        res = jailpy(code="print len(bytearray(50000000))")
+        self.assertEqual(res.stdout, "50000000\n")
+        self.assertEqual(res.status, 0)
 
 
 class TestMalware(JailCodeHelpers, unittest.TestCase):
