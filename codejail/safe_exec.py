@@ -122,8 +122,16 @@ def json_safe(d):
         if k in bad_keys:
             continue
         try:
-            json.dumps(v)
-        except TypeError:
+            # Python's JSON encoder will produce output that
+            # the JSON decoder cannot parse if the input string
+            # contains unicode "unpaired surrogates" (only on Linux)
+            # To test for this, we try decoding the output and check
+            # for a ValueError
+            json.loads(json.dumps(v))
+
+            # Also ensure that the keys encode/decode correctly
+            json.loads(json.dumps(k))
+        except (TypeError, ValueError):
             continue
         else:
             jd[k] = v
