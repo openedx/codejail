@@ -91,6 +91,7 @@ def set_limit(limit_name, value):
             bytes.  The default is 30 Mb.
 
     Limits are process-wide, and will affect all future calls to jail_code.
+    Providing a limit of 0 will disable that limit.
 
     """
     LIMITS[limit_name] = value
@@ -179,11 +180,13 @@ def set_process_limits():
 
     # CPU seconds, not wall clock time.
     cpu = LIMITS["CPU"]
-    resource.setrlimit(resource.RLIMIT_CPU, (cpu, cpu))
+    if cpu:
+        resource.setrlimit(resource.RLIMIT_CPU, (cpu, cpu))
 
     # Total process virtual memory.
     vmem = LIMITS["VMEM"]
-    resource.setrlimit(resource.RLIMIT_AS, (vmem, vmem))
+    if vmem:
+        resource.setrlimit(resource.RLIMIT_AS, (vmem, vmem))
 
 
 class ProcessKillerThread(threading.Thread):
