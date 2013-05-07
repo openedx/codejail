@@ -159,10 +159,11 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None):
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
 
-        # TODO: time limiting
+        # TODO: time limiting.  The ProcessKillerThread doesn't work yet, so
+        # don't launch it.
+        #   killer = ProcessKillerThread(subproc)
+        #   killer.start()
 
-        killer = ProcessKillerThread(subproc)
-        killer.start()
         result = JailResult()
         result.stdout, result.stderr = subproc.communicate(stdin)
         result.status = subproc.returncode
