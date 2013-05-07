@@ -1,7 +1,4 @@
-"""Run a python process in a jail."""
-
-# Instructions:
-#   - AppArmor.md from xserver
+"""Run code in a jail."""
 
 import logging
 import os
