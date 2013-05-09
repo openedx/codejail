@@ -114,7 +114,9 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None):
     named in the `argv` list.
 
     `files` is a list of file paths, they are all copied to the jailed
-    directory.
+    directory.  Note that no check is made here that the files don't contain
+    sensitive information.  The caller must somehow determine whether to allow
+    the code access to the files.
 
     `argv` is the command-line arguments to supply.
 
@@ -122,7 +124,7 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None):
 
         .stdout: stdout of the program, a string
         .stderr: stderr of the program, a string
-        .status: return status of the process: an int, 0 for successful
+        .status: exit status of the process: an int, 0 for success
 
     """
     if not is_configured(command):
@@ -153,7 +155,8 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None):
 
         subproc = subprocess.Popen(
             cmd, preexec_fn=set_process_limits, cwd=tmpdir,
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
 
         # TODO: time limiting.  The ProcessKillerThread doesn't work yet, so
@@ -188,6 +191,9 @@ def set_process_limits():
 
 
 class ProcessKillerThread(threading.Thread):
+    """
+    A thread to kill a process after a given time limit.
+    """
     def __init__(self, subproc, limit=1):
         super(ProcessKillerThread, self).__init__()
         self.subproc = subproc
@@ -204,6 +210,8 @@ class ProcessKillerThread(threading.Thread):
         if self.subproc.poll() is None:
             # Can't use subproc.kill because we launched the subproc with sudo.
             killargs = ["sudo", "kill", "-9", str(self.subproc.pid)]
-            kill = subprocess.Popen(killargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            kill = subprocess.Popen(
+                killargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
             out, err = kill.communicate()
             # TODO: This doesn't actually kill the process.... :(

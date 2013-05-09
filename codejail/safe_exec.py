@@ -13,6 +13,14 @@ from codejail.util import temp_directory, change_directory
 log = logging.getLogger(__name__)
 
 
+# Flags to let developers temporarily change some behavior in this file.
+
+# Set this to True to log all the code and globals being executed.
+LOG_ALL_CODE = False
+# Set this to True to use the unsafe code, so that you can debug it.
+ALWAYS_BE_UNSAFE = False
+
+
 class SafeExecException(Exception):
     """
     Python code running in the sandbox has failed.
@@ -31,6 +39,15 @@ def safe_exec(code, globals_dict, files=None, python_path=None):
     `code` is a string of Python code.  `globals_dict` is used as the globals
     during execution.  Modifications the code makes to `globals_dict` are
     reflected in the dictionary on return.
+
+    `files` is a list of file paths, either files or directories.  They will be
+    copied into the temp directory used for execution.  No attempt is made to
+    determine whether the file is appropriate or safe to copy.  The caller must
+    determine which files to provide to the code.
+
+    `python_path` is a list of directory paths.  They will be copied just as
+    `files` are, but will also be added to `sys.path` so that modules there can
+    be imported.
 
     Returns None.  Changes made by `code` are visible in `globals_dict`.  If
     the code raises an exception, this function will raise `SafeExecException`
@@ -95,7 +112,7 @@ def safe_exec(code, globals_dict, files=None, python_path=None):
     jailed_code = "".join(the_code)
 
     # Turn this on to see what's being executed.
-    if 0:
+    if LOG_ALL_CODE:
         log.debug("Jailed code: %s", jailed_code)
         log.debug("Exec: %s", code)
         log.debug("Stdin: %s", stdin)
@@ -148,6 +165,11 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None):
     and modifying sys.path.
 
     """
+    # Because it would be bad if this function were used in production, let's
+    # log a warning when it is used.  Developers can can live with one more
+    # log line.
+    log.warning("Using codejail/safe_exec.py:not_safe_exec")
+
     g_dict = json_safe(globals_dict)
 
     with temp_directory(delete_when_done=True) as tmpdir:
@@ -172,7 +194,7 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None):
 
     globals_dict.update(json_safe(g_dict))
 
+
 # Running Python code in the sandbox makes it difficult to debug.
-# Change 0 to 1 to run the code directly.
-if 0 or not jail_code.is_configured("python"):
+if ALWAYS_BE_UNSAFE or not jail_code.is_configured("python"):
     safe_exec = not_safe_exec
