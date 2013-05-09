@@ -8,60 +8,74 @@ from nose.plugins.skip import SkipTest
 from codejail.safe_exec import safe_exec, not_safe_exec, SafeExecException
 
 
-class SafeExecTests(object):
+class SafeExecTests(unittest.TestCase):
     """The tests for `safe_exec`, will be mixed into specific test classes below."""
+
+    # SafeExecTests is a TestCase so pylint understands the methods it can
+    # call, but it's abstract, so stop nose from running the tests.
+    __test__ = False
+
+    def safe_exec(self, *args, **kwargs):
+        """The function under test.
+
+        This class will be mixed into subclasses that implement `safe_exec` to
+        give the tests something to test.
+
+        """
+        raise NotImplementedError
+
     def test_set_values(self):
-        g = {}
-        self.safe_exec("a = 17", g)
-        self.assertEqual(g['a'], 17)
+        globs = {}
+        self.safe_exec("a = 17", globs)
+        self.assertEqual(globs['a'], 17)
 
     def test_files_are_copied(self):
-        g = {}
+        globs = {}
         self.safe_exec(
-            "a = 'Look: ' + open('hello.txt').read()", g,
+            "a = 'Look: ' + open('hello.txt').read()", globs,
             files=[os.path.dirname(__file__) + "/hello.txt"]
         )
-        self.assertEqual(g['a'], 'Look: Hello there.\n')
+        self.assertEqual(globs['a'], 'Look: Hello there.\n')
 
     def test_python_path(self):
-        g = {}
+        globs = {}
         self.safe_exec(
-            "import module; a = module.const", g,
+            "import module; a = module.const", globs,
             python_path=[os.path.dirname(__file__) + "/pylib"]
         )
-        self.assertEqual(g['a'], 42)
+        self.assertEqual(globs['a'], 42)
 
     def test_functions_calling_each_other(self):
-        g = {}
+        globs = {}
         self.safe_exec(textwrap.dedent("""\
             def f():
                 return 1723
             def g():
                 return f()
             x = g()
-            """), g)
-        self.assertEqual(g['x'], 1723)
+            """), globs)
+        self.assertEqual(globs['x'], 1723)
 
     def test_printing_stuff_when_you_shouldnt(self):
-        g = {}
-        self.safe_exec("a = 17; print 'hi!'", g)
-        self.assertEqual(g['a'], 17)
+        globs = {}
+        self.safe_exec("a = 17; print 'hi!'", globs)
+        self.assertEqual(globs['a'], 17)
 
     def test_importing_lots_of_crap(self):
-        g = {}
+        globs = {}
         self.safe_exec(textwrap.dedent("""\
             from numpy import *
             a = 1723
-            """), g)
-        self.assertEqual(g['a'], 1723)
+            """), globs)
+        self.assertEqual(globs['a'], 1723)
 
     def test_raising_exceptions(self):
-        g = {}
-        with self.assertRaises(SafeExecException) as cm:
+        globs = {}
+        with self.assertRaises(SafeExecException) as what_happened:
             self.safe_exec(textwrap.dedent("""\
                 raise ValueError("That's not how you pour soup!")
-                """), g)
-        msg = str(cm.exception)
+                """), globs)
+        msg = str(what_happened.exception)
         self.assertIn("ValueError: That's not how you pour soup!", msg)
 
 
