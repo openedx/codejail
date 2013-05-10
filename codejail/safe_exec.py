@@ -1,11 +1,15 @@
 """Safe execution of untrusted Python code."""
 
-import json
 import logging
 import os.path
 import shutil
 import sys
 import textwrap
+
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
 from codejail import jail_code
 from codejail.util import temp_directory, change_directory
@@ -60,8 +64,11 @@ def safe_exec(code, globals_dict, files=None, python_path=None):
 
     the_code.append(textwrap.dedent(
         """
-        import json
         import sys
+        try:
+            import simplejson as json
+        except ImportError:
+            import json
         """
         # We need to prevent the sandboxed code from printing to stdout,
         # or it will pollute the json we print there.  This isn't a
