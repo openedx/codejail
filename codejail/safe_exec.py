@@ -119,7 +119,7 @@ def safe_exec(code, globals_dict, files=None, python_path=None):
     jailed_code = "".join(the_code)
 
     # Turn this on to see what's being executed.
-    if LOG_ALL_CODE:
+    if LOG_ALL_CODE:        # pragma: no cover
         log.debug("Jailed code: %s", jailed_code)
         log.debug("Exec: %s", code)
         log.debug("Stdin: %s", stdin)
@@ -179,7 +179,7 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None):
 
     g_dict = json_safe(globals_dict)
 
-    with temp_directory(delete_when_done=True) as tmpdir:
+    with temp_directory() as tmpdir:
         with change_directory(tmpdir):
             # Copy the files here.
             for filename in files or ():
@@ -203,5 +203,6 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None):
 
 
 # Running Python code in the sandbox makes it difficult to debug.
-if ALWAYS_BE_UNSAFE or not jail_code.is_configured("python"):
+NO_SAFE_PYTHON = not jail_code.is_configured("python")
+if ALWAYS_BE_UNSAFE or NO_SAFE_PYTHON:   # pragma: no cover
     safe_exec = not_safe_exec

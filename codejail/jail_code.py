@@ -130,7 +130,7 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None):
     if not is_configured(command):
         raise Exception("jail_code needs to be configured for %r" % command)
 
-    with temp_directory(delete_when_done=True) as tmpdir:
+    with temp_directory() as tmpdir:
 
         log.debug("Executing jailed code: %r", code)
 
@@ -171,7 +171,7 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None):
     return result
 
 
-def set_process_limits():
+def set_process_limits():       # pragma: no cover
     """
     Set limits on this processs, to be used first in a child process.
     """

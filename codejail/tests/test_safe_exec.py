@@ -22,7 +22,7 @@ class SafeExecTests(unittest.TestCase):
         give the tests something to test.
 
         """
-        raise NotImplementedError
+        raise NotImplementedError       # pragma: no cover
 
     def test_set_values(self):
         globs = {}
@@ -81,16 +81,22 @@ class SafeExecTests(unittest.TestCase):
 
 class TestSafeExec(SafeExecTests, unittest.TestCase):
     """Run SafeExecTests, with the real safe_exec."""
+
+    __test__ = True
+
     def safe_exec(self, *args, **kwargs):
         safe_exec(*args, **kwargs)
 
 
 class TestNotSafeExec(SafeExecTests, unittest.TestCase):
     """Run SafeExecTests, with not_safe_exec."""
+
+    __test__ = True
+
     def setUp(self):
         # If safe_exec is actually an alias to not_safe_exec, then there's no
         # point running these tests.
-        if safe_exec is not_safe_exec:
+        if safe_exec is not_safe_exec:      # pragma: no cover
             raise SkipTest
 
     def safe_exec(self, *args, **kwargs):

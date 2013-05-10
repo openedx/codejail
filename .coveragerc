@@ -1,0 +1,5 @@
+[run]
+source = codejail
+branch = true
+
+omit = codejail/tests/doit.py
