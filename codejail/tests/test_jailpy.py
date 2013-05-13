@@ -1,5 +1,6 @@
 """Test jail_code.py"""
 
+import os
 import os.path
 import textwrap
 import unittest
@@ -137,6 +138,16 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, "Forking\n")
         self.assertIn("OSError", res.stderr)
+
+    def test_cant_see_environment_variables(self):
+        os.environ['HONEY_BOO_BOO'] = 'Look!'
+        res = jailpy(code=dedent("""\
+                import os
+                for name, value in os.environ.items():
+                    print "%s: %r" % (name, value)
+                """))
+        self.assertResultOk(res)
+        self.assertNotIn("HONEY", res.stdout)
 
 
 class TestChangingLimits(JailCodeHelpers, unittest.TestCase):

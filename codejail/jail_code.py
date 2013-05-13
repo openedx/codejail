@@ -33,8 +33,12 @@ def configure(command, bin_path, user=None):
 
     """
     cmd_argv = []
+
     if user:
+        # Run as the specified user
         cmd_argv.extend(['sudo', '-u', user])
+
+    # Run the command!
     cmd_argv.append(bin_path)
 
     # Command-specific arguments
@@ -154,7 +158,7 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None):
         cmd = COMMANDS[command] + argv
 
         subproc = subprocess.Popen(
-            cmd, preexec_fn=set_process_limits, cwd=tmpdir,
+            cmd, preexec_fn=set_process_limits, cwd=tmpdir, env={},
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
