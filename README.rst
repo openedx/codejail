@@ -78,10 +78,9 @@ but with slashes changed to dots::
 
         <SANDENV>/** mr,
         <MITX>/common/lib/sandbox-packages/** r,
-        /usr/local/lib/python2.7/** r,
-        /usr/lib/python2.7/** rix,
 
-        /tmp/** rix,
+        /tmp/codejail-*/ rix,
+        /tmp/codejail-*/** rix,
     }
 
 6. Parse the profiles::
