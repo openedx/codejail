@@ -3,3 +3,6 @@ source = codejail
 branch = true
 
 omit = codejail/tests/doit.py
+
+[html]
+title = CodeJail coverage
