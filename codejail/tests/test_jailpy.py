@@ -2,8 +2,11 @@
 
 import os
 import os.path
+import shutil
 import textwrap
+import tempfile
 import unittest
+
 from nose.plugins.skip import SkipTest
 
 from codejail.jail_code import jail_code, is_configured, set_limit, LIMITS
@@ -29,6 +32,7 @@ class JailCodeHelpers(object):
             raise SkipTest
 
     def assertResultOk(self, res):
+        """Assert that `res` exited well (0), and had no stderr output."""
         self.assertEqual(res.stderr, "")
         self.assertEqual(res.status, 0)
 
@@ -73,6 +77,21 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         )
         self.assertResultOk(res)
         self.assertEqual(res.stdout, 'Look: Hello there.\n\n')
+
+    def test_directories_are_copied(self):
+        res = jailpy(
+            code=dedent("""\
+                import os
+                for path, dirs, files in os.walk("."):
+                    print (path, sorted(dirs), sorted(files))
+                """),
+            files=[file_here("hello.txt"), file_here("pylib")]
+        )
+        self.assertResultOk(res)
+        self.assertEqual(res.stdout, dedent("""\
+            ('.', ['pylib'], ['hello.txt', 'jailed_code'])
+            ('./pylib', [], ['module.py', 'module.pyc'])
+            """))
 
     def test_executing_a_copied_file(self):
         res = jailpy(
@@ -148,6 +167,61 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
                 """))
         self.assertResultOk(res)
         self.assertNotIn("HONEY", res.stdout)
+
+
+class TestSymlinks(JailCodeHelpers, unittest.TestCase):
+    """Testing symlink behavior."""
+
+    def setUp(self):
+        # Make a temp dir, and arrange to have it removed when done.
+        tmp_dir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tmp_dir)
+
+        # Make a directory that won't be copied into the sandbox.
+        self.not_copied = os.path.join(tmp_dir, "not_copied")
+        os.mkdir(self.not_copied)
+        self.linked_txt = os.path.join(self.not_copied, "linked.txt")
+        with open(self.linked_txt, "w") as linked:
+            linked.write("Hi!")
+
+        # Make a directory that will be copied into the sandbox, with a
+        # symlink to a file we aren't copying in.
+        self.copied = os.path.join(tmp_dir, "copied")
+        os.mkdir(self.copied)
+        self.here_txt = os.path.join(self.copied, "here.txt")
+        with open(self.here_txt, "w") as here:
+            here.write("012345")
+        self.link_txt = os.path.join(self.copied, "link.txt")
+        os.symlink(self.linked_txt, self.link_txt)
+        self.herelink_txt = os.path.join(self.copied, "herelink.txt")
+        os.symlink("here.txt", self.herelink_txt)
+
+    def test_symlinks_in_directories_wont_copy_data(self):
+        # Run some code in the sandbox, with a copied directory containing
+        # the symlink.
+        res = jailpy(
+                code=dedent("""\
+                    print open('copied/here.txt').read()        # can read
+                    print open('copied/herelink.txt').read()    # can read
+                    print open('copied/link.txt').read()        # can't read
+                    """),
+                files=[self.copied],
+                )
+        self.assertEqual(res.stdout, "012345\n012345\n")
+        self.assertIn("ermission denied", res.stderr)
+
+    def test_symlinks_wont_copy_data(self):
+        # Run some code in the sandbox, with a copied file which is a symlink.
+        res = jailpy(
+                code=dedent("""\
+                    print open('here.txt').read()       # can read
+                    print open('herelink.txt').read()   # can read
+                    print open('link.txt').read()       # can't read
+                    """),
+                files=[self.here_txt, self.herelink_txt, self.link_txt],
+                )
+        self.assertEqual(res.stdout, "012345\n012345\n")
+        self.assertIn("ermission denied", res.stderr)
 
 
 class TestChangingLimits(JailCodeHelpers, unittest.TestCase):

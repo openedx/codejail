@@ -120,7 +120,9 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None):
     `files` is a list of file paths, they are all copied to the jailed
     directory.  Note that no check is made here that the files don't contain
     sensitive information.  The caller must somehow determine whether to allow
-    the code access to the files.
+    the code access to the files.  Symlinks will be copied as symlinks.  If the
+    linked-to file is not accessible to the sandbox, the symlink will be
+    unreadable as well.
 
     `argv` is the command-line arguments to supply.
 
@@ -142,11 +144,13 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None):
 
         # All the supporting files are copied into our directory.
         for filename in files or ():
-            if os.path.isfile(filename):
+            dest = os.path.join(tmpdir, os.path.basename(filename))
+            if os.path.islink(filename):
+                os.symlink(os.readlink(filename), dest)
+            elif os.path.isfile(filename):
                 shutil.copy(filename, tmpdir)
             else:
-                dest = os.path.join(tmpdir, os.path.basename(filename))
-                shutil.copytree(filename, dest)
+                shutil.copytree(filename, dest, symlinks=True)
 
         # Create the main file.
         if code:
