@@ -35,22 +35,21 @@ sandboxed Python code.
 
 Choose a place for the new virtualenv, call it <SANDENV>.  It will be
 automatically detected and used if you put it right alongside your existing
-virtualenv, but with -sandbox appended.  So if your existing virtualenv is in
-~/ve/myproj, make <SANDENV> be ~/ve/myproj-sandbox (but you'll need to spell
-out your home directory instead of ~).
+virtualenv, but with `-sandbox` appended.  So if your existing virtualenv is in
+`/home/chris/ve/myproj`, make <SANDENV> be `/home/chris/ve/myproj-sandbox`.
 
 Other details here that depend on your configuration:
 
-    - Your mitx working tree is <MITX>, for example, ~/mitx_all/mitx
-
-    - The user running the LMS is <USER>, for example, you on your dev machine,
-      or www-data on a server.
+    - The user running the LMS is <WWWUSER>, for example, you on your dev
+      machine, or `www-data` on a server.
 
 1. Create the new virtualenv::
 
     $ sudo virtualenv <SANDENV>
 
-2. Install the sandbox requirements::
+2. (Optional) If you have particular packages you want available to your
+   sandboxed code, install them by activating the sandbox virtual env, and
+   using pip to install them::
 
     $ source <SANDENV>/bin/activate
     $ sudo pip install -r sandbox-requirements.txt
@@ -61,15 +60,19 @@ Other details here that depend on your configuration:
     $ sudo adduser --disabled-login sandbox --ingroup sandbox
 
 4. Let the web server run the sandboxed Python as sandbox.  Create the file
-/etc/sudoers.d/01-sandbox::
+   `/etc/sudoers.d/01-sandbox`::
 
     $ visudo -f /etc/sudoers.d/01-sandbox
 
-    <USER> ALL=(sandbox) NOPASSWD:<SANDENV>/bin/python
-    <USER> ALL=(ALL) NOPASSWD:/bin/kill
+    <WWWUSER> ALL=(sandbox) NOPASSWD:<SANDENV>/bin/python
 
-5. Edit an AppArmor profile.  The file must be named for the python executable,
-but with slashes changed to dots::
+5. Edit an AppArmor profile.  This is a text file specifying the limits on the
+   sandboxed Python executable.  The file must be in `/etc/apparmor.d` and must
+   be named based on the executable, with slashes replaced by dots.  For
+   example, if your sandboxed Python is at `/home/chris/ve/myproj-sandbox/bin/python`,
+   then your AppArmor profile must be `/etc/apparmor.d/home.chris.ve.myproj-sandbox.bin.python`::
+
+    $ sudo vim /etc/apparmor.d/home.chris.ve.myproj-sandbox.bin.python
 
     #include <tunables/global>
 
@@ -77,7 +80,9 @@ but with slashes changed to dots::
         #include <abstractions/base>
 
         <SANDENV>/** mr,
-        <MITX>/common/lib/sandbox-packages/** r,
+        # If you have code that the sandbox must be able to access, add lines
+        # pointing to those directories:
+        /the/path/to/your/sandbox-packages/** r,
 
         /tmp/codejail-*/ rix,
         /tmp/codejail-*/** rix,
