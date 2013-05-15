@@ -167,10 +167,9 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None):
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
 
-        # TODO: time limiting.  The ProcessKillerThread doesn't work yet, so
-        # don't launch it.
-        #   killer = ProcessKillerThread(subproc)
-        #   killer.start()
+        # Start the time killer thread.
+        killer = ProcessKillerThread(subproc, limit=1.0)
+        killer.start()
 
         result = JailResult()
         result.stdout, result.stderr = subproc.communicate(stdin)
@@ -183,7 +182,11 @@ def set_process_limits():       # pragma: no cover
     """
     Set limits on this processs, to be used first in a child process.
     """
-    # No subprocesses or files
+    # Set a new session id so that this process and all its children will be
+    # in a new process group, so we can kill them all later if we need to.
+    os.setsid()
+
+    # No subprocesses or files.
     resource.setrlimit(resource.RLIMIT_NPROC, (0, 0))
     resource.setrlimit(resource.RLIMIT_FSIZE, (0, 0))
 
@@ -202,7 +205,7 @@ class ProcessKillerThread(threading.Thread):
     """
     A thread to kill a process after a given time limit.
     """
-    def __init__(self, subproc, limit=1):
+    def __init__(self, subproc, limit):
         super(ProcessKillerThread, self).__init__()
         self.subproc = subproc
         self.limit = limit
@@ -210,16 +213,20 @@ class ProcessKillerThread(threading.Thread):
     def run(self):
         start = time.time()
         while (time.time() - start) < self.limit:
-            time.sleep(.1)
+            time.sleep(.25)
             if self.subproc.poll() is not None:
                 # Process ended, no need for us any more.
                 return
 
         if self.subproc.poll() is None:
             # Can't use subproc.kill because we launched the subproc with sudo.
-            killargs = ["sudo", "kill", "-9", str(self.subproc.pid)]
+            pgid = os.getpgid(self.subproc.pid)
+            log.warning(
+                "Killing process %r (group %r), ran too long: %.1fs",
+                self.subproc.pid, pgid, time.time()-start
+            )
+            killargs = ["sudo", "pkill", "-9", "-g", str(pgid)]
             kill = subprocess.Popen(
                 killargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
             out, err = kill.communicate()
-            # TODO: This doesn't actually kill the process.... :(

@@ -65,6 +65,7 @@ Other details here that depend on your configuration:
     $ visudo -f /etc/sudoers.d/01-sandbox
 
     <WWWUSER> ALL=(sandbox) NOPASSWD:<SANDENV>/bin/python
+    <WWWUSER> ALL=(ALL) NOPASSWD:/usr/bin/pkill
 
 5. Edit an AppArmor profile.  This is a text file specifying the limits on the
    sandboxed Python executable.  The file must be in `/etc/apparmor.d` and must

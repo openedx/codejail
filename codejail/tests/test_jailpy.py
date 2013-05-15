@@ -115,7 +115,6 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         self.assertNotEqual(res.status, 0)
 
     def test_cant_use_too_much_time(self):
-        raise SkipTest  # TODO: test this once we can kill sleeping processes.
         res = jailpy(code=dedent("""\
                 import time
                 time.sleep(5)
