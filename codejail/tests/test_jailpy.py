@@ -33,11 +33,13 @@ class JailCodeHelpers(object):
 
     def assertResultOk(self, res):
         """Assert that `res` exited well (0), and had no stderr output."""
-        self.assertEqual(res.stderr, "")
-        self.assertEqual(res.status, 0)
+        self.assertEqual(res.stderr, "")        # pylint: disable=E1101
+        self.assertEqual(res.status, 0)         # pylint: disable=E1101
 
 
 class TestFeatures(JailCodeHelpers, unittest.TestCase):
+    """Test features of how `jail_code` runs Python."""
+
     def test_hello_world(self):
         res = jailpy(code="print 'Hello, world!'")
         self.assertResultOk(res)
@@ -68,7 +70,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
             stdin="[1, 2.5, 33]"
         )
         self.assertResultOk(res)
-        self.assertEqual(res.stdout.strip(), "36.5")
+        self.assertEqual(res.stdout, "36.5\n")
 
     def test_files_are_copied(self):
         res = jailpy(
@@ -273,6 +275,8 @@ class TestSymlinks(JailCodeHelpers, unittest.TestCase):
 
 
 class TestMalware(JailCodeHelpers, unittest.TestCase):
+    """Tests that attempt actual malware against the interpreter or system."""
+
     def test_crash_cpython(self):
         # http://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html
         res = jailpy(code="""\
