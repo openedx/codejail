@@ -98,7 +98,9 @@ def safe_exec(code, globals_dict, files=None, python_path=None):
         """
         # Clean the globals for sending back as JSON over stdout.
         """
-        ok_types = (type(None), int, long, float, str, unicode, list, tuple, dict)
+        ok_types = (
+            type(None), int, long, float, str, unicode, list, tuple, dict
+        )
         bad_keys = ("__builtins__",)
         def jsonable(v):
             if not isinstance(v, ok_types):
@@ -108,7 +110,11 @@ def safe_exec(code, globals_dict, files=None, python_path=None):
             except Exception:
                 return False
             return True
-        g_dict = {k:v for k,v in g_dict.iteritems() if jsonable(v) and k not in bad_keys}
+        g_dict = {
+            k:v
+            for k,v in g_dict.iteritems()
+            if jsonable(v) and k not in bad_keys
+        }
         """
         # Write the globals back to the calling process.
         """
@@ -124,9 +130,13 @@ def safe_exec(code, globals_dict, files=None, python_path=None):
         log.debug("Exec: %s", code)
         log.debug("Stdin: %s", stdin)
 
-    res = jail_code.jail_code("python", code=jailed_code, stdin=stdin, files=files)
+    res = jail_code.jail_code(
+        "python", code=jailed_code, stdin=stdin, files=files
+    )
     if res.status != 0:
-        raise SafeExecException("Couldn't execute jailed code: %s" % res.stderr)
+        raise SafeExecException(
+            "Couldn't execute jailed code: %s" % res.stderr
+        )
     globals_dict.update(json.loads(res.stdout))
 
 
@@ -195,7 +205,8 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None):
                 # Wrap the exception in a SafeExecException, but we don't
                 # try here to include the traceback, since this is just a
                 # substitute implementation.
-                raise SafeExecException("{0.__class__.__name__}: {0!s}".format(e))
+                msg = "{0.__class__.__name__}: {0!s}".format(e)
+                raise SafeExecException(msg)
             finally:
                 sys.path = original_path
 

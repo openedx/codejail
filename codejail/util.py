@@ -9,7 +9,8 @@ import tempfile
 class TempDirectory(object):
     def __init__(self):
         self.temp_dir = tempfile.mkdtemp(prefix="codejail-")
-        # Make directory readable by other users ('sandbox' user needs to be able to read it)
+        # Make directory readable by other users ('sandbox' user needs to be
+        # able to read it).
         os.chmod(self.temp_dir, 0775)
 
     def clean_up(self):

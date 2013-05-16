@@ -9,7 +9,7 @@ from codejail.safe_exec import safe_exec, not_safe_exec, SafeExecException
 
 
 class SafeExecTests(unittest.TestCase):
-    """The tests for `safe_exec`, will be mixed into specific test classes below."""
+    """The tests for `safe_exec`, to be mixed into specific test classes."""
 
     # SafeExecTests is a TestCase so pylint understands the methods it can
     # call, but it's abstract, so stop nose from running the tests.

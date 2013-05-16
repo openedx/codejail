@@ -45,9 +45,9 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
 
     def test_argv(self):
         res = jailpy(
-                code="import sys; print ':'.join(sys.argv[1:])",
-                argv=["Hello", "world", "-x"]
-                )
+            code="import sys; print ':'.join(sys.argv[1:])",
+            argv=["Hello", "world", "-x"]
+        )
         self.assertResultOk(res)
         self.assertEqual(res.stdout, "Hello:world:-x\n")
 
@@ -99,7 +99,10 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
             argv=["doit.py", "1", "2", "3"]
         )
         self.assertResultOk(res)
-        self.assertEqual(res.stdout, "This is doit.py!\nMy args are ['doit.py', '1', '2', '3']\n")
+        self.assertEqual(
+            res.stdout,
+            "This is doit.py!\nMy args are ['doit.py', '1', '2', '3']\n"
+        )
 
 
 class TestLimits(JailCodeHelpers, unittest.TestCase):
@@ -199,26 +202,26 @@ class TestSymlinks(JailCodeHelpers, unittest.TestCase):
         # Run some code in the sandbox, with a copied directory containing
         # the symlink.
         res = jailpy(
-                code=dedent("""\
-                    print open('copied/here.txt').read()        # can read
-                    print open('copied/herelink.txt').read()    # can read
-                    print open('copied/link.txt').read()        # can't read
-                    """),
-                files=[self.copied],
-                )
+            code=dedent("""\
+                print open('copied/here.txt').read()        # can read
+                print open('copied/herelink.txt').read()    # can read
+                print open('copied/link.txt').read()        # can't read
+                """),
+            files=[self.copied],
+        )
         self.assertEqual(res.stdout, "012345\n012345\n")
         self.assertIn("ermission denied", res.stderr)
 
     def test_symlinks_wont_copy_data(self):
         # Run some code in the sandbox, with a copied file which is a symlink.
         res = jailpy(
-                code=dedent("""\
-                    print open('here.txt').read()       # can read
-                    print open('herelink.txt').read()   # can read
-                    print open('link.txt').read()       # can't read
-                    """),
-                files=[self.here_txt, self.herelink_txt, self.link_txt],
-                )
+            code=dedent("""\
+                print open('here.txt').read()       # can read
+                print open('herelink.txt').read()   # can read
+                print open('link.txt').read()       # can't read
+                """),
+            files=[self.here_txt, self.herelink_txt, self.link_txt],
+        )
         self.assertEqual(res.stdout, "012345\n012345\n")
         self.assertIn("ermission denied", res.stderr)
 
@@ -262,7 +265,8 @@ class TestMalware(JailCodeHelpers, unittest.TestCase):
         # http://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html
         res = jailpy(code=dedent("""\
             import new, sys
-            crash_me = new.function(new.code(0,0,0,0,"KABOOM",(),(),(),"","",0,""), {})
+            bad_code = new.code(0,0,0,0,"KABOOM",(),(),(),"","",0,"")
+            crash_me = new.function(bad_code, {})
             print "Here we go..."
             sys.stdout.flush()
             crash_me()
@@ -285,8 +289,7 @@ class TestMalware(JailCodeHelpers, unittest.TestCase):
         res = jailpy(code=dedent("""
             import os
             places = [
-                "..", "/tmp", "/", "/home", "/etc",
-                "/var"
+                "..", "/tmp", "/", "/home", "/etc", "/var"
                 ]
             for place in places:
                 try:
