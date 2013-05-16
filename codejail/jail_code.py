@@ -225,8 +225,4 @@ class ProcessKillerThread(threading.Thread):
                 "Killing process %r (group %r), ran too long: %.1fs",
                 self.subproc.pid, pgid, time.time()-start
             )
-            killargs = ["sudo", "pkill", "-9", "-g", str(pgid)]
-            kill = subprocess.Popen(
-                killargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-            )
-            out, err = kill.communicate()
+            subprocess.call(["sudo", "pkill", "-9", "-g", str(pgid)])
