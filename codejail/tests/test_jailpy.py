@@ -11,12 +11,12 @@ from nose.plugins.skip import SkipTest
 
 from codejail.jail_code import jail_code, is_configured, set_limit, LIMITS
 
-dedent = textwrap.dedent
 
-
-def jailpy(*args, **kwargs):
+def jailpy(code=None, *args, **kwargs):
     """Run `jail_code` on Python."""
-    return jail_code("python", *args, **kwargs)
+    if code:
+        code = textwrap.dedent(code)
+    return jail_code("python", code, *args, **kwargs)
 
 
 def file_here(fname):
@@ -55,7 +55,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         res = jailpy(code="""raise Exception('FAIL')""")
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, "")
-        self.assertEqual(res.stderr, dedent("""\
+        self.assertEqual(res.stderr, textwrap.dedent("""\
             Traceback (most recent call last):
               File "jailed_code", line 1, in <module>
                 raise Exception('FAIL')
@@ -80,15 +80,15 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
 
     def test_directories_are_copied(self):
         res = jailpy(
-            code=dedent("""\
+            code="""\
                 import os
                 for path, dirs, files in os.walk("."):
                     print (path, sorted(dirs), sorted(files))
-                """),
+                """,
             files=[file_here("hello.txt"), file_here("pylib")]
         )
         self.assertResultOk(res)
-        self.assertEqual(res.stdout, dedent("""\
+        self.assertEqual(res.stdout, textwrap.dedent("""\
             ('.', ['pylib'], ['hello.txt', 'jailed_code'])
             ('./pylib', [], ['module.py', 'module.pyc'])
             """))
@@ -118,55 +118,55 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         self.assertNotEqual(res.status, 0)
 
     def test_cant_use_too_much_time(self):
-        res = jailpy(code=dedent("""\
+        res = jailpy(code="""\
                 import time
                 time.sleep(5)
                 print 'Done!'
-                """))
+                """)
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, "")
 
     def test_cant_write_files(self):
-        res = jailpy(code=dedent("""\
+        res = jailpy(code="""\
                 print "Trying"
                 with open("mydata.txt", "w") as f:
                     f.write("hello")
                 with open("mydata.txt") as f2:
                     print "Got this:", f2.read()
-                """))
+                """)
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, "Trying\n")
         self.assertIn("ermission denied", res.stderr)
 
     def test_cant_use_network(self):
-        res = jailpy(code=dedent("""\
+        res = jailpy(code="""\
                 import urllib
                 print "Reading google"
                 u = urllib.urlopen("http://google.com")
                 google = u.read()
                 print len(google)
-                """))
+                """)
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, "Reading google\n")
         self.assertIn("IOError", res.stderr)
 
     def test_cant_fork(self):
-        res = jailpy(code=dedent("""\
+        res = jailpy(code="""\
                 import os
                 print "Forking"
                 child_ppid = os.fork()
-                """))
+                """)
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, "Forking\n")
         self.assertIn("OSError", res.stderr)
 
     def test_cant_see_environment_variables(self):
         os.environ['HONEY_BOO_BOO'] = 'Look!'
-        res = jailpy(code=dedent("""\
+        res = jailpy(code="""\
                 import os
                 for name, value in os.environ.items():
                     print "%s: %r" % (name, value)
-                """))
+                """)
         self.assertResultOk(res)
         self.assertNotIn("HONEY", res.stdout)
 
@@ -202,11 +202,11 @@ class TestSymlinks(JailCodeHelpers, unittest.TestCase):
         # Run some code in the sandbox, with a copied directory containing
         # the symlink.
         res = jailpy(
-            code=dedent("""\
+            code="""\
                 print open('copied/here.txt').read()        # can read
                 print open('copied/herelink.txt').read()    # can read
                 print open('copied/link.txt').read()        # can't read
-                """),
+                """,
             files=[self.copied],
         )
         self.assertEqual(res.stdout, "012345\n012345\n")
@@ -215,11 +215,11 @@ class TestSymlinks(JailCodeHelpers, unittest.TestCase):
     def test_symlinks_wont_copy_data(self):
         # Run some code in the sandbox, with a copied file which is a symlink.
         res = jailpy(
-            code=dedent("""\
+            code="""\
                 print open('here.txt').read()       # can read
                 print open('herelink.txt').read()   # can read
                 print open('link.txt').read()       # can't read
-                """),
+                """,
             files=[self.here_txt, self.herelink_txt, self.link_txt],
         )
         self.assertEqual(res.stdout, "012345\n012345\n")
@@ -263,7 +263,7 @@ class TestChangingLimits(JailCodeHelpers, unittest.TestCase):
 class TestMalware(JailCodeHelpers, unittest.TestCase):
     def test_crash_cpython(self):
         # http://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html
-        res = jailpy(code=dedent("""\
+        res = jailpy(code="""\
             import new, sys
             bad_code = new.code(0,0,0,0,"KABOOM",(),(),(),"","",0,"")
             crash_me = new.function(bad_code, {})
@@ -271,22 +271,22 @@ class TestMalware(JailCodeHelpers, unittest.TestCase):
             sys.stdout.flush()
             crash_me()
             print "The afterlife!"
-            """))
+            """)
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, "Here we go...\n")
         self.assertEqual(res.stderr, "")
 
     def test_read_etc_passwd(self):
-        res = jailpy(code=dedent("""\
+        res = jailpy(code="""\
             bytes = len(open('/etc/passwd').read())
             print 'Gotcha', bytes
-            """))
+            """)
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, "")
         self.assertIn("ermission denied", res.stderr)
 
     def test_find_other_sandboxes(self):
-        res = jailpy(code=dedent("""
+        res = jailpy(code="""
             import os
             places = [
                 "..", "/tmp", "/", "/home", "/etc", "/var"
@@ -300,6 +300,6 @@ class TestMalware(JailCodeHelpers, unittest.TestCase):
                 else:
                     print "Files in %r: %r" % (place, files)
             print "Done."
-            """))
+            """)
         self.assertResultOk(res)
         self.assertEqual(res.stdout, "Done.\n")
