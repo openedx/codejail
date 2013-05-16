@@ -106,11 +106,36 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
 
 
 class TestLimits(JailCodeHelpers, unittest.TestCase):
+    """Tests of the resource limits, and changing them."""
+
+    def setUp(self):
+        super(TestLimits, self).setUp()
+        self.old_limits = dict(LIMITS)
+
+    def tearDown(self):
+        for name, value in self.old_limits.items():
+            set_limit(name, value)
+        super(TestLimits, self).tearDown()
+
     def test_cant_use_too_much_memory(self):
-        # Default is 30Mb, try to get a 50Mb object.
+        # This will fail (default is 30Mb)
         res = jailpy(code="print len(bytearray(50000000))")
         self.assertEqual(res.stdout, "")
         self.assertNotEqual(res.status, 0)
+
+    def test_changing_vmem_limit(self):
+        # Up the limit, it will succeed
+        set_limit('VMEM', 600000000)
+        res = jailpy(code="print len(bytearray(50000000))")
+        self.assertEqual(res.stdout, "50000000\n")
+        self.assertEqual(res.status, 0)
+
+    def test_disabling_vmem_limit(self):
+        # Disable the limit, it will succeed
+        set_limit('VMEM', 0)
+        res = jailpy(code="print len(bytearray(50000000))")
+        self.assertEqual(res.stdout, "50000000\n")
+        self.assertEqual(res.status, 0)
 
     def test_cant_use_too_much_cpu(self):
         res = jailpy(code="print sum(xrange(100000000))")
@@ -224,40 +249,6 @@ class TestSymlinks(JailCodeHelpers, unittest.TestCase):
         )
         self.assertEqual(res.stdout, "012345\n012345\n")
         self.assertIn("ermission denied", res.stderr)
-
-
-class TestChangingLimits(JailCodeHelpers, unittest.TestCase):
-    def setUp(self):
-        super(TestChangingLimits, self).setUp()
-        self.old_vm = LIMITS['VMEM']
-
-    def tearDown(self):
-        set_limit('VMEM', self.old_vm)
-        super(TestChangingLimits, self).tearDown()
-
-    def test_changing_vmem_limit(self):
-        # This will fail (default is 30Mb)
-        res = jailpy(code="print len(bytearray(50000000))")
-        self.assertEqual(res.stdout, "")
-        self.assertNotEqual(res.status, 0)
-
-        # Up the limit, it will succeed
-        set_limit('VMEM', 600000000)
-        res = jailpy(code="print len(bytearray(50000000))")
-        self.assertEqual(res.stdout, "50000000\n")
-        self.assertEqual(res.status, 0)
-
-    def test_disabling_vmem_limit(self):
-        # This will fail (default is 30Mb)
-        res = jailpy(code="print len(bytearray(50000000))")
-        self.assertEqual(res.stdout, "")
-        self.assertNotEqual(res.status, 0)
-
-        # Disable the limit, it will succeed
-        set_limit('VMEM', 0)
-        res = jailpy(code="print len(bytearray(50000000))")
-        self.assertEqual(res.stdout, "50000000\n")
-        self.assertEqual(res.status, 0)
 
 
 class TestMalware(JailCodeHelpers, unittest.TestCase):
