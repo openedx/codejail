@@ -143,13 +143,24 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         self.assertNotEqual(res.status, 0)
 
     def test_cant_use_too_much_time(self):
-        res = jailpy(code="""\
-                import time
-                time.sleep(5)
-                print 'Done!'
-                """)
+        # Default time limit is 1 second.  Sleep for 1.5 seconds.
+        res = jailpy(code="import time; time.sleep(1.5); print 'Done!'")
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, "")
+
+    def test_changing_realtime_limit(self):
+        # Change time limit to 2 seconds, sleeping for 1.5 will be fine.
+        set_limit('REALTIME', 2)
+        res = jailpy(code="import time; time.sleep(1.5); print 'Done!'")
+        self.assertResultOk(res)
+        self.assertEqual(res.stdout, "Done!\n")
+
+    def test_disabling_realtime_limit(self):
+        # Disable the time limit, sleeping for 1.5 will be fine.
+        set_limit('REALTIME', 0)
+        res = jailpy(code="import time; time.sleep(1.5); print 'Done!'")
+        self.assertResultOk(res)
+        self.assertEqual(res.stdout, "Done!\n")
 
     def test_cant_write_files(self):
         res = jailpy(code="""\

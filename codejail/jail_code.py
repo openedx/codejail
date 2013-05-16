@@ -70,6 +70,8 @@ if hasattr(sys, 'real_prefix'):
 LIMITS = {
     # CPU seconds, defaulting to 1.
     "CPU": 1,
+    # Real time, defaulting to 1 second.
+    "REALTIME": 1,
     # Total process virutal memory, in bytes, defaulting to 30 Mb.
     "VMEM": 30000000,
 }
@@ -87,6 +89,9 @@ def set_limit(limit_name, value):
 
         * `"CPU"`: the maximum number of CPU seconds the jailed code can use.
             The value is an integer, defaulting to 1.
+
+        * `"REALTIME"`: the maximum number of seconds the jailed code can run,
+            in real time.  The default is 1 second.
 
         * `"VMEM"`: the total virtual memory available to the jailed code, in
             bytes.  The default is 30 Mb.
@@ -168,8 +173,10 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None):
         )
 
         # Start the time killer thread.
-        killer = ProcessKillerThread(subproc, limit=1.0)
-        killer.start()
+        realtime = LIMITS["REALTIME"]
+        if realtime:
+            killer = ProcessKillerThread(subproc, limit=realtime)
+            killer.start()
 
         result = JailResult()
         result.stdout, result.stderr = subproc.communicate(stdin)
