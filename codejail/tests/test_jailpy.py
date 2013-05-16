@@ -206,6 +206,16 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         self.assertResultOk(res)
         self.assertNotIn("HONEY", res.stdout)
 
+    def test_reading_dev_random(self):
+        # We can read 10 bytes just fine.
+        res = jailpy(code="x = open('/dev/random').read(10); print len(x)")
+        self.assertResultOk(res)
+        self.assertEqual(res.stdout, "10\n")
+
+        # But if we try to read all of it, we'll be killed by the real-time limit.
+        res = jailpy(code="x = open('/dev/random').read(); print 'Done!'")
+        self.assertNotEqual(res.status, 0)
+
 
 class TestSymlinks(JailCodeHelpers, unittest.TestCase):
     """Testing symlink behavior."""
