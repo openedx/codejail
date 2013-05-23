@@ -36,7 +36,7 @@ class JsonSafeTest(unittest.TestCase):
             unicode_char = unichr(code)
 
             # Try it as a dictionary value
-            result = json_safe({'test': unicode_char})
+            json_safe({'test': unicode_char})
             # Different json libraries treat these bad Unicode characters
             # differently. All we care about is that no error is raised from
             # json_safe.
@@ -49,7 +49,7 @@ class JsonSafeTest(unittest.TestCase):
             unicode_char = unichr(code)
 
             # Try it is a dictionary key
-            result = json_safe({unicode_char: 'test'})
+            json_safe({unicode_char: 'test'})
             # Different json libraries treat these bad Unicode characters
             # differently. All we care about is that no error is raised from
             # json_safe.
