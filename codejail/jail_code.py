@@ -72,8 +72,8 @@ LIMITS = {
     "CPU": 1,
     # Real time, defaulting to 1 second.
     "REALTIME": 1,
-    # Total process virutal memory, in bytes, defaulting to 30 Mb.
-    "VMEM": 30000000,
+    # Total process virutal memory, in bytes, defaulting to unlimited.
+    "VMEM": 0,
 }
 
 
@@ -94,7 +94,7 @@ def set_limit(limit_name, value):
             in real time.  The default is 1 second.
 
         * `"VMEM"`: the total virtual memory available to the jailed code, in
-            bytes.  The default is 30 Mb.
+            bytes.  The default is 0 (no memory limit).
 
     Limits are process-wide, and will affect all future calls to jail_code.
     Providing a limit of 0 will disable that limit.

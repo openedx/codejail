@@ -120,20 +120,21 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         super(TestLimits, self).tearDown()
 
     def test_cant_use_too_much_memory(self):
-        # This will fail (default is 30Mb)
+        # This will fail after setting the limit to 30Mb.
+        set_limit('VMEM', 30000000)
         res = jailpy(code="print len(bytearray(50000000))")
         self.assertEqual(res.stdout, "")
         self.assertNotEqual(res.status, 0)
 
     def test_changing_vmem_limit(self):
-        # Up the limit, it will succeed
-        set_limit('VMEM', 600000000)
+        # Up the limit, it will succeed.
+        set_limit('VMEM', 60000000)
         res = jailpy(code="print len(bytearray(50000000))")
         self.assertEqual(res.stdout, "50000000\n")
         self.assertEqual(res.status, 0)
 
     def test_disabling_vmem_limit(self):
-        # Disable the limit, it will succeed
+        # Disable the limit, it will succeed.
         set_limit('VMEM', 0)
         res = jailpy(code="print len(bytearray(50000000))")
         self.assertEqual(res.stdout, "50000000\n")

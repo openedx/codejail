@@ -79,6 +79,7 @@ Other details here that depend on your configuration:
 
     <SANDENV>/bin/python {
         #include <abstractions/base>
+        #include <abstractions/python>
 
         <SANDENV>/** mr,
         # If you have code that the sandbox must be able to access, add lines
