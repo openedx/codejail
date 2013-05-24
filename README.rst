@@ -98,10 +98,41 @@ Other details here that depend on your configuration:
 
 
 Tests
-=====
+-----
 
 The tests run under nose in the standard fashion.
 
 If CodeJail is running unsafely, many of the tests will be automatically
 skipped, or will fail, depending on whether CodeJail thinks it should be in
 safe mode or not.
+
+
+Design
+------
+
+CodeJail is general-purpose enough that it can be used in a variety of projects
+to run untrusted code.  It provides two layers:
+
+* `jail_code.py` offers secure execution of subprocesses.  It does this by
+  running the program in a subprocess managed by AppArmor.
+
+* `safe_exec.py` offers specialized handling of Python execution, using
+  jail_code to provide the semantics of Python's exec statement.
+
+CodeJail runs programs under AppArmor.  AppArmor is an OS-provided feature to
+limit the resources programs can access. To run Python code with limited access
+to resources, we make a new virtualenv, then name that Python executable in an
+AppArmor profile, and restrict resources in that profile.  CodeJail will
+execute the provided Python program with that executable, and AppArmor will
+automatically limit the resources it can access.  CodeJail also uses setrlimit
+to limit the amount of CPU time and/or memory available to the process.
+
+`CodeJail.jail_code` takes a program to run, files to copy into its
+environment, command-line arguments, and a stdin stream.  It creates a
+temporary directory, creates or copies the needed files, spawns a subprocess to
+run the code, and returns the output and exit status of the process.
+
+`CodeJail.safe_exec` emulates Python's exec statement.  It takes a chunk of
+Python code, and runs it using jail_code, modifying the globals dictionary as a
+side-effect.  safe_exec does this by serializing the globals into and out of
+the subprocess as JSON.
