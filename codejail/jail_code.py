@@ -152,7 +152,7 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None,
     with temp_directory() as tmpdir:
 
         if slug:
-            log.debug("Executing jailed code %s in %s", slug, tmpdir)
+            log.warning("Executing jailed code %s in %s", slug, tmpdir)
 
         argv = argv or []
 
