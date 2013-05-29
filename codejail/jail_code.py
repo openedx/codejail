@@ -43,7 +43,9 @@ def configure(command, bin_path, user=None):
 
     # Command-specific arguments
     if command == "python":
-        cmd_argv.append('-E')
+        # -E means ignore the environment variables PYTHON*
+        # -B means don't try to write .pyc files.
+        cmd_argv.extend(['-E', '-B'])
 
     COMMANDS[command] = cmd_argv
 
