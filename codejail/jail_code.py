@@ -113,7 +113,8 @@ class JailResult(object):
         self.stdout = self.stderr = self.status = None
 
 
-def jail_code(command, code=None, files=None, argv=None, stdin=None):
+def jail_code(command, code=None, files=None, argv=None, stdin=None,
+              slug=None):
     """
     Run code in a jailed subprocess.
 
@@ -133,6 +134,11 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None):
 
     `argv` is the command-line arguments to supply.
 
+    `stdin` is a string, the data to provide as the stdin for the process.
+
+    `slug` is an arbitrary string, a description that's meaningful to the
+    caller, that will be used in log messages.
+
     Return an object with:
 
         .stdout: stdout of the program, a string
@@ -145,7 +151,8 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None):
 
     with temp_directory() as tmpdir:
 
-        log.debug("Executing jailed code: %r", code)
+        if slug:
+            log.debug("Executing jailed code %s in %s", slug, tmpdir)
 
         argv = argv or []
 

@@ -36,7 +36,7 @@ class SafeExecException(Exception):
     pass
 
 
-def safe_exec(code, globals_dict, files=None, python_path=None):
+def safe_exec(code, globals_dict, files=None, python_path=None, slug=None):
     """
     Execute code as "exec" does, but safely.
 
@@ -52,6 +52,9 @@ def safe_exec(code, globals_dict, files=None, python_path=None):
     `python_path` is a list of directory paths.  They will be copied just as
     `files` are, but will also be added to `sys.path` so that modules there can
     be imported.
+
+    `slug` is an arbitrary string, a description that's meaningful to the
+    caller, that will be used in log messages.
 
     Returns None.  Changes made by `code` are visible in `globals_dict`.  If
     the code raises an exception, this function will raise `SafeExecException`
@@ -131,7 +134,7 @@ def safe_exec(code, globals_dict, files=None, python_path=None):
         log.debug("Stdin: %s", stdin)
 
     res = jail_code.jail_code(
-        "python", code=jailed_code, stdin=stdin, files=files
+        "python", code=jailed_code, stdin=stdin, files=files, slug=slug,
     )
     if res.status != 0:
         raise SafeExecException(
@@ -172,7 +175,7 @@ def json_safe(d):
     return json.loads(json.dumps(jd))
 
 
-def not_safe_exec(code, globals_dict, files=None, python_path=None):
+def not_safe_exec(code, globals_dict, files=None, python_path=None, slug=None):
     """
     Another implementation of `safe_exec`, but not safe.
 
