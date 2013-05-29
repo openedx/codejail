@@ -44,6 +44,10 @@ def configure(command, bin_path, user=None):
     # Command-specific arguments
     if command == "python":
         cmd_argv.append('-E')
+        # Disable writing out binaries to allow further constraint of 
+        # the apparmor policy.  There's little value in writing 
+        # binaries here as they would only be used by a single process.
+        cmd.argv.append('-B')
 
     COMMANDS[command] = cmd_argv
 
