@@ -185,11 +185,6 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None, slug=None):
     and modifying sys.path.
 
     """
-    # Because it would be bad if this function were used in production, let's
-    # log a warning when it is used.  Developers can can live with one more
-    # log line.
-    log.warning("Using codejail/safe_exec.py:not_safe_exec")
-
     g_dict = json_safe(globals_dict)
 
     with temp_directory() as tmpdir:
@@ -216,7 +211,20 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None, slug=None):
     globals_dict.update(json_safe(g_dict))
 
 
-# Running Python code in the sandbox makes it difficult to debug.
-NO_SAFE_PYTHON = not jail_code.is_configured("python")
-if ALWAYS_BE_UNSAFE or NO_SAFE_PYTHON:   # pragma: no cover
-    safe_exec = not_safe_exec
+# If the developer wants us to be unsafe (ALWAYS_BE_UNSAFE), or if there isn't
+# a configured jail for Python, then we'll be UNSAFE.
+UNSAFE = ALWAYS_BE_UNSAFE or not jail_code.is_configured("python")
+
+if UNSAFE:   # pragma: no cover
+    # Make safe_exec actually call not_safe_exec, but log that we're doing so.
+
+    def safe_exec(*args, **kwargs):                 # pylint: disable=E0102
+        """An actually-unsafe safe_exec, that warns it's being used."""
+
+        # Because it would be bad if this function were used in production,
+        # let's log a warning when it is used.  Developers can can live with
+        # one more log line.
+        slug = kwargs.get('slug', None)
+        log.warning("Using codejail/safe_exec.py:not_safe_exec for %s", slug)
+
+        return not_safe_exec(*args, **kwargs)
