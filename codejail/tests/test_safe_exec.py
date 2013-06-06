@@ -5,7 +5,7 @@ import textwrap
 import unittest
 from nose.plugins.skip import SkipTest
 
-from codejail.safe_exec import safe_exec, not_safe_exec, SafeExecException
+from codejail import safe_exec
 
 
 class SafeExecTests(unittest.TestCase):
@@ -71,7 +71,7 @@ class SafeExecTests(unittest.TestCase):
 
     def test_raising_exceptions(self):
         globs = {}
-        with self.assertRaises(SafeExecException) as what_happened:
+        with self.assertRaises(safe_exec.SafeExecException) as what_happened:
             self.safe_exec(textwrap.dedent("""\
                 raise ValueError("That's not how you pour soup!")
                 """), globs)
@@ -85,7 +85,7 @@ class TestSafeExec(SafeExecTests, unittest.TestCase):
     __test__ = True
 
     def safe_exec(self, *args, **kwargs):
-        safe_exec(*args, **kwargs)
+        safe_exec.safe_exec(*args, **kwargs)
 
 
 class TestNotSafeExec(SafeExecTests, unittest.TestCase):
@@ -100,4 +100,4 @@ class TestNotSafeExec(SafeExecTests, unittest.TestCase):
             raise SkipTest
 
     def safe_exec(self, *args, **kwargs):
-        not_safe_exec(*args, **kwargs)
+        safe_exec.not_safe_exec(*args, **kwargs)
