@@ -222,7 +222,7 @@ if UNSAFE:   # pragma: no cover
         """An actually-unsafe safe_exec, that warns it's being used."""
 
         # Because it would be bad if this function were used in production,
-        # let's log a warning when it is used.  Developers can can live with
+        # let's log a warning when it is used.  Developers can live with
         # one more log line.
         slug = kwargs.get('slug', None)
         log.warning("Using codejail/safe_exec.py:not_safe_exec for %s", slug)
