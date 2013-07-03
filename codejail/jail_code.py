@@ -152,7 +152,7 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None,
     with temp_directory() as tmpdir:
 
         if slug:
-            log.warning("Executing jailed code %s in %s", slug, tmpdir)
+            log.debug("Executing jailed code %s in %s", slug, tmpdir)
 
         argv = argv or []
 
@@ -196,7 +196,7 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None,
 
 def set_process_limits():       # pragma: no cover
     """
-    Set limits on this processs, to be used first in a child process.
+    Set limits on this process, to be used first in a child process.
     """
     # Set a new session id so that this process and all its children will be
     # in a new process group, so we can kill them all later if we need to.
@@ -239,6 +239,6 @@ class ProcessKillerThread(threading.Thread):
             pgid = os.getpgid(self.subproc.pid)
             log.warning(
                 "Killing process %r (group %r), ran too long: %.1fs",
-                self.subproc.pid, pgid, time.time()-start
+                self.subproc.pid, pgid, time.time() - start
             )
             subprocess.call(["sudo", "pkill", "-9", "-g", str(pgid)])
