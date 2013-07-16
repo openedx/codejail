@@ -84,15 +84,19 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         res = jailpy(
             code="""\
                 import os
+                res = []
                 for path, dirs, files in os.walk("."):
-                    print (path, sorted(dirs), sorted(files))
+                    res.append((path, sorted(dirs), sorted(files)))
+                for row in sorted(res):
+                    print row
                 """,
             files=[file_here("hello.txt"), file_here("pylib")]
         )
         self.assertResultOk(res)
         self.assertEqual(res.stdout, textwrap.dedent("""\
-            ('.', ['pylib'], ['hello.txt', 'jailed_code'])
+            ('.', ['pylib', 'tmp'], ['hello.txt', 'jailed_code'])
             ('./pylib', [], ['module.py', 'module.pyc'])
+            ('./tmp', [], [])
             """))
 
     def test_executing_a_copied_file(self):
@@ -176,6 +180,54 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, "Trying\n")
         self.assertIn("ermission denied", res.stderr)
+
+    def test_can_write_temp_files(self):
+        set_limit('FSIZE', 1000)
+        res = jailpy(code="""\
+                import os, tempfile
+                print "Trying mkstemp"
+                f, path = tempfile.mkstemp()
+                os.close(f)
+                with open(path, "w") as f1:
+                    f1.write("hello")
+                with open(path) as f2:
+                    print "Got this:", f2.read()
+                """)
+        self.assertResultOk(res)
+        self.assertEqual(res.stdout, "Trying mkstemp\nGot this: hello\n")
+
+    def test_cant_write_large_temp_files(self):
+        set_limit('FSIZE', 1000)
+        res = jailpy(code="""\
+                import os, tempfile
+                print "Trying mkstemp"
+                f, path = tempfile.mkstemp()
+                os.close(f)
+                with open(path, "w") as f1:
+                    f1.write("hello"*250)
+                with open(path) as f2:
+                    print "Got this:", f2.read()
+                """)
+        self.assertNotEqual(res.status, 0)
+        self.assertEqual(res.stdout, "Trying mkstemp\n")
+        self.assertIn("IOError", res.stderr)
+
+    def test_cant_write_many_small_temp_files(self):
+        set_limit('FSIZE', 1000)
+        res = jailpy(code="""\
+                import os, tempfile
+                print "Trying mkstemp"
+                for i in range(250):
+                    f, path = tempfile.mkstemp()
+                    os.close(f)
+                    with open(path, "w") as f1:
+                        f1.write("hello")
+                    with open(path) as f2:
+                        assert f2.read() == "hello"
+                print "Finished 250"
+                """)
+        self.assertResultOk(res)
+        self.assertEqual(res.stdout, "Trying mkstemp\nFinished 250\n")
 
     def test_cant_use_network(self):
         res = jailpy(code="""\

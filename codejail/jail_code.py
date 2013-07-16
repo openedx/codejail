@@ -32,14 +32,7 @@ def configure(command, bin_path, user=None):
     the user name to run the command under.
 
     """
-    cmd_argv = []
-
-    if user:
-        # Run as the specified user
-        cmd_argv.extend(['sudo', '-u', user])
-
-    # Run the command!
-    cmd_argv.append(bin_path)
+    cmd_argv = [bin_path]
 
     # Command-specific arguments
     if command == "python":
@@ -47,7 +40,7 @@ def configure(command, bin_path, user=None):
         # -B means don't try to write .pyc files.
         cmd_argv.extend(['-E', '-B'])
 
-    COMMANDS[command] = cmd_argv
+    COMMANDS[command] = {'argv': cmd_argv, 'user': user}
 
 
 def is_configured(command):
@@ -76,6 +69,8 @@ LIMITS = {
     "REALTIME": 1,
     # Total process virutal memory, in bytes, defaulting to unlimited.
     "VMEM": 0,
+    # Size of files creatable, in bytes, defaulting to nothing can be written.
+    "FSIZE": 0,
 }
 
 
@@ -97,6 +92,9 @@ def set_limit(limit_name, value):
 
         * `"VMEM"`: the total virtual memory available to the jailed code, in
             bytes.  The default is 0 (no memory limit).
+
+        * `"FSIZE"`: the maximum size of files creatable by the jailed code,
+            in bytes.  The default is 0 (no files may be created).
 
     Limits are process-wide, and will affect all future calls to jail_code.
     Providing a limit of 0 will disable that limit.
@@ -149,34 +147,57 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None,
     if not is_configured(command):
         raise Exception("jail_code needs to be configured for %r" % command)
 
-    with temp_directory() as tmpdir:
+    # We make a temp directory to serve as the home of the sandboxed code.
+    # It has a writable "tmp" directory within it for temp files.
+
+    with temp_directory() as homedir:
+
+        # Make directory readable by other users ('sandbox' user needs to be
+        # able to read it).
+        os.chmod(homedir, 0775)
+
+        # Make a subdir to use for temp files, world-writable so that the
+        # sandbox user can write to it.
+        tmptmp = os.path.join(homedir, "tmp")
+        os.mkdir(tmptmp)
+        os.chmod(tmptmp, 0777)
 
         if slug:
-            log.debug("Executing jailed code %s in %s", slug, tmpdir)
+            log.debug("Executing jailed code %s in %s", slug, homedir)
 
         argv = argv or []
 
         # All the supporting files are copied into our directory.
         for filename in files or ():
-            dest = os.path.join(tmpdir, os.path.basename(filename))
+            dest = os.path.join(homedir, os.path.basename(filename))
             if os.path.islink(filename):
                 os.symlink(os.readlink(filename), dest)
             elif os.path.isfile(filename):
-                shutil.copy(filename, tmpdir)
+                shutil.copy(filename, homedir)
             else:
                 shutil.copytree(filename, dest, symlinks=True)
 
         # Create the main file.
         if code:
-            with open(os.path.join(tmpdir, "jailed_code"), "w") as jailed:
+            with open(os.path.join(homedir, "jailed_code"), "w") as jailed:
                 jailed.write(code)
 
             argv = ["jailed_code"] + argv
 
-        cmd = COMMANDS[command] + argv
+        cmd = []
 
+        user = COMMANDS[command]['user']
+        if user:
+            # Run as the specified user
+            cmd.extend(['sudo', '-u', user])
+
+        cmd.extend(['TMPDIR=tmp'])
+        cmd.extend(COMMANDS[command]['argv'])
+        cmd.extend(argv)
+
+        # Run the subprocess.
         subproc = subprocess.Popen(
-            cmd, preexec_fn=set_process_limits, cwd=tmpdir, env={},
+            cmd, preexec_fn=set_process_limits, cwd=homedir, env={},
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
@@ -202,9 +223,8 @@ def set_process_limits():       # pragma: no cover
     # in a new process group, so we can kill them all later if we need to.
     os.setsid()
 
-    # No subprocesses or files.
+    # No subprocesses.
     resource.setrlimit(resource.RLIMIT_NPROC, (0, 0))
-    resource.setrlimit(resource.RLIMIT_FSIZE, (0, 0))
 
     # CPU seconds, not wall clock time.
     cpu = LIMITS["CPU"]
@@ -215,6 +235,10 @@ def set_process_limits():       # pragma: no cover
     vmem = LIMITS["VMEM"]
     if vmem:
         resource.setrlimit(resource.RLIMIT_AS, (vmem, vmem))
+
+    # Size of written files.  Can be zero (nothing can be written).
+    fsize = LIMITS["FSIZE"]
+    resource.setrlimit(resource.RLIMIT_FSIZE, (fsize, fsize))
 
 
 class ProcessKillerThread(threading.Thread):
