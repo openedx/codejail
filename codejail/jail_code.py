@@ -40,7 +40,12 @@ def configure(command, bin_path, user=None):
         # -B means don't try to write .pyc files.
         cmd_argv.extend(['-E', '-B'])
 
-    COMMANDS[command] = {'argv': cmd_argv, 'user': user}
+    COMMANDS[command] = {
+        # The start of the command line for this program.
+        'cmdline_start': cmd_argv,
+        # The user to run this as, perhaps None.
+        'user': user,
+    }
 
 
 def is_configured(command):
@@ -186,13 +191,17 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None,
 
         cmd = []
 
+        # Build the command to run.
         user = COMMANDS[command]['user']
         if user:
             # Run as the specified user
             cmd.extend(['sudo', '-u', user])
 
+        # Point TMPDIR at our temp directory.
         cmd.extend(['TMPDIR=tmp'])
-        cmd.extend(COMMANDS[command]['argv'])
+        # Start with the command line dictated by "python" or whatever.
+        cmd.extend(COMMANDS[command]['cmdline_start'])
+        # Add the code-specific command line pieces.
         cmd.extend(argv)
 
         # Run the subprocess.
