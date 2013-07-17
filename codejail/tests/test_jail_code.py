@@ -213,10 +213,13 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         self.assertIn("IOError", res.stderr)
 
     def test_cant_write_many_small_temp_files(self):
+        # We would like this to fail, but there's nothing that checks total
+        # file size written, so the sandbox does not prevent it yet.
+        raise SkipTest("There's nothing checking total file size yet.")
         set_limit('FSIZE', 1000)
         res = jailpy(code="""\
                 import os, tempfile
-                print "Trying mkstemp"
+                print "Trying mkstemp 250"
                 for i in range(250):
                     f, path = tempfile.mkstemp()
                     os.close(f)
@@ -226,8 +229,9 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
                         assert f2.read() == "hello"
                 print "Finished 250"
                 """)
-        self.assertResultOk(res)
-        self.assertEqual(res.stdout, "Trying mkstemp\nFinished 250\n")
+        self.assertNotEqual(res.status, 0)
+        self.assertEqual(res.stdout, "Trying mkstemp 250\n")
+        self.assertIn("IOError", res.stderr)
 
     def test_cant_use_network(self):
         res = jailpy(code="""\
