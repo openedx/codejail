@@ -13,9 +13,6 @@ def temp_directory():
     The directory will be removed when done.
     """
     temp_dir = tempfile.mkdtemp(prefix="codejail-")
-    # Make directory readable by other users ('sandbox' user needs to be
-    # able to read it).
-    os.chmod(temp_dir, 0775)
     try:
         yield temp_dir
     finally:
