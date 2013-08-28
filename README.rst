@@ -52,7 +52,7 @@ Other details here that depend on your configuration:
    using pip to install them::
 
     $ source <SANDENV>/bin/activate
-    $ sudo pip install -r sandbox-requirements.txt
+    $ pip install -r sandbox-requirements.txt
 
 3. Add a sandbox user::
 
@@ -62,7 +62,7 @@ Other details here that depend on your configuration:
 4. Let the web server run the sandboxed Python as sandbox.  Create the file
    `/etc/sudoers.d/01-sandbox`::
 
-    $ visudo -f /etc/sudoers.d/01-sandbox
+    $ sudo visudo -f /etc/sudoers.d/01-sandbox
 
     <WWWUSER> ALL=(sandbox) SETENV:NOPASSWD:<SANDENV>/bin/python
     <WWWUSER> ALL=(ALL) NOPASSWD:/usr/bin/pkill
