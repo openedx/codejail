@@ -97,6 +97,24 @@ Other details here that depend on your configuration:
 7. Reactivate your project's main virtualenv again.
 
 
+If you need to change the packages installed into your sandbox's virtualenv,
+you'll need to disable AppArmor, because your sandboxed Python doesn't have
+the rights to modify the files in its site-packages directory.
+
+1. Disable AppArmor for your sandbox::
+
+    $ sudo apt-get install apparmor-utils  # if you haven't already
+    $ sudo aa-complain /etc/apparmor.d/home.chris.ve.myproj-sandbox.bin.python
+
+2. Install or otherwise change the packages installed::
+
+    $ pip install -r sandbox-requirements.txt
+
+3. Re-enable AppArmor for your sandbox::
+
+    $ sudo aa-enforce /etc/apparmor.d/home.chris.ve.myproj-sandbox.bin.python
+
+
 Tests
 -----
 
