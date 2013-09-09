@@ -66,10 +66,10 @@ automatically detected and used if you put it right alongside your existing
 virtualenv, but with `-sandbox` appended.  So if your existing virtualenv is in
 `/home/chris/ve/myproj`, make **<SANDENV>** be `/home/chris/ve/myproj-sandbox`.
 
-Other details here that depend on your configuration:
+The user running the LMS is **<SANDBOX_CALLER>**, for example, you on
+your dev machine, or `www-data` on a server.
 
-    - The user running the LMS is **<SANDBOX_CALLER>**, for example, you on your dev
-      machine, or `www-data` on a server.
+Other details here that depend on your configuration:
 
 1. Create the new virtualenv::
 
@@ -128,7 +128,7 @@ Using CodeJail
 --------------
 
 If your CodeJail is properly configured, to use safe_exec, try these
-commands at your Python terminal:
+commands at your Python terminal::
 
     import codejail.jail_code
     codejail.jail_code.configure('python', '**<SANDENV>**/bin/python')
