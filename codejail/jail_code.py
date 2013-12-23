@@ -167,9 +167,6 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None,
         os.mkdir(tmptmp)
         os.chmod(tmptmp, 0777)
 
-        if slug:
-            log.debug("Executing jailed code %s in %s", slug, homedir)
-
         argv = argv or []
 
         # All the supporting files are copied into our directory.
@@ -210,6 +207,9 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
+
+        if slug:
+            log.debug("Executing jailed code %s in %s, with PID %s", slug, homedir, subproc.id)
 
         # Start the time killer thread.
         realtime = LIMITS["REALTIME"]
