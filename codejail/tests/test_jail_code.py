@@ -48,7 +48,8 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
     def test_argv(self):
         res = jailpy(
             code="import sys; print ':'.join(sys.argv[1:])",
-            argv=["Hello", "world", "-x"]
+            argv=["Hello", "world", "-x"],
+            slug="a/useful/slug",
         )
         self.assertResultOk(res)
         self.assertEqual(res.stdout, "Hello:world:-x\n")
