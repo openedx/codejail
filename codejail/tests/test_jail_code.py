@@ -248,6 +248,18 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         self.assertEqual(res.stdout, "Reading google\n")
         self.assertIn("IOError", res.stderr)
 
+    def test_cant_use_raw_network(self):
+        res = jailpy(code="""\
+                import urllib
+                print "Reading example.com"
+                u = urllib.urlopen("http://93.184.216.119")
+                example = u.read()
+                print len(example)
+                """)
+        self.assertNotEqual(res.status, 0)
+        self.assertEqual(res.stdout, "Reading example.com\n")
+        self.assertIn("IOError", res.stderr)
+
     def test_cant_fork(self):
         res = jailpy(code="""\
                 import os
