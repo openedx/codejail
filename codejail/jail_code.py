@@ -209,7 +209,7 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None,
         )
 
         if slug:
-            log.debug("Executing jailed code %s in %s, with PID %s", slug, homedir, subproc.pid)
+            log.info("Executing jailed code %s in %s, with PID %s", slug, homedir, subproc.pid)
 
         # Start the time killer thread.
         realtime = LIMITS["REALTIME"]
