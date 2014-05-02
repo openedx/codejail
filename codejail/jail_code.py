@@ -116,8 +116,8 @@ class JailResult(object):
         self.stdout = self.stderr = self.status = None
 
 
-def jail_code(command, code=None, files=None, argv=None, stdin=None,
-              slug=None):
+def jail_code(command, code=None, files=None, extra_files=None, argv=None,
+              stdin=None, slug=None):
     """
     Run code in a jailed subprocess.
 
@@ -134,6 +134,11 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None,
     the code access to the files.  Symlinks will be copied as symlinks.  If the
     linked-to file is not accessible to the sandbox, the symlink will be
     unreadable as well.
+
+    `extra_files` is a list of pairs, each pair is a filename and a bytestring
+    of contents to write into that file.  These files will be created in the
+    temp directory and cleaned up automatically.  No subdirectories are
+    supported in the filename.
 
     `argv` is the command-line arguments to supply.
 
@@ -181,10 +186,15 @@ def jail_code(command, code=None, files=None, argv=None, stdin=None,
 
         # Create the main file.
         if code:
-            with open(os.path.join(homedir, "jailed_code"), "w") as jailed:
+            with open(os.path.join(homedir, "jailed_code"), "wb") as jailed:
                 jailed.write(code)
 
             argv = ["jailed_code"] + argv
+
+        # Create extra files requested by the caller:
+        for name, content in extra_files or ():
+            with open(os.path.join(homedir, name), "wb") as extra:
+                extra.write(content)
 
         cmd = []
 
