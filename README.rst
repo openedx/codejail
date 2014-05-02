@@ -87,7 +87,7 @@ Other details here that depend on your configuration:
         /the/path/to/your/sandbox-packages/** r,
 
         /tmp/codejail-*/ rix,
-        /tmp/codejail-*/** rix,
+        /tmp/codejail-*/** wrix,
     }
 
 6. Parse the profiles::
