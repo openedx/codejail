@@ -111,6 +111,25 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
             "This is doit.py!\nMy args are ['doit.py', '1', '2', '3']\n"
         )
 
+    def test_executing_extra_files(self):
+        res = jailpy(
+            extra_files=[
+                ("run.py", textwrap.dedent("""\
+                            import os
+                            print os.listdir('.')
+                            print open('also.txt').read()
+                            """)),
+                # This file has some non-ASCII, non-UTF8, just binary data.
+                ("also.txt", "also here\xff\x00\xab"),
+            ],
+            argv=["run.py"],
+        )
+        self.assertResultOk(res)
+        self.assertEqual(
+            res.stdout,
+            "['tmp', 'also.txt', 'run.py']\nalso here\xff\x00\xab\n"
+        )
+
 
 class TestLimits(JailCodeHelpers, unittest.TestCase):
     """Tests of the resource limits, and changing them."""
