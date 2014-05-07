@@ -33,6 +33,8 @@ class JailCodeHelpers(object):
 
     def assertResultOk(self, res):
         """Assert that `res` exited well (0), and had no stderr output."""
+        if res.stderr:
+            print "---- stderr:\n%s" % res.stderr
         self.assertEqual(res.stderr, "")        # pylint: disable=E1101
         self.assertEqual(res.status, 0)         # pylint: disable=E1101
 
@@ -226,13 +228,16 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
                 f, path = tempfile.mkstemp()
                 os.close(f)
                 with open(path, "w") as f1:
-                    f1.write("hello"*250)
-                with open(path) as f2:
-                    print "Got this:", f2.read()
+                    try:
+                        f1.write(".".join("%05d" % i for i in xrange(1000)))
+                    except IOError as e:
+                        print "Expected exception: %s" % e
+                    else:
+                        with open(path) as f2:
+                            print "Got this:", f2.read()
                 """)
-        self.assertNotEqual(res.status, 0)
-        self.assertEqual(res.stdout, "Trying mkstemp\n")
-        self.assertIn("IOError", res.stderr)
+        self.assertResultOk(res)
+        self.assertIn("Expected exception", res.stdout)
 
     def test_cant_write_many_small_temp_files(self):
         # We would like this to fail, but there's nothing that checks total
