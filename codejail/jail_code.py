@@ -237,7 +237,7 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         # Remove the tmptmp directory as the sandbox user
         # since the sandbox user may have written files that
         # the application user can't delete.
-        rm_cmd.extend(['rm', tmptmp])
+        rm_cmd.extend(['/bin/rm', tmptmp])
 
         # Run the rm command subprocess.
         subproc = subprocess.Popen(
