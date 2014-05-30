@@ -132,6 +132,36 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
             "['tmp', 'also.txt', 'run.py']\nalso here\xff\x00\xab\n"
         )
 
+    def test_we_can_remove_tmp_files(self):
+        # This test is meant to create a tmp file in a temp folder as the
+        # sandbox user that the application user can't delete.
+        # This is because the sandbox user has the ability to delete
+        # any toplevel files in the tmp directory but not the abilty
+        # to delete files in folders that are only owned by the sandbox
+        # user, such as the temp directory created below.
+        set_limit('FSIZE', 1000)
+        res = jailpy(
+            code="""\
+                import os, shutil, tempfile
+                temp_dir = tempfile.mkdtemp()
+                with open("{}/myfile.txt".format(temp_dir), "w") as f:
+                    f.write("This is my file!")
+                shutil.move("{}/myfile.txt".format(temp_dir),
+                            "{}/overthere.txt".format(temp_dir))
+                with open("{}/overthere.txt".format(temp_dir)) as f:
+                    print f.read()
+                with open("{}/.myfile.txt".format(temp_dir), "w") as f:
+                    f.write("This is my dot file!")
+                # Now make it secret!
+                os.chmod("{}/overthere.txt".format(temp_dir), 0)
+                print os.listdir(temp_dir)
+            """)
+        self.assertResultOk(res)
+        self.assertEqual(
+            res.stdout,
+            "This is my file!\n['overthere.txt', '.myfile.txt']\n"
+        )
+
 
 class TestLimits(JailCodeHelpers, unittest.TestCase):
     """Tests of the resource limits, and changing them."""
