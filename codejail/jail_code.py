@@ -197,17 +197,20 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
                 extra.write(content)
 
         cmd = []
+        rm_cmd = []
 
         # Build the command to run.
         user = COMMANDS[command]['user']
         if user:
             # Run as the specified user
             cmd.extend(['sudo', '-u', user])
+            rm_cmd.extend(['sudo', '-u', user])
 
         # Point TMPDIR at our temp directory.
         cmd.extend(['TMPDIR=tmp'])
         # Start with the command line dictated by "python" or whatever.
         cmd.extend(COMMANDS[command]['cmdline_start'])
+
         # Add the code-specific command line pieces.
         cmd.extend(argv)
 
@@ -230,6 +233,16 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         result = JailResult()
         result.stdout, result.stderr = subproc.communicate(stdin)
         result.status = subproc.returncode
+
+        # Remove the tmptmp directory as the sandbox user
+        # since the sandbox user may have written files that
+        # the application user can't delete.
+        rm_cmd.extend(['rm', tmptmp])
+
+        # Run the rm command subprocess.
+        subproc = subprocess.Popen(
+            rm_cmd, preexec_fn=set_process_limits, cwd=homedir, env={},
+        )
 
     return result
 
