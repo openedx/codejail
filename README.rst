@@ -19,6 +19,34 @@ using the same API, but will not guard against malicious code.  This allows the
 same code to be used on safe-configured or non-safe-configured developer's
 machines.
 
+A CodeJail sandbox consists of several pieces: 
+
+#) Sandbox environment. For a Python setup, this would be Python and
+   associated core packages. This is denoted throughout this document
+   as **<SANDENV>**. This is read-only. 
+
+#) Sandbox packages. These are additional packages needed for a given
+   run. For example, this might be a grader written by an instructor
+   to run over a student's code, or data that a student's code might
+   need to access. This is denoted throughout this document as
+   **<SANDPACK>**. This is read-only.
+
+#) Untrusted packages. This is typically the code submitted by the
+   student to be tested on the server, as well as any data the code
+   may need to modify. This is denoted throughout this document as
+   **<UNTRUSTED_PACK>**. This is currently read-only, but may need to 
+   be read-write for some applications.
+
+#) OS packages. These are standard system libraries needed to run
+   Python (e.g. things in /lib). This is denoted throughout this
+   document as **<OSPACK>**. This is read-only, and is specified by
+   Ubuntu's AppArmor profile.
+
+To run, CodeJail requires two user accounts. One account is the main
+account under which the code runs, which has access to create
+sandboxes. This will be referred to as **<SANDBOX_CALLER>**. The
+second account is the account under which the sandbox runs. This is
+typically the account 'sandbox.'
 
 Installation
 ------------
@@ -33,25 +61,25 @@ To secure Python execution, you'll be creating a new virtualenv.  This means
 you'll have two: the main virtualenv for your project, and the new one for
 sandboxed Python code.
 
-Choose a place for the new virtualenv, call it <SANDENV>.  It will be
+Choose a place for the new virtualenv, call it **<SANDENV>**.  It will be
 automatically detected and used if you put it right alongside your existing
 virtualenv, but with `-sandbox` appended.  So if your existing virtualenv is in
-`/home/chris/ve/myproj`, make <SANDENV> be `/home/chris/ve/myproj-sandbox`.
+`/home/chris/ve/myproj`, make **<SANDENV>** be `/home/chris/ve/myproj-sandbox`.
+
+The user running the LMS is **<SANDBOX_CALLER>**, for example, you on
+your dev machine, or `www-data` on a server.
 
 Other details here that depend on your configuration:
 
-    - The user running the LMS is <WWWUSER>, for example, you on your dev
-      machine, or `www-data` on a server.
-
 1. Create the new virtualenv::
 
-    $ sudo virtualenv <SANDENV>
+    $ sudo virtualenv **<SANDENV>**
 
 2. (Optional) If you have particular packages you want available to your
    sandboxed code, install them by activating the sandbox virtual env, and
    using pip to install them::
 
-    $ source <SANDENV>/bin/activate
+    $ source **<SANDENV>**/bin/activate
     $ pip install -r sandbox-requirements.txt
 
 3. Add a sandbox user::
@@ -64,8 +92,8 @@ Other details here that depend on your configuration:
 
     $ sudo visudo -f /etc/sudoers.d/01-sandbox
 
-    <WWWUSER> ALL=(sandbox) SETENV:NOPASSWD:<SANDENV>/bin/python
-    <WWWUSER> ALL=(ALL) NOPASSWD:/usr/bin/pkill
+    **<SANDBOX_CALLER>** ALL=(sandbox) SETENV:NOPASSWD:**<SANDENV>**/bin/python
+    **<SANDBOX_CALLER>** ALL=(ALL) NOPASSWD:/usr/bin/pkill
 
 5. Edit an AppArmor profile.  This is a text file specifying the limits on the
    sandboxed Python executable.  The file must be in `/etc/apparmor.d` and must
@@ -77,11 +105,11 @@ Other details here that depend on your configuration:
 
     #include <tunables/global>
 
-    <SANDENV>/bin/python {
+    **<SANDENV>**/bin/python {
         #include <abstractions/base>
         #include <abstractions/python>
 
-        <SANDENV>/** mr,
+        **<SANDENV>**/** mr,
         # If you have code that the sandbox must be able to access, add lines
         # pointing to those directories:
         /the/path/to/your/sandbox-packages/** r,
@@ -92,10 +120,22 @@ Other details here that depend on your configuration:
 
 6. Parse the profiles::
 
-    $ sudo apparmor_parser <APPARMOR_FILE>
+    $ sudo apparmor_parser **<APPARMOR_FILE>**
 
 7. Reactivate your project's main virtualenv again.
 
+Using CodeJail
+--------------
+
+If your CodeJail is properly configured, to use safe_exec, try these
+commands at your Python terminal::
+
+    import codejail.jail_code
+    codejail.jail_code.configure('python', '**<SANDENV>**/bin/python')
+    import codejail.safe_exec
+    codejail.safe_exec.safe_exec("import os\nos.system('ls /etc')", {})
+
+This should fail with an exception. 
 
 If you need to change the packages installed into your sandbox's virtualenv,
 you'll need to disable AppArmor, because your sandboxed Python doesn't have
