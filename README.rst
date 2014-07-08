@@ -10,7 +10,7 @@ AppArmor, then CodeJail won't protect the execution.
 
 CodeJail is designed to be configurable, and will auto-configure itself for
 Python execution if you install it properly.  The configuration is designed to
-be flexible: it can run in safe more or unsafe mode.  This helps support large
+be flexible: it can run in safe mode or unsafe mode.  This helps support large
 development groups where only some of the developers are involved enough with
 secure execution to configure AppArmor on their development machines.
 
