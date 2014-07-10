@@ -73,13 +73,13 @@ Other details here that depend on your configuration:
 
 1. Create the new virtualenv::
 
-    $ sudo virtualenv **<SANDENV>**
+    $ sudo virtualenv <SANDENV>
 
 2. (Optional) If you have particular packages you want available to your
    sandboxed code, install them by activating the sandbox virtual env, and
    using pip to install them::
 
-    $ source **<SANDENV>**/bin/activate
+    $ source <SANDENV>/bin/activate
     $ pip install -r sandbox-requirements.txt
 
 3. Add a sandbox user::
@@ -92,8 +92,8 @@ Other details here that depend on your configuration:
 
     $ sudo visudo -f /etc/sudoers.d/01-sandbox
 
-    **<SANDBOX_CALLER>** ALL=(sandbox) SETENV:NOPASSWD:**<SANDENV>**/bin/python
-    **<SANDBOX_CALLER>** ALL=(ALL) NOPASSWD:/usr/bin/pkill
+    <SANDBOX_CALLER> ALL=(sandbox) SETENV:NOPASSWD:<SANDENV>/bin/python
+    <SANDBOX_CALLER> ALL=(ALL) NOPASSWD:/usr/bin/pkill
 
 5. Edit an AppArmor profile.  This is a text file specifying the limits on the
    sandboxed Python executable.  The file must be in `/etc/apparmor.d` and must
@@ -105,11 +105,11 @@ Other details here that depend on your configuration:
 
     #include <tunables/global>
 
-    **<SANDENV>**/bin/python {
+    <SANDENV>/bin/python {
         #include <abstractions/base>
         #include <abstractions/python>
 
-        **<SANDENV>**/** mr,
+        <SANDENV>/** mr,
         # If you have code that the sandbox must be able to access, add lines
         # pointing to those directories:
         /the/path/to/your/sandbox-packages/** r,
@@ -120,18 +120,18 @@ Other details here that depend on your configuration:
 
 6. Parse the profiles::
 
-    $ sudo apparmor_parser **<APPARMOR_FILE>**
+    $ sudo apparmor_parser <APPARMOR_FILE>
 
 7. Reactivate your project's main virtualenv again.
 
 Using CodeJail
 --------------
 
-If your CodeJail is properly configured, to use safe_exec, try these
+If your CodeJail is properly configured to use safe_exec, try these
 commands at your Python terminal::
 
     import codejail.jail_code
-    codejail.jail_code.configure('python', '**<SANDENV>**/bin/python')
+    codejail.jail_code.configure('python', '<SANDENV>/bin/python')
     import codejail.safe_exec
     codejail.safe_exec.safe_exec("import os\nos.system('ls /etc')", {})
 
