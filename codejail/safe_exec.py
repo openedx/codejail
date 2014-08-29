@@ -36,7 +36,8 @@ class SafeExecException(Exception):
     pass
 
 
-def safe_exec(code, globals_dict, files=None, python_path=None, slug=None):
+def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
+              extra_files=None):
     """
     Execute code as "exec" does, but safely.
 
@@ -49,12 +50,18 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None):
     determine whether the file is appropriate or safe to copy.  The caller must
     determine which files to provide to the code.
 
-    `python_path` is a list of directory paths.  They will be copied just as
-    `files` are, but will also be added to `sys.path` so that modules there can
-    be imported.
+    `python_path` is a list of directory or file paths.  These names will be
+    added to `sys.path` so that modules they contain can be imported.  Only
+    directories and zip files are supported.  If the name is not provided in
+    `extras_files`, it will be copied just as if it had been listed in `files`.
 
     `slug` is an arbitrary string, a description that's meaningful to the
     caller, that will be used in log messages.
+
+    `extra_files` is a list of pairs, each pair is a filename and a bytestring
+    of contents to write into that file.  These files will be created in the
+    temp directory and cleaned up automatically.  No subdirectories are
+    supported in the filename.
 
     Returns None.  Changes made by `code` are visible in `globals_dict`.  If
     the code raises an exception, this function will raise `SafeExecException`
@@ -63,7 +70,12 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None):
 
     """
     the_code = []
+
     files = list(files or ())
+    extra_files = extra_files or ()
+    python_path = python_path or ()
+
+    extra_names = set(name for name, contents in extra_files)
 
     the_code.append(textwrap.dedent(
         """
@@ -89,10 +101,11 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None):
         code, g_dict = json.load(sys.stdin)
         """))
 
-    for pydir in python_path or ():
+    for pydir in python_path:
         pybase = os.path.basename(pydir)
         the_code.append("sys.path.append(%r)\n" % pybase)
-        files.append(pydir)
+        if pybase not in extra_names:
+            files.append(pydir)
 
     the_code.append(textwrap.dedent(
         # Execute the sandboxed code.
@@ -135,6 +148,7 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None):
 
     res = jail_code.jail_code(
         "python", code=jailed_code, stdin=stdin, files=files, slug=slug,
+        extra_files=extra_files,
     )
     if res.status != 0:
         raise SafeExecException(
@@ -175,7 +189,8 @@ def json_safe(d):
     return json.loads(json.dumps(jd))
 
 
-def not_safe_exec(code, globals_dict, files=None, python_path=None, slug=None):
+def not_safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
+                  extra_files=None):
     """
     Another implementation of `safe_exec`, but not safe.
 
@@ -193,6 +208,10 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None, slug=None):
             for filename in files or ():
                 dest = os.path.join(tmpdir, os.path.basename(filename))
                 shutil.copyfile(filename, dest)
+            for filename, contents in extra_files or ():
+                dest = os.path.join(tmpdir, filename)
+                with open(dest, "w") as f:
+                    f.write(contents)
 
             original_path = sys.path
             if python_path:
