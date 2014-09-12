@@ -93,6 +93,7 @@ Other details here that depend on your configuration:
     $ sudo visudo -f /etc/sudoers.d/01-sandbox
 
     <SANDBOX_CALLER> ALL=(sandbox) SETENV:NOPASSWD:<SANDENV>/bin/python
+    <SANDBOX_CALLER> ALL=(sandbox) SETENV:NOPASSWD:/bin/rm /tmp/codejail-*/tmp
     <SANDBOX_CALLER> ALL=(ALL) NOPASSWD:/usr/bin/pkill
 
 5. Edit an AppArmor profile.  This is a text file specifying the limits on the
