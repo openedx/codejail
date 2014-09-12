@@ -132,6 +132,27 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
             "['tmp', 'also.txt', 'run.py']\nalso here\xff\x00\xab\n"
         )
 
+    def test_we_can_remove_tmp_files(self):
+        # This test is meant to create a tmp file as the sandbox user that the
+        # application user can't delete.
+        # BUT: it doesn't do that, and I'm not sure how to create that
+        # situation.... :( :(
+        set_limit('FSIZE', 1000)
+        res = jailpy(
+            code="""\
+                import os, shutil
+                with open("tmp/myfile.txt", "w") as f:
+                    f.write("This is my file!")
+                shutil.move("tmp/myfile.txt", "tmp/overthere.txt")
+                with open("tmp/overthere.txt") as f:
+                    print f.read()
+                # Now make it secret!
+                os.chmod("tmp/overthere.txt", 0)
+                print os.listdir("tmp")
+            """)
+        self.assertResultOk(res)
+        self.assertEqual(res.stdout, "This is my file!\n['overthere.txt']\n")
+
 
 class TestLimits(JailCodeHelpers, unittest.TestCase):
     """Tests of the resource limits, and changing them."""
