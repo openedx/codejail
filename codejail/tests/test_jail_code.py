@@ -118,7 +118,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
             extra_files=[
                 ("run.py", textwrap.dedent("""\
                             import os
-                            print os.listdir('.')
+                            print sorted(os.listdir('.'))
                             print open('also.txt').read()
                             """)),
                 # This file has some non-ASCII, non-UTF8, just binary data.
@@ -129,7 +129,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         self.assertResultOk(res)
         self.assertEqual(
             res.stdout,
-            "['tmp', 'also.txt', 'run.py']\nalso here\xff\x00\xab\n"
+            "['also.txt', 'run.py', 'tmp']\nalso here\xff\x00\xab\n"
         )
 
     def test_we_can_remove_tmp_files(self):
