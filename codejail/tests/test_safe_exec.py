@@ -1,8 +1,11 @@
 """Test safe_exec.py"""
 
+from cStringIO import StringIO
 import os.path
 import textwrap
 import unittest
+import zipfile
+
 from nose.plugins.skip import SkipTest
 
 from codejail import safe_exec
@@ -77,6 +80,45 @@ class SafeExecTests(unittest.TestCase):
                 """), globs)
         msg = str(what_happened.exception)
         self.assertIn("ValueError: That's not how you pour soup!", msg)
+
+    def test_extra_files(self):
+        globs = {}
+        extras = [
+            ("extra.txt", "I'm extra!\n"),
+            ("also.dat", "\x01\xff\x02\xfe"),
+        ]
+        self.safe_exec(textwrap.dedent("""\
+            with open("extra.txt") as f:
+                extra = f.read()
+            with open("also.dat") as f:
+                also = f.read().encode("hex")
+            """), globs, extra_files=extras)
+        self.assertEqual(globs['extra'], "I'm extra!\n")
+        self.assertEqual(globs['also'], "01ff02fe")
+
+    def test_extra_files_as_pythonpath_zipfile(self):
+        zipstring = StringIO()
+        zipf = zipfile.ZipFile(zipstring, "w")
+        zipf.writestr("zipped_module1.py", textwrap.dedent("""\
+            def func1(x):
+                return 2*x + 3
+            """))
+        zipf.writestr("zipped_module2.py", textwrap.dedent("""\
+            def func2(s):
+                return "X" + s + s + "X"
+            """))
+        zipf.close()
+        globs = {}
+        extras = [("code.zip", zipstring.getvalue())]
+        self.safe_exec(textwrap.dedent("""\
+            import zipped_module1 as zm1
+            import zipped_module2 as zm2
+            a = zm1.func1(10)
+            b = zm2.func2("hello")
+            """), globs, python_path=["code.zip"], extra_files=extras)
+
+        self.assertEqual(globs['a'], 23)
+        self.assertEqual(globs['b'], "XhellohelloX")
 
 
 class TestSafeExec(SafeExecTests, unittest.TestCase):
