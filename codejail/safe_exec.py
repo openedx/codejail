@@ -151,11 +151,10 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
         extra_files=extra_files,
     )
     if res.status != 0:
-        raise SafeExecException(
-            "Couldn't execute jailed code: {error} with status code: {status}".format(
-                error=res.stderr, status=res.status
-            )
-        )
+        raise SafeExecException((
+            "Couldn't execute jailed code: stdout: {res.stdout!r}, "
+            "stderr: {res.stderr!r} with status code: {res.status}"
+        ).format(res=res))
     globals_dict.update(json.loads(res.stdout))
 
 
