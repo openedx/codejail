@@ -79,7 +79,12 @@ class SafeExecTests(unittest.TestCase):
                 raise ValueError("That's not how you pour soup!")
                 """), globs)
         msg = str(what_happened.exception)
-        self.assertIn("ValueError: That's not how you pour soup!", msg)
+        # The result may be repr'd or not, so the backslash needs to be
+        # optional in this match.
+        self.assertRegexpMatches(
+            msg,
+            r"ValueError: That\\?'s not how you pour soup!"
+        )
 
     def test_extra_files(self):
         globs = {}
