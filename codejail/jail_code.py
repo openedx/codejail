@@ -264,7 +264,11 @@ def set_process_limits():       # pragma: no cover
     # CPU seconds, not wall clock time.
     cpu = LIMITS["CPU"]
     if cpu:
-        resource.setrlimit(resource.RLIMIT_CPU, (cpu, cpu))
+        # Set the soft limit and the hard limit differently.  When the process
+        # reaches the soft limit, a SIGXCPU will be sent, which should kill the
+        # process.  If you set the soft and hard limits the same, then the hard
+        # limit is reached, and a SIGKILL is sent, which is less distinctive.
+        resource.setrlimit(resource.RLIMIT_CPU, (cpu, cpu+1))
 
     # Total process virtual memory.
     vmem = LIMITS["VMEM"]
