@@ -3,6 +3,7 @@
 import os
 import os.path
 import shutil
+import signal
 import textwrap
 import tempfile
 import unittest
@@ -180,7 +181,8 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         set_limit('VMEM', 30000000)
         res = jailpy(code="print len(bytearray(40000000))")
         self.assertEqual(res.stdout, "")
-        self.assertNotEqual(res.status, 0)
+        self.assertIn("MemoryError", res.stderr)
+        self.assertEqual(res.status, 1)
 
     def test_changing_vmem_limit(self):
         # Up the limit, it will succeed.
@@ -199,15 +201,18 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         self.assertEqual(res.status, 0)
 
     def test_cant_use_too_much_cpu(self):
+        set_limit('CPU', 1)
+        set_limit('REALTIME', 100)
         res = jailpy(code="print sum(xrange(2**31-1))")
         self.assertEqual(res.stdout, "")
-        self.assertNotEqual(res.status, 0)
+        self.assertEqual(res.status, 128+signal.SIGXCPU)    # 137
 
     def test_cant_use_too_much_time(self):
         # Default time limit is 1 second.  Sleep for 1.5 seconds.
+        set_limit('CPU', 100)
         res = jailpy(code="import time; time.sleep(1.5); print 'Done!'")
-        self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, "")
+        self.assertEqual(res.status, -signal.SIGKILL)       # -9
 
     def test_changing_realtime_limit(self):
         # Change time limit to 2 seconds, sleeping for 1.5 will be fine.
@@ -336,12 +341,12 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
 
     def test_reading_dev_random(self):
         # We can read 10 bytes just fine.
-        res = jailpy(code="x = open('/dev/random').read(10); print len(x)")
+        res = jailpy(code="x = open('/dev/urandom').read(10); print len(x)")
         self.assertResultOk(res)
         self.assertEqual(res.stdout, "10\n")
 
         # If we try to read all of it, we'll be killed by the real-time limit.
-        res = jailpy(code="x = open('/dev/random').read(); print 'Done!'")
+        res = jailpy(code="x = open('/dev/urandom').read(); print 'Done!'")
         self.assertNotEqual(res.status, 0)
 
 
