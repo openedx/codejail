@@ -159,7 +159,9 @@ the rights to modify the files in its site-packages directory.
 Tests
 -----
 
-The tests run under nose in the standard fashion.
+Run the tests with the Makefile::
+
+    $ make tests
 
 If CodeJail is running unsafely, many of the tests will be automatically
 skipped, or will fail, depending on whether CodeJail thinks it should be in
