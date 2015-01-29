@@ -14,7 +14,7 @@ except ImportError:
 from codejail import jail_code
 from codejail.util import temp_directory, change_directory
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("codejail")
 
 
 # Flags to let developers temporarily change some behavior in this file.

@@ -1,16 +1,21 @@
 """Test jail_code.py"""
 
+import json
+import logging
 import os
 import os.path
 import shutil
 import signal
 import textwrap
 import tempfile
+import time
 import unittest
 
+import mock
 from nose.plugins.skip import SkipTest
 
 from codejail.jail_code import jail_code, is_configured, set_limit, LIMITS
+from codejail import proxy
 
 
 def jailpy(code=None, *args, **kwargs):
@@ -23,6 +28,27 @@ def jailpy(code=None, *args, **kwargs):
 def file_here(fname):
     """Return the full path to a file alongside this code."""
     return os.path.join(os.path.dirname(__file__), fname)
+
+
+def text_of_logs(mock_calls):
+    """
+    After capturing log messages, use this to get the full text.
+
+    Like this::
+
+        @mock.patch("codejail.subproc.log._log")
+        def test_with_log_messages(self, log_log):
+            do_something_that_makes_log_messages()
+            log_text = text_of_logs(log_log.mock_calls)
+            self.assertRegexpMatches(log_text, r"INFO: Something cool happened")
+
+    """
+    text = ""
+    for m in mock_calls:
+        level, msg, args = m[1]
+        msg_formatted = msg % args
+        text += "%s: %s\n" % (logging.getLevelName(level), msg_formatted)
+    return text
 
 
 class JailCodeHelpers(object):
@@ -75,6 +101,42 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         )
         self.assertResultOk(res)
         self.assertEqual(res.stdout, "36.5\n")
+
+    def test_stdin_can_be_large_and_binary(self):
+        res = jailpy(
+            code="import sys; print sum(ord(c) for c in sys.stdin.read())",
+            stdin="".join(chr(i) for i in range(256))*10000,
+        )
+        self.assertResultOk(res)
+        self.assertEqual(res.stdout, "326400000\n")
+
+    def test_stdout_can_be_large_and_binary(self):
+        res = jailpy(
+            code="""
+                import sys
+                sys.stdout.write("".join(chr(i) for i in range(256))*10000)
+            """
+        )
+        self.assertResultOk(res)
+        self.assertEqual(
+            res.stdout,
+            "".join(chr(i) for i in range(256))*10000
+        )
+
+    def test_stderr_can_be_large_and_binary(self):
+        res = jailpy(
+            code="""
+                import sys
+                sys.stderr.write("".join(chr(i) for i in range(256))*10000)
+                sys.stdout.write("OK!")
+            """
+        )
+        self.assertEqual(res.status, 0)
+        self.assertEqual(res.stdout, "OK!")
+        self.assertEqual(
+            res.stderr,
+            "".join(chr(i) for i in range(256))*10000
+        )
 
     def test_files_are_copied(self):
         res = jailpy(
@@ -163,6 +225,12 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
             "This is my file!\n['overthere.txt', '.myfile.txt']\n"
         )
 
+    @mock.patch("codejail.subproc.log._log")
+    def test_slugs_get_logged(self, log_log):
+        res = jailpy(code="print 'Hello, world!'", slug="HELLO")
+        log_text = text_of_logs(log_log.mock_calls)
+        self.assertRegexpMatches(log_text, r"INFO: Executed jailed code HELLO in .*, with PID .*")
+
 
 class TestLimits(JailCodeHelpers, unittest.TestCase):
     """Tests of the resource limits, and changing them."""
@@ -207,12 +275,17 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         self.assertEqual(res.stdout, "")
         self.assertEqual(res.status, 128+signal.SIGXCPU)    # 137
 
-    def test_cant_use_too_much_time(self):
+    @mock.patch("codejail.subproc.log._log")
+    def test_cant_use_too_much_time(self, log_log):
         # Default time limit is 1 second.  Sleep for 1.5 seconds.
         set_limit('CPU', 100)
         res = jailpy(code="import time; time.sleep(1.5); print 'Done!'")
         self.assertEqual(res.stdout, "")
         self.assertEqual(res.status, -signal.SIGKILL)       # -9
+
+        # Make sure we log that we are killing the process.
+        log_text = text_of_logs(log_log.mock_calls)
+        self.assertRegexpMatches(log_text, r"WARNING: Killing process \d+")
 
     def test_changing_realtime_limit(self):
         # Change time limit to 2 seconds, sleeping for 1.5 will be fine.
@@ -450,3 +523,54 @@ class TestMalware(JailCodeHelpers, unittest.TestCase):
             """)
         self.assertResultOk(res)
         self.assertEqual(res.stdout, "Done.\n")
+
+
+class TestProxyProcess(JailCodeHelpers, unittest.TestCase):
+    """Tests of the proxy process."""
+
+    def setUp(self):
+        # During testing, the proxy is used if the environment variable is set.
+        # Skip these tests if we aren't using the proxy.
+        if not int(os.environ.get("CODEJAIL_PROXY", "0")):
+            raise SkipTest()
+
+        super(TestProxyProcess, self).setUp()
+
+    def run_ok(self):
+        """Run some code to see that it works."""
+        num = int(time.time()*100000)
+        res = jailpy(code="print 'Look: %d'" % num)
+        self.assertResultOk(res)
+        self.assertEqual(res.stdout, 'Look: %d\n' % num)
+
+    def test_proxy_is_persistent(self):
+        # Running code twice, you use the same proxy process.
+        self.run_ok()
+        pid = proxy.PROXY_PROCESS.pid
+        self.run_ok()
+        self.assertEqual(proxy.PROXY_PROCESS.pid, pid)
+
+    def test_crash_proxy(self):
+        # We can run some code.
+        self.run_ok()
+        pids = set()
+        pids.add(proxy.PROXY_PROCESS.pid)
+
+        # Run this a number of times, to try to catch some cases.
+        for i in xrange(10):
+            # The proxy process dies unexpectedly!
+            proxy.PROXY_PROCESS.kill()
+
+            # The behavior is slightly different if we rush immediately to the
+            # next run, or if we wait a bit to let the process truly die, so
+            # alternate whether we wait or not.
+            if i % 2:
+                time.sleep(.1)
+
+            # Code can still run.
+            self.run_ok()
+
+            # We should have a new proxy process each time.
+            pid = proxy.PROXY_PROCESS.pid
+            self.assertNotIn(pid, pids)
+            pids.add(pid)

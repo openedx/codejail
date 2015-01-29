@@ -5,14 +5,13 @@ import os
 import os.path
 import resource
 import shutil
-import subprocess
 import sys
-import threading
-import time
 
+from .proxy import run_subprocess_through_proxy
+from .subproc import run_subprocess
 from .util import temp_directory
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("codejail")
 
 # TODO: limit too much stdout data?
 
@@ -76,6 +75,10 @@ LIMITS = {
     "VMEM": 0,
     # Size of files creatable, in bytes, defaulting to nothing can be written.
     "FSIZE": 0,
+    # Whether to use a proxy process or not.  None means use an environment
+    # variable to decide. NOTE: using a proxy process is NOT THREAD-SAFE, only
+    # one thread can use CodeJail at a time if you are using a proxy process.
+    "PROXY": None,
 }
 
 
@@ -100,6 +103,9 @@ def set_limit(limit_name, value):
 
         * `"FSIZE"`: the maximum size of files creatable by the jailed code,
             in bytes.  The default is 0 (no files may be created).
+
+        * `"PROXY"`: 1 to use a proxy process, 0 to not use one. This isn't
+            really a limit, sorry about that.
 
     Limits are process-wide, and will affect all future calls to jail_code.
     Providing a limit of 0 will disable that limit.
@@ -214,29 +220,30 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         # Add the code-specific command line pieces.
         cmd.extend(argv)
 
+        # Use the configuration and maybe an environment variable to determine
+        # whether to use a proxy process.
+        use_proxy = LIMITS["PROXY"]
+        if use_proxy is None:
+            use_proxy = int(os.environ.get("CODEJAIL_PROXY", "0"))
+        if use_proxy:
+            run_subprocess_fn = run_subprocess_through_proxy
+        else:
+            run_subprocess_fn = run_subprocess
+
         # Run the subprocess.
-        subproc = subprocess.Popen(
-            cmd, preexec_fn=set_process_limits, cwd=homedir, env={},
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        )
-
-        if slug:
-            log.info("Executing jailed code %s in %s, with PID %s", slug, homedir, subproc.pid)
-
-        # Start the time killer thread.
-        realtime = LIMITS["REALTIME"]
-        if realtime:
-            killer = ProcessKillerThread(subproc, limit=realtime)
-            killer.start()
+        status, stdout, stderr = run_subprocess_fn(
+            cmd=cmd, cwd=homedir, env={}, slug=slug,
+            stdin=stdin,
+            realtime=LIMITS["REALTIME"], rlimits=create_rlimits(),
+            )
 
         result = JailResult()
-        result.stdout, result.stderr = subproc.communicate(stdin)
-        result.status = subproc.returncode
+        result.status = status
+        result.stdout = stdout
+        result.stderr = stderr
 
-        # Remove the tmptmp directory as the sandbox user
-        # since the sandbox user may have written files that
-        # the application user can't delete.
+        # Remove the tmptmp directory as the sandbox user since the sandbox
+        # user may have written files that the application user can't delete.
         rm_cmd.extend([
             '/usr/bin/find', tmptmp,
             '-mindepth', '1', '-maxdepth', '1',
@@ -244,22 +251,19 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         ])
 
         # Run the rm command subprocess.
-        subproc = subprocess.Popen(rm_cmd, cwd=homedir)
-        subproc.communicate()
+        run_subprocess_fn(rm_cmd, cwd=homedir)
 
     return result
 
 
-def set_process_limits():       # pragma: no cover
+def create_rlimits():
     """
-    Set limits on this process, to be used first in a child process.
+    Create a list of resource limits for our jailed processes.
     """
-    # Set a new session id so that this process and all its children will be
-    # in a new process group, so we can kill them all later if we need to.
-    os.setsid()
+    rlimits = []
 
     # No subprocesses.
-    resource.setrlimit(resource.RLIMIT_NPROC, (0, 0))
+    rlimits.append((resource.RLIMIT_NPROC, (0, 0)))
 
     # CPU seconds, not wall clock time.
     cpu = LIMITS["CPU"]
@@ -268,40 +272,15 @@ def set_process_limits():       # pragma: no cover
         # reaches the soft limit, a SIGXCPU will be sent, which should kill the
         # process.  If you set the soft and hard limits the same, then the hard
         # limit is reached, and a SIGKILL is sent, which is less distinctive.
-        resource.setrlimit(resource.RLIMIT_CPU, (cpu, cpu+1))
+        rlimits.append((resource.RLIMIT_CPU, (cpu, cpu+1)))
 
     # Total process virtual memory.
     vmem = LIMITS["VMEM"]
     if vmem:
-        resource.setrlimit(resource.RLIMIT_AS, (vmem, vmem))
+        rlimits.append((resource.RLIMIT_AS, (vmem, vmem)))
 
     # Size of written files.  Can be zero (nothing can be written).
     fsize = LIMITS["FSIZE"]
-    resource.setrlimit(resource.RLIMIT_FSIZE, (fsize, fsize))
+    rlimits.append((resource.RLIMIT_FSIZE, (fsize, fsize)))
 
-
-class ProcessKillerThread(threading.Thread):
-    """
-    A thread to kill a process after a given time limit.
-    """
-    def __init__(self, subproc, limit):
-        super(ProcessKillerThread, self).__init__()
-        self.subproc = subproc
-        self.limit = limit
-
-    def run(self):
-        start = time.time()
-        while (time.time() - start) < self.limit:
-            time.sleep(.25)
-            if self.subproc.poll() is not None:
-                # Process ended, no need for us any more.
-                return
-
-        if self.subproc.poll() is None:
-            # Can't use subproc.kill because we launched the subproc with sudo.
-            pgid = os.getpgid(self.subproc.pid)
-            log.warning(
-                "Killing process %r (group %r), ran too long: %.1fs",
-                self.subproc.pid, pgid, time.time() - start
-            )
-            subprocess.call(["sudo", "pkill", "-9", "-g", str(pgid)])
+    return rlimits

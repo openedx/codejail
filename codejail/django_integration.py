@@ -24,7 +24,9 @@ class ConfigureCodeJailMiddleware(object):
         if python_bin:
             user = settings.CODE_JAIL['user']
             codejail.jail_code.configure("python", python_bin, user=user)
+
         limits = settings.CODE_JAIL.get('limits', {})
         for name, value in limits.items():
             codejail.jail_code.set_limit(name, value)
+
         raise MiddlewareNotUsed
