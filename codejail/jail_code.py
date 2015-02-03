@@ -7,7 +7,7 @@ import resource
 import shutil
 import sys
 
-from .proxy import run_subprocess_through_proxy
+from .proxy import run_subprocess_through_proxy, get_proxy
 from .subproc import run_subprocess
 from .util import temp_directory
 
@@ -220,12 +220,7 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         # Add the code-specific command line pieces.
         cmd.extend(argv)
 
-        # Use the configuration and maybe an environment variable to determine
-        # whether to use a proxy process.
-        use_proxy = LIMITS["PROXY"]
-        if use_proxy is None:
-            use_proxy = int(os.environ.get("CODEJAIL_PROXY", "0"))
-        if use_proxy:
+        if use_proxy():
             run_subprocess_fn = run_subprocess_through_proxy
         else:
             run_subprocess_fn = run_subprocess
@@ -284,3 +279,23 @@ def create_rlimits():
     rlimits.append((resource.RLIMIT_FSIZE, (fsize, fsize)))
 
     return rlimits
+
+
+def startup():
+    """
+    To be run when whatever process is running codejail starts up.
+    If we're using a proxy process, start it. Otherwise, noop.
+    """
+    if use_proxy():
+        return get_proxy()
+
+
+def use_proxy():
+    """
+    Use the configuration and maybe an environment variable to determine
+    whether to use a proxy process.
+    """
+    use_it = LIMITS["PROXY"]
+    if use_it is None:
+        use_it = bool(int(os.environ.get("CODEJAIL_PROXY", "0")))
+    return use_it
