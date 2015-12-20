@@ -79,6 +79,9 @@ sudo apparmor_parser /etc/apparmor.d/home.vagrant.sandboxenv.bin.python
 # Use to disable `aa-complain /etc/apparmor.d/home.vagrant.sandboxenv.bin.python`
 sudo aa-enforce /etc/apparmor.d/home.vagrant.sandboxenv.bin.python
 
+sudo apt-get install -y libblas-dev libatlas3-base-dev liblapack-dev
+
+sudo update-alternatives --set liblapack.so.3 /usr/lib/lapack/liblapack.so.3
 make_jailenv_env() {
   cd ~
   virtualenv --system-site-packages jailenv
