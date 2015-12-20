@@ -94,6 +94,7 @@ make_jailenv_env
 
 
 sudo bash -e <<TEST
+cd ~/codejail/
 source ~/jailenv/bin/activate
 nosetests vagrant/
 TEST
