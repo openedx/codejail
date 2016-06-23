@@ -1,13 +1,13 @@
 """Test jail_code.py"""
 
-import json
 import logging
 import os
 import os.path
 import shutil
 import signal
-import textwrap
+import sys
 import tempfile
+import textwrap
 import time
 import unittest
 
@@ -16,6 +16,7 @@ from nose.plugins.skip import SkipTest
 
 from codejail.jail_code import jail_code, is_configured, set_limit, LIMITS
 from codejail import proxy
+from . import helpers
 
 
 def jailpy(code=None, *args, **kwargs):
@@ -44,8 +45,8 @@ def text_of_logs(mock_calls):
 
     """
     text = ""
-    for m in mock_calls:
-        level, msg, args = m[1]
+    for call in mock_calls:
+        level, msg, args = call[1]
         msg_formatted = msg % args
         text += "%s: %s\n" % (logging.getLevelName(level), msg_formatted)
     return text
@@ -73,6 +74,13 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         res = jailpy(code="print 'Hello, world!'")
         self.assertResultOk(res)
         self.assertEqual(res.stdout, 'Hello, world!\n')
+
+    def test_hello_world_without_user(self):
+        # The default jail executable might not grant execute permission to the
+        # current user, but we know the current python executable does, so use
+        # that to test userless execution.
+        with helpers.override_configuration("python", bin_path=sys.executable, user=None):
+            self.test_hello_world()
 
     def test_argv(self):
         res = jailpy(
@@ -227,7 +235,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
 
     @mock.patch("codejail.subproc.log._log")
     def test_slugs_get_logged(self, log_log):
-        res = jailpy(code="print 'Hello, world!'", slug="HELLO")
+        jailpy(code="print 'Hello, world!'", slug="HELLO")
         log_text = text_of_logs(log_log.mock_calls)
         self.assertRegexpMatches(log_text, r"INFO: Executed jailed code HELLO in .*, with PID .*")
 
