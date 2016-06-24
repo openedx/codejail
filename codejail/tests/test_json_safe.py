@@ -3,7 +3,7 @@ Test JSON serialization straw
 """
 
 import unittest
-from codejail.safe_exec import json_safe
+from codejail.util import json_safe
 
 
 class JsonSafeTest(unittest.TestCase):

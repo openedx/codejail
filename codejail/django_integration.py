@@ -7,7 +7,7 @@ Code to glue codejail into a Django environment.
 from django.core.exceptions import MiddlewareNotUsed
 from django.conf import settings
 
-import codejail.jail_code
+import codejail.limits
 
 
 class ConfigureCodeJailMiddleware(object):
@@ -27,6 +27,6 @@ class ConfigureCodeJailMiddleware(object):
 
         limits = settings.CODE_JAIL.get('limits', {})
         for name, value in limits.items():
-            codejail.jail_code.set_limit(name, value)
+            codejail.limits.set_limit(name, value)
 
         raise MiddlewareNotUsed

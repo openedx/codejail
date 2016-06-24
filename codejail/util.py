@@ -5,6 +5,11 @@ import os
 import shutil
 import tempfile
 
+try:
+    import simplejson as json
+except ImportError:
+    import json
+
 
 @contextlib.contextmanager
 def temp_directory():
@@ -31,3 +36,34 @@ def change_directory(new_dir):
         yield new_dir
     finally:
         os.chdir(old_dir)
+
+
+def json_safe(input_dict):
+    """
+    Return a new `dict` containing only the JSON-safe part of `input_dict`.
+
+    Used to emulate reading data through a serialization straw.
+    """
+    ok_types = (type(None), int, long, float, str, unicode, list, tuple, dict)
+    bad_keys = ("__builtins__",)
+    json_dict = {}
+    for key, value in input_dict.iteritems():
+        if not isinstance(value, ok_types):
+            continue
+        if key in bad_keys:
+            continue
+        try:
+            # Python's JSON encoder will produce output that
+            # the JSON decoder cannot parse if the input string
+            # contains unicode "unpaired surrogates" (only on Linux)
+            # To test for this, we try decoding the output and check
+            # for a ValueError
+            json.loads(json.dumps(value))
+
+            # Also ensure that the keys encode/decode correctly
+            json.loads(json.dumps(key))
+        except (TypeError, ValueError):
+            continue
+        else:
+            json_dict[key] = value
+    return json.loads(json.dumps(json_dict))
