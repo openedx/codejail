@@ -179,6 +179,7 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         os.chmod(tmptmp, 0777)
 
         argv = argv or []
+        env = {'TMPDIR': 'tmp'}
 
         # All the supporting files are copied into our directory.
         for filename in files or ():
@@ -209,11 +210,9 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         user = COMMANDS[command]['user']
         if user:
             # Run as the specified user
-            cmd.extend(['sudo', '-u', user])
+            cmd.extend(['sudo', '-u', user, 'TMPDIR=tmp'])
             rm_cmd.extend(['sudo', '-u', user])
 
-        # Point TMPDIR at our temp directory.
-        cmd.extend(['TMPDIR=tmp'])
         # Start with the command line dictated by "python" or whatever.
         cmd.extend(COMMANDS[command]['cmdline_start'])
 
@@ -232,7 +231,7 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
 
         # Run the subprocess.
         status, stdout, stderr = run_subprocess_fn(
-            cmd=cmd, cwd=homedir, env={}, slug=slug,
+            cmd=cmd, cwd=homedir, env=env, slug=slug,
             stdin=stdin,
             realtime=LIMITS["REALTIME"], rlimits=create_rlimits(),
             )
