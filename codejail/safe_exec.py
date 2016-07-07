@@ -4,36 +4,18 @@ import logging
 import os.path
 import shutil
 import sys
-import textwrap
 
-try:
-    import simplejson as json
-except ImportError:
-    import json
-
-from codejail import jail_code
-from codejail.util import temp_directory, change_directory
+from .exceptions import SafeExecException
+from .jail import get_codejail, is_configured
+from .util import temp_directory, change_directory, json_safe
 
 log = logging.getLogger("codejail")
 
 
 # Flags to let developers temporarily change some behavior in this file.
 
-# Set this to True to log all the code and globals being executed.
-LOG_ALL_CODE = False
 # Set this to True to use the unsafe code, so that you can debug it.
 ALWAYS_BE_UNSAFE = False
-
-
-class SafeExecException(Exception):
-    """
-    Python code running in the sandbox has failed.
-
-    The message will be the stdout of the sandboxed process, which will usually
-    contain the original exception message.
-
-    """
-    pass
 
 
 def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
@@ -41,157 +23,39 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
     """
     Execute code as "exec" does, but safely.
 
-    `code` is a string of Python code.  `globals_dict` is used as the globals
-    during execution.  Modifications the code makes to `globals_dict` are
-    reflected in the dictionary on return.
+    This function calls through to the `safe_exec()` method on the `Jail`
+    object with the command name `"python"`.
 
-    `files` is a list of file paths, either files or directories.  They will be
-    copied into the temp directory used for execution.  No attempt is made to
-    determine whether the file is appropriate or safe to copy.  The caller must
-    determine which files to provide to the code.
+    Arguments and behavior are documented at `codejail.jail.Jail.safe_exec`
 
-    `python_path` is a list of directory or file paths.  These names will be
-    added to `sys.path` so that modules they contain can be imported.  Only
-    directories and zip files are supported.  If the name is not provided in
-    `extras_files`, it will be copied just as if it had been listed in `files`.
+    This function exists primarily for backwards compatibility, and to
+    support the unsafe_exec functionality.  If you do not need these features,
+    consider using `codejail.jail.Jail.safe_exec` instead.
 
-    `slug` is an arbitrary string, a description that's meaningful to the
-    caller, that will be used in log messages.
-
-    `extra_files` is a list of pairs, each pair is a filename and a bytestring
-    of contents to write into that file.  These files will be created in the
-    temp directory and cleaned up automatically.  No subdirectories are
-    supported in the filename.
-
-    Returns None.  Changes made by `code` are visible in `globals_dict`.  If
-    the code raises an exception, this function will raise `SafeExecException`
-    with the stderr of the sandbox process, which usually includes the original
-    exception message and traceback.
-
+    >>> import codejail.jail
+    >>> jail = codejail.jail.get_codejail("python")
+    >>> jail.safe_exec(...)
     """
-    the_code = []
+    jail = get_codejail("python")
 
-    files = list(files or ())
-    extra_files = extra_files or ()
-    python_path = python_path or ()
-
-    extra_names = set(name for name, contents in extra_files)
-
-    the_code.append(textwrap.dedent(
-        """
-        import sys
-        try:
-            import simplejson as json
-        except ImportError:
-            import json
-        """
-        # We need to prevent the sandboxed code from printing to stdout,
-        # or it will pollute the json we print there.  This isn't a
-        # security concern (they can put any values in the json output
-        # anyway, either by writing to sys.__stdout__, or just by defining
-        # global values), but keeps accidents from happening.
-        """
-        class DevNull(object):
-            def write(self, *args, **kwargs):
-                pass
-        sys.stdout = DevNull()
-        """
-        # Read the code and the globals from the stdin.
-        """
-        code, g_dict = json.load(sys.stdin)
-        """))
-
-    for pydir in python_path:
-        pybase = os.path.basename(pydir)
-        the_code.append("sys.path.append(%r)\n" % pybase)
-        if pybase not in extra_names:
-            files.append(pydir)
-
-    the_code.append(textwrap.dedent(
-        # Execute the sandboxed code.
-        """
-        exec code in g_dict
-        """
-        # Clean the globals for sending back as JSON over stdout.
-        """
-        ok_types = (
-            type(None), int, long, float, str, unicode, list, tuple, dict
-        )
-        bad_keys = ("__builtins__",)
-        def jsonable(v):
-            if not isinstance(v, ok_types):
-                return False
-            try:
-                json.dumps(v)
-            except Exception:
-                return False
-            return True
-        g_dict = {
-            k:v
-            for k,v in g_dict.iteritems()
-            if jsonable(v) and k not in bad_keys
-        }
-        """
-        # Write the globals back to the calling process.
-        """
-        json.dump(g_dict, sys.__stdout__)
-        """))
-
-    stdin = json.dumps([code, json_safe(globals_dict)])
-    jailed_code = "".join(the_code)
-
-    # Turn this on to see what's being executed.
-    if LOG_ALL_CODE:        # pragma: no cover
-        log.debug("Jailed code: %s", jailed_code)
-        log.debug("Exec: %s", code)
-        log.debug("Stdin: %s", stdin)
-
-    res = jail_code.jail_code(
-        "python", code=jailed_code, stdin=stdin, files=files, slug=slug,
-        extra_files=extra_files,
+    jail.safe_exec(
+        code=code,
+        globals_dict=globals_dict,
+        files=files,
+        python_path=python_path,
+        slug=slug,
+        extra_files=extra_files
     )
-    if res.status != 0:
-        raise SafeExecException((
-            "Couldn't execute jailed code: stdout: {res.stdout!r}, "
-            "stderr: {res.stderr!r} with status code: {res.status}"
-        ).format(res=res))
-    globals_dict.update(json.loads(res.stdout))
 
 
-def json_safe(d):
-    """
-    Return only the JSON-safe part of d.
-
-    Used to emulate reading data through a serialization straw.
-
-    """
-    ok_types = (type(None), int, long, float, str, unicode, list, tuple, dict)
-    bad_keys = ("__builtins__",)
-    jd = {}
-    for k, v in d.iteritems():
-        if not isinstance(v, ok_types):
-            continue
-        if k in bad_keys:
-            continue
-        try:
-            # Python's JSON encoder will produce output that
-            # the JSON decoder cannot parse if the input string
-            # contains unicode "unpaired surrogates" (only on Linux)
-            # To test for this, we try decoding the output and check
-            # for a ValueError
-            json.loads(json.dumps(v))
-
-            # Also ensure that the keys encode/decode correctly
-            json.loads(json.dumps(k))
-        except (TypeError, ValueError):
-            continue
-        else:
-            jd[k] = v
-    return json.loads(json.dumps(jd))
-
-
-def not_safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
-                  extra_files=None):
+def not_safe_exec(
+        code,
+        globals_dict,
+        files=None,
+        python_path=None,
+        slug=None,
+        extra_files=None
+    ):  # pylint: disable=unused-argument
     """
     Another implementation of `safe_exec`, but not safe.
 
@@ -199,7 +63,6 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
 
     This is not thread-safe, due to temporarily changing the current directory
     and modifying sys.path.
-
     """
     g_dict = json_safe(globals_dict)
 
@@ -211,19 +74,19 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
                 shutil.copyfile(filename, dest)
             for filename, contents in extra_files or ():
                 dest = os.path.join(tmpdir, filename)
-                with open(dest, "w") as f:
-                    f.write(contents)
+                with open(dest, "w") as target_file:
+                    target_file.write(contents)
 
             original_path = sys.path
             if python_path:
                 sys.path.extend(python_path)
             try:
-                exec code in g_dict
-            except Exception as e:
+                exec code in g_dict  # pylint: disable=exec-used
+            except Exception as exc:
                 # Wrap the exception in a SafeExecException, but we don't
                 # try here to include the traceback, since this is just a
                 # substitute implementation.
-                msg = "{0.__class__.__name__}: {0!s}".format(e)
+                msg = "{0.__class__.__name__}: {0!s}".format(exc)
                 raise SafeExecException(msg)
             finally:
                 sys.path = original_path
@@ -231,11 +94,7 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
     globals_dict.update(json_safe(g_dict))
 
 
-# If the developer wants us to be unsafe (ALWAYS_BE_UNSAFE), or if there isn't
-# a configured jail for Python, then we'll be UNSAFE.
-UNSAFE = ALWAYS_BE_UNSAFE or not jail_code.is_configured("python")
-
-if UNSAFE:   # pragma: no cover
+if ALWAYS_BE_UNSAFE:   # pragma: no cover
     # Make safe_exec actually call not_safe_exec, but log that we're doing so.
 
     def safe_exec(*args, **kwargs):                 # pylint: disable=E0102

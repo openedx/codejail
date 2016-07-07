@@ -6,12 +6,16 @@ import textwrap
 import unittest
 import zipfile
 
-from nose.plugins.skip import SkipTest
+from mock import patch
 
+from codejail.exceptions import JailError, SafeExecException
+from codejail.jail import get_codejail
+from codejail import languages
 from codejail import safe_exec
+from . import helpers
 
 
-class SafeExecTests(unittest.TestCase):
+class SafeExecTests(helpers.JailMixin, unittest.TestCase):
     """The tests for `safe_exec`, to be mixed into specific test classes."""
 
     # SafeExecTests is a TestCase so pylint understands the methods it can
@@ -134,17 +138,42 @@ class TestSafeExec(SafeExecTests, unittest.TestCase):
     def safe_exec(self, *args, **kwargs):
         safe_exec.safe_exec(*args, **kwargs)
 
+    @patch('codejail.safe_exec.not_safe_exec')
+    def test_not_safe_exec_not_called(self, mock_not_safe_exec):
+        # Make sure safe_exec doesn't alias not_safe_exec
+        # Otherwise, our test suite won't be useful
+        self.safe_exec('x = 1', {})
+        self.assertFalse(mock_not_safe_exec.called)
+
 
 class TestNotSafeExec(SafeExecTests, unittest.TestCase):
     """Run SafeExecTests, with not_safe_exec."""
 
     __test__ = True
 
-    def setUp(self):
-        # If safe_exec is actually an alias to not_safe_exec, then there's no
-        # point running these tests.
-        if safe_exec.UNSAFE:                    # pragma: no cover
-            raise SkipTest
-
     def safe_exec(self, *args, **kwargs):
         safe_exec.not_safe_exec(*args, **kwargs)
+
+
+class TestPython3SafeExec(helpers.Python3Mixin, unittest.TestCase):
+    """
+    Test that python 3 codejails can run safe_exec
+    """
+
+    def test_safe_exec_basic(self):
+        globals_dict = {
+            'starter': 8
+        }
+        self.python3_jail.safe_exec('happy_result = str(starter) + "-)"', globals_dict)
+        self.assertEqual(globals_dict, {'starter': 8, 'happy_result': '8-)'})
+
+    def test_safe_exec_error(self):
+        with self.assertRaises(SafeExecException) as exc:
+            self.python3_jail.safe_exec('"foo".decode("utf-8")', {})
+        self.assertIn('object has no attribute', exc.exception.message)
+
+    def test_safe_exec_unconfigured(self):
+        with helpers.override_configuration('python3', lang=languages.other):
+            jail = get_codejail('python3')
+            with self.assertRaises(JailError):
+                jail.safe_exec('print("hello")', {})

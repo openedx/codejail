@@ -61,10 +61,7 @@ To secure Python execution, you'll be creating a new virtualenv.  This means
 you'll have two: the main virtualenv for your project, and the new one for
 sandboxed Python code.
 
-Choose a place for the new virtualenv, call it **<SANDENV>**.  It will be
-automatically detected and used if you put it right alongside your existing
-virtualenv, but with `-sandbox` appended.  So if your existing virtualenv is in
-`/home/chris/ve/myproj`, make **<SANDENV>** be `/home/chris/ve/myproj-sandbox`.
+Choose a place for the new virtualenv, call it **<SANDENV>**.  
 
 The user running the LMS is **<SANDBOX_CALLER>**, for example, you on
 your dev machine, or `www-data` on a server.

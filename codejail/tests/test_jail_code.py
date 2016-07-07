@@ -14,7 +14,9 @@ import unittest
 import mock
 from nose.plugins.skip import SkipTest
 
-from codejail.jail_code import jail_code, is_configured, set_limit, LIMITS
+from codejail.jail import JailResult
+from codejail.jail_code import jail_code
+from codejail.limits import LIMITS, set_limit
 from codejail import proxy
 from . import helpers
 
@@ -52,12 +54,8 @@ def text_of_logs(mock_calls):
     return text
 
 
-class JailCodeHelpers(object):
+class JailCodeMixin(helpers.JailMixin):
     """Assert helpers for jail_code tests."""
-    def setUp(self):
-        super(JailCodeHelpers, self).setUp()
-        if not is_configured("python"):
-            raise SkipTest
 
     def assertResultOk(self, res):
         """Assert that `res` exited well (0), and had no stderr output."""
@@ -67,7 +65,7 @@ class JailCodeHelpers(object):
         self.assertEqual(res.status, 0)         # pylint: disable=E1101
 
 
-class TestFeatures(JailCodeHelpers, unittest.TestCase):
+class TestFeatures(JailCodeMixin, unittest.TestCase):
     """Test features of how `jail_code` runs Python."""
 
     def test_hello_world(self):
@@ -240,7 +238,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         self.assertRegexpMatches(log_text, r"INFO: Executed jailed code HELLO in .*, with PID .*")
 
 
-class TestLimits(JailCodeHelpers, unittest.TestCase):
+class TestLimits(JailCodeMixin, unittest.TestCase):
     """Tests of the resource limits, and changing them."""
 
     def setUp(self):
@@ -355,10 +353,10 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         self.assertResultOk(res)
         self.assertIn("Expected exception", res.stdout)
 
+    @unittest.skip("There's nothing checking total file size yet.")
     def test_cant_write_many_small_temp_files(self):
         # We would like this to fail, but there's nothing that checks total
         # file size written, so the sandbox does not prevent it yet.
-        raise SkipTest("There's nothing checking total file size yet.")
         set_limit('FSIZE', 1000)
         res = jailpy(code="""\
                 import os, tempfile
@@ -431,11 +429,12 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         self.assertNotEqual(res.status, 0)
 
 
-class TestSymlinks(JailCodeHelpers, unittest.TestCase):
+class TestSymlinks(JailCodeMixin, unittest.TestCase):
     """Testing symlink behavior."""
 
     def setUp(self):
         # Make a temp dir, and arrange to have it removed when done.
+        super(TestSymlinks, self).setUp()
         tmp_dir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, tmp_dir)
 
@@ -486,7 +485,7 @@ class TestSymlinks(JailCodeHelpers, unittest.TestCase):
         self.assertIn("ermission denied", res.stderr)
 
 
-class TestMalware(JailCodeHelpers, unittest.TestCase):
+class TestMalware(JailCodeMixin, unittest.TestCase):
     """Tests that attempt actual malware against the interpreter or system."""
 
     def test_crash_cpython(self):
@@ -533,14 +532,14 @@ class TestMalware(JailCodeHelpers, unittest.TestCase):
         self.assertEqual(res.stdout, "Done.\n")
 
 
-class TestProxyProcess(JailCodeHelpers, unittest.TestCase):
+class TestProxyProcess(JailCodeMixin, unittest.TestCase):
     """Tests of the proxy process."""
 
     def setUp(self):
         # During testing, the proxy is used if the environment variable is set.
         # Skip these tests if we aren't using the proxy.
         if not int(os.environ.get("CODEJAIL_PROXY", "0")):
-            raise SkipTest()
+            raise SkipTest("No proxy configured")
 
         super(TestProxyProcess, self).setUp()
 
@@ -582,3 +581,30 @@ class TestProxyProcess(JailCodeHelpers, unittest.TestCase):
             pid = proxy.PROXY_PROCESS.pid
             self.assertNotIn(pid, pids)
             pids.add(pid)
+
+
+class TestPython3JailCode(helpers.Python3Mixin, unittest.TestCase):
+    """
+    Test that python 3 codejails can run jail_code
+    """
+
+    def test_jail_code(self):
+        result = self.python3_jail.jail_code('print("Huzzah")')
+        self.assertEqual(result, JailResult(status=0, stdout='Huzzah\n', stderr=''))
+
+    def test_jail_code_error(self):
+        result = self.python3_jail.jail_code('print "Huzzah"')
+        stderr = textwrap.dedent("""\
+              File "jailed_code", line 1
+                print "Huzzah"
+                             ^
+            SyntaxError: {}
+        """)
+        self.assertEqual(result.status, 1)
+        self.assertEqual(result.stdout, '')
+        allowed_error_messages = ['invalid syntax', "Missing parentheses in call to 'print'"]
+        self.assertIn(result.stderr, [stderr.format(msg) for msg in allowed_error_messages])
+
+    def test_jail_code_functional_invocation(self):
+        result = jail_code('python3', 'print("Huzzah")')
+        self.assertEqual(result, JailResult(status=0, stdout='Huzzah\n', stderr=''))
