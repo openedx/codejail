@@ -153,6 +153,14 @@ class TestFeatures(JailCodeMixin, unittest.TestCase):
         self.assertEqual(res.stdout, 'Look: Hello there.\n\n')
 
     def test_directories_are_copied(self):
+        # The existence of pyc files makes the test dependent on whether the
+        # code in pylib/ has been executed or not.  Removing them makes the
+        # test more deterministic.
+
+        pyc = os.path.join(os.path.dirname(__file__), './pylib/module.pyc')
+        if os.path.exists(pyc):
+            os.unlink(pyc)
+
         res = jailpy(
             code="""\
                 import os
@@ -167,7 +175,7 @@ class TestFeatures(JailCodeMixin, unittest.TestCase):
         self.assertResultOk(res)
         self.assertEqual(res.stdout, textwrap.dedent("""\
             ('.', ['pylib', 'tmp'], ['hello.txt', 'jailed_code'])
-            ('./pylib', [], ['module.py', 'module.pyc'])
+            ('./pylib', [], ['module.py'])
             ('./tmp', [], [])
             """))
 
