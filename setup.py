@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(
     name="codejail",
-    version="1.0",
+    version="1.1",
     packages=['codejail'],
     description="Manages execution of untrusted code in secure sandboxes.",
     license="Apache Software License, version 2.0",
