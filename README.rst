@@ -14,7 +14,7 @@ be flexible: it can run in safe mode or unsafe mode.  This helps support large
 development groups where only some of the developers are involved enough with
 secure execution to configure AppArmor on their development machines.
 
-If CodeJail is not configured for safe execution, it will execution Python
+If CodeJail is not configured for safe execution, it will execute Python
 using the same API, but will not guard against malicious code.  This allows the
 same code to be used on safe-configured or non-safe-configured developer's
 machines.
