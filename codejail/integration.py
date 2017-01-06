@@ -3,8 +3,12 @@ Integrate with application settings files.
 """
 
 from __future__ import absolute_import
+
+import os.path
+
 from . import jail
 from . import limits
+from .util import sibling_sandbox_venv
 
 
 def configure_from_settings(settings):
@@ -57,12 +61,29 @@ def legacy_configure_from_settings(settings):
             "user": "sandbox",
             "limits": {"CPU": 1},
         }
-    """
 
-    python_bin = settings.CODE_JAIL.get('python_bin')
+    The virtualenv used depends on the 'python_bin' setting:
+
+    * If 'python_bin' is specified, it is the sandbox virtualenv to use.
+
+    * If 'python_bin' is specified as None, then code will run unsafely.
+
+    * If 'python_bin' isn't specified, then a virtualenv alongside the current
+      one, with a suffix of '-sandbox' will be used.
+
+    """
+    python_bin = None
+    if 'python_bin' in settings.CODE_JAIL:
+        python_bin = settings.CODE_JAIL['python_bin']
+    else:
+        venv = sibling_sandbox_venv()
+        if venv:
+            python_bin = os.path.join(venv, "bin/python")
+
     if python_bin:
         user = settings.CODE_JAIL['user']
         jail.configure("python", python_bin, user=user)
+
     requested_limits = settings.CODE_JAIL.get('limits', {})
     for name, value in requested_limits.items():
         limits.set_limit(name, value)

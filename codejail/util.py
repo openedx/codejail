@@ -3,6 +3,7 @@
 import contextlib
 import os
 import shutil
+import sys
 import tempfile
 
 try:
@@ -67,3 +68,19 @@ def json_safe(input_dict):
         else:
             json_dict[key] = value
     return json.loads(json.dumps(json_dict))
+
+
+def sibling_sandbox_venv():
+    """
+    Find a virtualenv next to ours, with a "-sandbox" suffix.
+
+    Returns the virtualenv directory name, or None if one couldn't be found.
+
+    """
+    sandbox_venv = '{}-sandbox'.format(sys.prefix)
+    if os.path.isdir(sandbox_venv):
+        python_bin = os.path.join(sandbox_venv, "bin/python")
+        if os.path.exists(python_bin):
+            return sandbox_venv
+
+    return None

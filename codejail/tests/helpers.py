@@ -7,8 +7,8 @@ import os.path
 import sys
 from unittest import TestCase
 
-from codejail import jail
-from codejail import languages
+from codejail import jail, languages
+from codejail.util import sibling_sandbox_venv
 
 
 SAME = object()
@@ -53,23 +53,14 @@ class JailMixin(TestCase):
         super(JailMixin, self).setUp()
         if not jail.is_configured("python"):
             if not self._codejail_venv:
-                self._codejail_venv = self._autoconfigure_codejail_venv()
+                self._codejail_venv = sibling_sandbox_venv()
+                if not self._codejail_venv:
+                    self.fail("No virtualenv found for codejail")
             if not self._codejail_user:
                 # User explicitly requested no su user via environment variable
                 self._codejail_user = None
-            bin_path = os.path.join(self._codejail_venv, 'bin/python2')
+            bin_path = os.path.join(self._codejail_venv, 'bin/python')
             jail.configure("python", bin_path, user=self._codejail_user, lang=languages.python2)
-
-    def _autoconfigure_codejail_venv(self):
-        """
-        For the purposes of tests, look for a sandbox alongside the currently
-        running python.
-        """
-        codejail_venv = '{}-sandbox'.format(sys.prefix)
-        if os.path.isdir(codejail_venv):
-            return codejail_venv
-        else:
-            self.fail("No virtualenv found for codejail")
 
 
 class Python3Mixin(object):

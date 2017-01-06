@@ -34,7 +34,7 @@ other = Language(
 )
 
 python2 = Language(
-    name='python2',
+    name='python',
     argv=[
         '-E',  # Ignore the environment variables PYTHON*
         '-B',  # Don't write .pyc files.

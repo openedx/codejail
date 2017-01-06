@@ -5,9 +5,10 @@ import os.path
 import shutil
 import sys
 
-from .exceptions import SafeExecException
-from .jail import get_codejail, is_configured
-from .util import temp_directory, change_directory, json_safe
+from . import languages
+from .exceptions import JailError, SafeExecException
+from .jail import configure, get_codejail, is_configured
+from .util import temp_directory, change_directory, json_safe, sibling_sandbox_venv
 
 log = logging.getLogger("codejail")
 
@@ -94,16 +95,31 @@ def not_safe_exec(
     globals_dict.update(json_safe(g_dict))
 
 
+def configure_python():
+    """If "python" isn't configured, configure it to point to a sibling venv.
+
+    Raises JailError if it couldn't find a virtualenv to use.
+
+    """
+    if not is_configured("python"):
+        venv = sibling_sandbox_venv()
+        if not venv:
+            raise JailError("Couldn't find sandbox virtualenv")
+        configure("python", os.path.join(venv, "bin/python"), user="sandbox", lang=languages.python2)
+
+
+def fake_safe_exec(*args, **kwargs):                 # pylint: disable=E0102
+    """An actually-unsafe safe_exec, that warns it's being used."""
+
+    # Because it would be bad if this function were used in production,
+    # let's log a warning when it is used.  Developers can live with
+    # one more log line.
+    slug = kwargs.get('slug', None)
+    log.warning("Using codejail/safe_exec.py:not_safe_exec for %s", slug)
+
+    return not_safe_exec(*args, **kwargs)
+
+
 if ALWAYS_BE_UNSAFE:   # pragma: no cover
     # Make safe_exec actually call not_safe_exec, but log that we're doing so.
-
-    def safe_exec(*args, **kwargs):                 # pylint: disable=E0102
-        """An actually-unsafe safe_exec, that warns it's being used."""
-
-        # Because it would be bad if this function were used in production,
-        # let's log a warning when it is used.  Developers can live with
-        # one more log line.
-        slug = kwargs.get('slug', None)
-        log.warning("Using codejail/safe_exec.py:not_safe_exec for %s", slug)
-
-        return not_safe_exec(*args, **kwargs)
+    safe_exec = fake_safe_exec
