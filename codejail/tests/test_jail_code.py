@@ -21,13 +21,6 @@ from codejail import proxy
 from . import helpers
 
 
-def jailpy(code=None, *args, **kwargs):
-    """Run `jail_code` on Python."""
-    if code:
-        code = textwrap.dedent(code)
-    return jail_code("python", code, *args, **kwargs)
-
-
 def file_here(fname):
     """Return the full path to a file alongside this code."""
     return os.path.join(os.path.dirname(__file__), fname)
@@ -57,6 +50,13 @@ def text_of_logs(mock_calls):
 class JailCodeMixin(helpers.JailMixin):
     """Assert helpers for jail_code tests."""
 
+    def jailpy(self, code=None, *args, **kwargs):
+        """Run `jail_code` on Python."""
+        if code:
+            code = textwrap.dedent(code)
+        return jail_code("python", code, *args, **kwargs)
+
+
     def assertResultOk(self, res):
         """Assert that `res` exited well (0), and had no stderr output."""
         if res.stderr:
@@ -69,7 +69,7 @@ class TestFeatures(JailCodeMixin, unittest.TestCase):
     """Test features of how `jail_code` runs Python."""
 
     def test_hello_world(self):
-        res = jailpy(code="print 'Hello, world!'")
+        res = self.jailpy(code="print 'Hello, world!'")
         self.assertResultOk(res)
         self.assertEqual(res.stdout, 'Hello, world!\n')
 
@@ -81,7 +81,7 @@ class TestFeatures(JailCodeMixin, unittest.TestCase):
             self.test_hello_world()
 
     def test_argv(self):
-        res = jailpy(
+        res = self.jailpy(
             code="import sys; print ':'.join(sys.argv[1:])",
             argv=["Hello", "world", "-x"],
             slug="a/useful/slug",
@@ -90,7 +90,7 @@ class TestFeatures(JailCodeMixin, unittest.TestCase):
         self.assertEqual(res.stdout, "Hello:world:-x\n")
 
     def test_ends_with_exception(self):
-        res = jailpy(code="""raise Exception('FAIL')""")
+        res = self.jailpy(code="""raise Exception('FAIL')""")
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, "")
         self.assertEqual(res.stderr, textwrap.dedent("""\
@@ -101,7 +101,7 @@ class TestFeatures(JailCodeMixin, unittest.TestCase):
             """))
 
     def test_stdin_is_provided(self):
-        res = jailpy(
+        res = self.jailpy(
             code="import json,sys; print sum(json.load(sys.stdin))",
             stdin="[1, 2.5, 33]"
         )
@@ -109,7 +109,7 @@ class TestFeatures(JailCodeMixin, unittest.TestCase):
         self.assertEqual(res.stdout, "36.5\n")
 
     def test_stdin_can_be_large_and_binary(self):
-        res = jailpy(
+        res = self.jailpy(
             code="import sys; print sum(ord(c) for c in sys.stdin.read())",
             stdin="".join(chr(i) for i in range(256))*10000,
         )
@@ -117,7 +117,7 @@ class TestFeatures(JailCodeMixin, unittest.TestCase):
         self.assertEqual(res.stdout, "326400000\n")
 
     def test_stdout_can_be_large_and_binary(self):
-        res = jailpy(
+        res = self.jailpy(
             code="""
                 import sys
                 sys.stdout.write("".join(chr(i) for i in range(256))*10000)
@@ -130,7 +130,7 @@ class TestFeatures(JailCodeMixin, unittest.TestCase):
         )
 
     def test_stderr_can_be_large_and_binary(self):
-        res = jailpy(
+        res = self.jailpy(
             code="""
                 import sys
                 sys.stderr.write("".join(chr(i) for i in range(256))*10000)
@@ -145,7 +145,7 @@ class TestFeatures(JailCodeMixin, unittest.TestCase):
         )
 
     def test_files_are_copied(self):
-        res = jailpy(
+        res = self.jailpy(
             code="print 'Look:', open('hello.txt').read()",
             files=[file_here("hello.txt")]
         )
@@ -161,7 +161,7 @@ class TestFeatures(JailCodeMixin, unittest.TestCase):
         if os.path.exists(pyc):
             os.unlink(pyc)
 
-        res = jailpy(
+        res = self.jailpy(
             code="""\
                 import os
                 res = []
@@ -180,7 +180,7 @@ class TestFeatures(JailCodeMixin, unittest.TestCase):
             """))
 
     def test_executing_a_copied_file(self):
-        res = jailpy(
+        res = self.jailpy(
             files=[file_here("doit.py")],
             argv=["doit.py", "1", "2", "3"]
         )
@@ -191,7 +191,7 @@ class TestFeatures(JailCodeMixin, unittest.TestCase):
         )
 
     def test_executing_extra_files(self):
-        res = jailpy(
+        res = self.jailpy(
             extra_files=[
                 ("run.py", textwrap.dedent("""\
                             import os
@@ -217,7 +217,7 @@ class TestFeatures(JailCodeMixin, unittest.TestCase):
         # to delete files in folders that are only owned by the sandbox
         # user, such as the temp directory created below.
         set_limit('FSIZE', 1000)
-        res = jailpy(
+        res = self.jailpy(
             code="""\
                 import os, shutil, tempfile
                 temp_dir = tempfile.mkdtemp()
@@ -241,7 +241,7 @@ class TestFeatures(JailCodeMixin, unittest.TestCase):
 
     @mock.patch("codejail.subproc.log._log")
     def test_slugs_get_logged(self, log_log):
-        jailpy(code="print 'Hello, world!'", slug="HELLO")
+        self.jailpy(code="print 'Hello, world!'", slug="HELLO")
         log_text = text_of_logs(log_log.mock_calls)
         self.assertRegexpMatches(log_text, r"INFO: Executed jailed code HELLO in .*, with PID .*")
 
@@ -261,7 +261,7 @@ class TestLimits(JailCodeMixin, unittest.TestCase):
     def test_cant_use_too_much_memory(self):
         # This will fail after setting the limit to 30Mb.
         set_limit('VMEM', 30000000)
-        res = jailpy(code="print len(bytearray(40000000))")
+        res = self.jailpy(code="print len(bytearray(40000000))")
         self.assertEqual(res.stdout, "")
         self.assertIn("MemoryError", res.stderr)
         self.assertEqual(res.status, 1)
@@ -269,7 +269,7 @@ class TestLimits(JailCodeMixin, unittest.TestCase):
     def test_changing_vmem_limit(self):
         # Up the limit, it will succeed.
         set_limit('VMEM', 80000000)
-        res = jailpy(code="print len(bytearray(40000000))")
+        res = self.jailpy(code="print len(bytearray(40000000))")
         self.assertEqual(res.stderr, "")
         self.assertEqual(res.stdout, "40000000\n")
         self.assertEqual(res.status, 0)
@@ -277,7 +277,7 @@ class TestLimits(JailCodeMixin, unittest.TestCase):
     def test_disabling_vmem_limit(self):
         # Disable the limit, it will succeed.
         set_limit('VMEM', 0)
-        res = jailpy(code="print len(bytearray(50000000))")
+        res = self.jailpy(code="print len(bytearray(50000000))")
         self.assertEqual(res.stderr, "")
         self.assertEqual(res.stdout, "50000000\n")
         self.assertEqual(res.status, 0)
@@ -285,7 +285,7 @@ class TestLimits(JailCodeMixin, unittest.TestCase):
     def test_cant_use_too_much_cpu(self):
         set_limit('CPU', 1)
         set_limit('REALTIME', 100)
-        res = jailpy(code="print sum(xrange(2**31-1))")
+        res = self.jailpy(code="print sum(xrange(2**31-1))")
         self.assertEqual(res.stdout, "")
         self.assertEqual(res.status, 128+signal.SIGXCPU)    # 137
 
@@ -293,7 +293,7 @@ class TestLimits(JailCodeMixin, unittest.TestCase):
     def test_cant_use_too_much_time(self, log_log):
         # Default time limit is 1 second.  Sleep for 1.5 seconds.
         set_limit('CPU', 100)
-        res = jailpy(code="import time; time.sleep(1.5); print 'Done!'")
+        res = self.jailpy(code="import time; time.sleep(1.5); print 'Done!'")
         self.assertEqual(res.stdout, "")
         self.assertEqual(res.status, -signal.SIGKILL)       # -9
 
@@ -304,19 +304,19 @@ class TestLimits(JailCodeMixin, unittest.TestCase):
     def test_changing_realtime_limit(self):
         # Change time limit to 2 seconds, sleeping for 1.5 will be fine.
         set_limit('REALTIME', 2)
-        res = jailpy(code="import time; time.sleep(1.5); print 'Done!'")
+        res = self.jailpy(code="import time; time.sleep(1.5); print 'Done!'")
         self.assertResultOk(res)
         self.assertEqual(res.stdout, "Done!\n")
 
     def test_disabling_realtime_limit(self):
         # Disable the time limit, sleeping for 1.5 will be fine.
         set_limit('REALTIME', 0)
-        res = jailpy(code="import time; time.sleep(1.5); print 'Done!'")
+        res = self.jailpy(code="import time; time.sleep(1.5); print 'Done!'")
         self.assertResultOk(res)
         self.assertEqual(res.stdout, "Done!\n")
 
     def test_cant_write_files(self):
-        res = jailpy(code="""\
+        res = self.jailpy(code="""\
                 print "Trying"
                 with open("mydata.txt", "w") as f:
                     f.write("hello")
@@ -329,7 +329,7 @@ class TestLimits(JailCodeMixin, unittest.TestCase):
 
     def test_can_write_temp_files(self):
         set_limit('FSIZE', 1000)
-        res = jailpy(code="""\
+        res = self.jailpy(code="""\
                 import os, tempfile
                 print "Trying mkstemp"
                 f, path = tempfile.mkstemp()
@@ -344,7 +344,7 @@ class TestLimits(JailCodeMixin, unittest.TestCase):
 
     def test_cant_write_large_temp_files(self):
         set_limit('FSIZE', 1000)
-        res = jailpy(code="""\
+        res = self.jailpy(code="""\
                 import os, tempfile
                 print "Trying mkstemp"
                 f, path = tempfile.mkstemp()
@@ -366,7 +366,7 @@ class TestLimits(JailCodeMixin, unittest.TestCase):
         # We would like this to fail, but there's nothing that checks total
         # file size written, so the sandbox does not prevent it yet.
         set_limit('FSIZE', 1000)
-        res = jailpy(code="""\
+        res = self.jailpy(code="""\
                 import os, tempfile
                 print "Trying mkstemp 250"
                 for i in range(250):
@@ -383,7 +383,7 @@ class TestLimits(JailCodeMixin, unittest.TestCase):
         self.assertIn("IOError", res.stderr)
 
     def test_cant_use_network(self):
-        res = jailpy(code="""\
+        res = self.jailpy(code="""\
                 import urllib
                 print "Reading google"
                 u = urllib.urlopen("http://google.com")
@@ -395,7 +395,7 @@ class TestLimits(JailCodeMixin, unittest.TestCase):
         self.assertIn("IOError", res.stderr)
 
     def test_cant_use_raw_network(self):
-        res = jailpy(code="""\
+        res = self.jailpy(code="""\
                 import urllib
                 print "Reading example.com"
                 u = urllib.urlopen("http://93.184.216.119")
@@ -407,7 +407,7 @@ class TestLimits(JailCodeMixin, unittest.TestCase):
         self.assertIn("IOError", res.stderr)
 
     def test_cant_fork(self):
-        res = jailpy(code="""\
+        res = self.jailpy(code="""\
                 import os
                 print "Forking"
                 child_ppid = os.fork()
@@ -418,7 +418,7 @@ class TestLimits(JailCodeMixin, unittest.TestCase):
 
     def test_cant_see_environment_variables(self):
         os.environ['HONEY_BOO_BOO'] = 'Look!'
-        res = jailpy(code="""\
+        res = self.jailpy(code="""\
                 import os
                 for name, value in os.environ.items():
                     print "%s: %r" % (name, value)
@@ -428,12 +428,12 @@ class TestLimits(JailCodeMixin, unittest.TestCase):
 
     def test_reading_dev_random(self):
         # We can read 10 bytes just fine.
-        res = jailpy(code="x = open('/dev/urandom').read(10); print len(x)")
+        res = self.jailpy(code="x = open('/dev/urandom').read(10); print len(x)")
         self.assertResultOk(res)
         self.assertEqual(res.stdout, "10\n")
 
         # If we try to read all of it, we'll be killed by the real-time limit.
-        res = jailpy(code="x = open('/dev/urandom').read(); print 'Done!'")
+        res = self.jailpy(code="x = open('/dev/urandom').read(); print 'Done!'")
         self.assertNotEqual(res.status, 0)
 
 
@@ -468,7 +468,7 @@ class TestSymlinks(JailCodeMixin, unittest.TestCase):
     def test_symlinks_in_directories_wont_copy_data(self):
         # Run some code in the sandbox, with a copied directory containing
         # the symlink.
-        res = jailpy(
+        res = self.jailpy(
             code="""\
                 print open('copied/here.txt').read()        # can read
                 print open('copied/herelink.txt').read()    # can read
@@ -481,7 +481,7 @@ class TestSymlinks(JailCodeMixin, unittest.TestCase):
 
     def test_symlinks_wont_copy_data(self):
         # Run some code in the sandbox, with a copied file which is a symlink.
-        res = jailpy(
+        res = self.jailpy(
             code="""\
                 print open('here.txt').read()       # can read
                 print open('herelink.txt').read()   # can read
@@ -498,7 +498,7 @@ class TestMalware(JailCodeMixin, unittest.TestCase):
 
     def test_crash_cpython(self):
         # http://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html
-        res = jailpy(code="""\
+        res = self.jailpy(code="""\
             import new, sys
             bad_code = new.code(0,0,0,0,"KABOOM",(),(),(),"","",0,"")
             crash_me = new.function(bad_code, {})
@@ -512,7 +512,7 @@ class TestMalware(JailCodeMixin, unittest.TestCase):
         self.assertEqual(res.stderr, "")
 
     def test_read_etc_passwd(self):
-        res = jailpy(code="""\
+        res = self.jailpy(code="""\
             bytes = len(open('/etc/passwd').read())
             print 'Gotcha', bytes
             """)
@@ -521,7 +521,7 @@ class TestMalware(JailCodeMixin, unittest.TestCase):
         self.assertIn("ermission denied", res.stderr)
 
     def test_find_other_sandboxes(self):
-        res = jailpy(code="""
+        res = self.jailpy(code="""
             import os
             places = [
                 "..", "/tmp", "/", "/home", "/etc", "/var"
@@ -554,7 +554,7 @@ class TestProxyProcess(JailCodeMixin, unittest.TestCase):
     def run_ok(self):
         """Run some code to see that it works."""
         num = int(time.time()*100000)
-        res = jailpy(code="print 'Look: %d'" % num)
+        res = self.jailpy(code="print 'Look: %d'" % num)
         self.assertResultOk(res)
         self.assertEqual(res.stdout, 'Look: %d\n' % num)
 
