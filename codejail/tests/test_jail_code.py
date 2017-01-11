@@ -50,10 +50,20 @@ def text_of_logs(mock_calls):
 class JailCodeMixin(helpers.JailMixin):
     """Assert helpers for jail_code tests."""
 
+    subproc = 1
+
     def jailpy(self, code=None, *args, **kwargs):
         """Run `jail_code` on Python."""
         if code:
             code = textwrap.dedent(code)
+        if self.subproc and code:
+            extra_files = kwargs.get('extra_files', [])
+            extra_files.append(["realcode.py", code])
+            kwargs['extra_files'] = extra_files
+            code = textwrap.dedent("""\
+                import subprocess, sys
+                sys.exit(subprocess.check_call([sys.executable, 'realcode.py']))
+                """).format(code=code.encode('string_escape'))
         return jail_code("python", code, *args, **kwargs)
 
 
