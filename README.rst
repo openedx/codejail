@@ -19,11 +19,11 @@ using the same API, but will not guard against malicious code.  This allows the
 same code to be used on safe-configured or non-safe-configured developer's
 machines.
 
-A CodeJail sandbox consists of several pieces: 
+A CodeJail sandbox consists of several pieces:
 
 #) Sandbox environment. For a Python setup, this would be Python and
    associated core packages. This is denoted throughout this document
-   as **<SANDENV>**. This is read-only. 
+   as **<SANDENV>**. This is read-only.
 
 #) Sandbox packages. These are additional packages needed for a given
    run. For example, this might be a grader written by an instructor
@@ -34,7 +34,7 @@ A CodeJail sandbox consists of several pieces:
 #) Untrusted packages. This is typically the code submitted by the
    student to be tested on the server, as well as any data the code
    may need to modify. This is denoted throughout this document as
-   **<UNTRUSTED_PACK>**. This is currently read-only, but may need to 
+   **<UNTRUSTED_PACK>**. This is currently read-only, but may need to
    be read-write for some applications.
 
 #) OS packages. These are standard system libraries needed to run
@@ -61,7 +61,7 @@ To secure Python execution, you'll be creating a new virtualenv.  This means
 you'll have two: the main virtualenv for your project, and the new one for
 sandboxed Python code.
 
-Choose a place for the new virtualenv, call it **<SANDENV>**.  
+Choose a place for the new virtualenv, call it **<SANDENV>**.
 
 The user running the LMS is **<SANDBOX_CALLER>**, for example, you on
 your dev machine, or `www-data` on a server.
@@ -126,14 +126,24 @@ Using CodeJail
 --------------
 
 If your CodeJail is properly configured to use safe_exec, try these
-commands at your Python terminal::
+commands at your Python terminal:
 
-    import codejail.jail_code
-    codejail.jail_code.configure('python', '<SANDENV>/bin/python')
-    import codejail.safe_exec
-    codejail.safe_exec.safe_exec("import os\nos.system('ls /etc')", {})
+.. code:: python
 
-This should fail with an exception. 
+    import codejail
+    jail = codejail.configure('python', '<SANDENV>/bin/python')
+    jail = codejail.get_codejail('python')  # this works anytime after configuration has happened
+    jail.safe_exec("import os\nos.system('ls /etc')", {})
+
+This should fail with a SafeExecException.  Similarly, the following will
+return a JailResult indicating that an exception was raised:
+
+.. code:: python
+
+    result = jail.jail_code("import os\nos.system('ls /etc')")
+    assert result.status != 0
+    assert result.stdout == ''
+    assert 'Error' in result.stderr
 
 If you need to change the packages installed into your sandbox's virtualenv,
 you'll need to disable AppArmor, because your sandboxed Python doesn't have
@@ -171,11 +181,29 @@ Design
 CodeJail is general-purpose enough that it can be used in a variety of projects
 to run untrusted code.  It provides two layers:
 
-* `jail_code.py` offers secure execution of subprocesses.  It does this by
+* ``codejail.Jail.jail_code()`` offers secure execution of subprocesses.  It does this by
   running the program in a subprocess managed by AppArmor.
 
-* `safe_exec.py` offers specialized handling of Python execution, using
+  This takes a program to run, files to copy into its environment, command-line
+  arguments, and a stdin stream.  It creates a temporary directory, creates or
+  copies the needed files, spawns a subprocess to run the code, and returns the
+  output and exit status of the process.
+
+.. image:: https://raw.githubusercontent.com/edx/codejail/master/doc/jail_code.png
+    :alt: Data flow when running Jail.jail_code()
+    :width: 800px
+
+* ``codejail.Jail.safe_exec()`` offers specialized handling of Python execution, using
   jail_code to provide the semantics of Python's exec statement.
+
+  This emulates Python's exec statement.  It takes a chunk of Python code, and
+  runs it using jail_code, modifying the globals dictionary as a side-effect.
+  safe_exec does this by serializing the globals into and out of the subprocess
+  run by ``codejail.Jail.jail_code()`` as JSON.
+
+.. image:: https://raw.githubusercontent.com/edx/codejail/master/doc/safe_exec.png
+    :alt: Data flow when running Jail.safe_exec()
+    :width: 800px
 
 CodeJail runs programs under AppArmor.  AppArmor is an OS-provided feature to
 limit the resources programs can access. To run Python code with limited access
@@ -185,12 +213,8 @@ execute the provided Python program with that executable, and AppArmor will
 automatically limit the resources it can access.  CodeJail also uses setrlimit
 to limit the amount of CPU time and/or memory available to the process.
 
-`CodeJail.jail_code` takes a program to run, files to copy into its
-environment, command-line arguments, and a stdin stream.  It creates a
-temporary directory, creates or copies the needed files, spawns a subprocess to
-run the code, and returns the output and exit status of the process.
-
-`CodeJail.safe_exec` emulates Python's exec statement.  It takes a chunk of
-Python code, and runs it using jail_code, modifying the globals dictionary as a
-side-effect.  safe_exec does this by serializing the globals into and out of
-the subprocess as JSON.
+For backwards compatibility, the methods ``codejail.Jail.jail_code`` and
+``codejail.Jail.safe_exec`` are also available as functions
+(``codejail.jail_code.jail_code`` and ``codejail.safe_exec.safe_exec``) that take
+in an extra argument which is a string naming the configured Jail object
+(``"python"`` in the above examples).
