@@ -54,8 +54,7 @@ def not_safe_exec(
         files=None,
         python_path=None,
         slug=None,
-        extra_files=None
-    ):  # pylint: disable=unused-argument
+        extra_files=None):  # pylint: disable=unused-argument
     """
     Another implementation of `safe_exec`, but not safe.
 
@@ -81,7 +80,7 @@ def not_safe_exec(
             if python_path:
                 sys.path.extend(python_path)
             try:
-                exec code in g_dict  # pylint: disable=exec-used
+                exec(code, g_dict)  # pylint: disable=exec-used
             except Exception as exc:
                 # Wrap the exception in a SafeExecException, but we don't
                 # try here to include the traceback, since this is just a
@@ -96,7 +95,6 @@ def not_safe_exec(
 
 if ALWAYS_BE_UNSAFE:   # pragma: no cover
     # Make safe_exec actually call not_safe_exec, but log that we're doing so.
-
     def safe_exec(*args, **kwargs):                 # pylint: disable=E0102
         """An actually-unsafe safe_exec, that warns it's being used."""
 

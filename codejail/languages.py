@@ -68,7 +68,7 @@ python2 = Language(
         """
         # Execute the sandboxed code.
         """
-        exec code in g_dict
+        exec(code, g_dict)
         """
         # Clean the globals for sending back as JSON over stdout.
         """

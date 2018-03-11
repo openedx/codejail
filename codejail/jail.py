@@ -6,6 +6,7 @@ from collections import namedtuple
 import json
 import logging
 import os
+import stat
 import shutil
 
 from .exceptions import JailError, SafeExecException
@@ -147,7 +148,8 @@ class Jail(object):
                 files.append(pydir)
 
         stdin = json.dumps([code, json_safe(globals_dict)])
-        jailed_code = self.lang.safe_exec_template % {'python_path': '\n'.join(pypath_code)}
+        jailed_code = self.lang.safe_exec_template % {'python_path': '\n'.join(
+            pypath_code)}
 
         log.debug("Jailed code: %s", jailed_code)
         log.debug("Exec: %s", code)
@@ -168,7 +170,8 @@ class Jail(object):
         try:
             resulting_globals = json.loads(response.stdout)
         except (TypeError, ValueError):
-            raise JailError("Returned value was not valid JSON: {!r}".format(response.stdout))
+            raise JailError("Returned value was not valid JSON: {!r}".format(
+                response.stdout))
         if not isinstance(resulting_globals, dict):
             raise JailError("Returned value was not a JSON object: {!r}".format(response.stdout))
         globals_dict.update(resulting_globals)
@@ -213,13 +216,19 @@ class Jail(object):
 
             # Make directory readable by other users ('sandbox' user needs to be
             # able to read it).
-            os.chmod(homedir, 0775)
+            os.chmod(
+                homedir, stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP |
+                stat.S_IROTH | stat.S_IXOTH | stat.S_IRUSR | stat.S_IWUSR |
+                stat.S_IXUSR)
 
             # Make a subdir to use for temp files, world-writable so that the
             # sandbox user can write to it.
             tmptmp = os.path.join(homedir, "tmp")
             os.mkdir(tmptmp)
-            os.chmod(tmptmp, 0777)
+            os.chmod(
+                tmptmp, stat.S_IXOTH | stat.S_IRGRP | stat.S_IWGRP |
+                stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH | stat.S_IRUSR |
+                stat.S_IWUSR | stat.S_IXUSR)
 
             argv = argv or []
             env = {'TMPDIR': 'tmp'}

@@ -13,3 +13,6 @@ htmlcov
 
 # OS detritus
 *.DS_Store
+
+dist/
+sftp-config.json
