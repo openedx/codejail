@@ -148,8 +148,7 @@ class Jail(object):
                 files.append(pydir)
 
         stdin = json.dumps([code, json_safe(globals_dict)])
-        jailed_code = self.lang.safe_exec_template % {'python_path': '\n'.join(
-            pypath_code)}
+        jailed_code = self.lang.safe_exec_template % {'python_path': '\n'.join(pypath_code)}
 
         log.debug("Jailed code: %s", jailed_code)
         log.debug("Exec: %s", code)

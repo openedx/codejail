@@ -54,7 +54,8 @@ def not_safe_exec(
         files=None,
         python_path=None,
         slug=None,
-        extra_files=None):  # pylint: disable=unused-argument
+        extra_files=None
+    ):  # pylint: disable=unused-argument
     """
     Another implementation of `safe_exec`, but not safe.
 
