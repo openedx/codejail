@@ -53,7 +53,7 @@ def run_subprocess(
     if stdin:
         stdin = stdin.encode()
     stdout, stderr = subproc.communicate(stdin)
-    return subproc.returncode, stdout, stderr
+    return subproc.returncode, str(stdout, encoding='ascii'), stderr
 
 
 def set_process_limits(rlimits):       # pragma: no cover
