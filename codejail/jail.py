@@ -245,14 +245,14 @@ class Jail(object):
             # Create the main file.
             if code:
                 with open(os.path.join(homedir, "jailed_code"), "wb") as jailed:
-                    jailed.write(code.encode('utf-8'))
+                    jailed.write(code.encode())
 
                 argv = ["jailed_code"] + argv
 
             # Create extra files requested by the caller:
             for name, content in extra_files or ():
                 with open(os.path.join(homedir, name), "wb") as extra:
-                    extra.write(content.encode('utf-8'))
+                    extra.write(content.encode())
 
             cmd = []
 
