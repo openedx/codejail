@@ -70,6 +70,7 @@ class Jail(object):
 
     known_commands = {
         'python': languages.python2,
+        'python3': languages.python3
     }
 
     def __init__(self, command, bin_path, user, lang=None):
