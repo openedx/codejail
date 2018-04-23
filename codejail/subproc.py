@@ -50,7 +50,9 @@ def run_subprocess(
         killer = ProcessKillerThread(subproc, limit=realtime)
         killer.start()
 
-    stdout, stderr = subproc.communicate(stdin.encode())
+    if stdin:
+        stdin = stdin.encode()
+    stdout, stderr = subproc.communicate(stdin)
     return subproc.returncode, stdout, stderr
 
 
