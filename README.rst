@@ -72,9 +72,9 @@ Other details here that depend on your configuration:
 
     $ sudo virtualenv <SANDENV>
 
-2. (Optional) If you have particular packages you want available to your
+2. Install particular packages you want available to your
    sandboxed code, install them by activating the sandbox virtual env, and
-   using pip to install them::
+   using pip to install them. For `OPAL` you can find the sandbox-requirements.txt `here <https://github.com/OPAL-Project/codejail/blob/master/sandbox-requirements.txt>`_::
 
     $ source <SANDENV>/bin/activate
     $ pip install -r sandbox-requirements.txt
