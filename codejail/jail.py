@@ -6,6 +6,7 @@ from collections import namedtuple
 import json
 import logging
 import os
+import stat
 import shutil
 
 from .exceptions import JailError, SafeExecException
@@ -69,6 +70,7 @@ class Jail(object):
 
     known_commands = {
         'python': languages.python2,
+        'python3': languages.python3
     }
 
     def __init__(self, command, bin_path, user, lang=None):
@@ -168,7 +170,8 @@ class Jail(object):
         try:
             resulting_globals = json.loads(response.stdout)
         except (TypeError, ValueError):
-            raise JailError("Returned value was not valid JSON: {!r}".format(response.stdout))
+            raise JailError("Returned value was not valid JSON: {!r}".format(
+                response.stdout))
         if not isinstance(resulting_globals, dict):
             raise JailError("Returned value was not a JSON object: {!r}".format(response.stdout))
         globals_dict.update(resulting_globals)
@@ -213,13 +216,19 @@ class Jail(object):
 
             # Make directory readable by other users ('sandbox' user needs to be
             # able to read it).
-            os.chmod(homedir, 0775)
+            os.chmod(
+                homedir, stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP |
+                stat.S_IROTH | stat.S_IXOTH | stat.S_IRUSR | stat.S_IWUSR |
+                stat.S_IXUSR)
 
             # Make a subdir to use for temp files, world-writable so that the
             # sandbox user can write to it.
             tmptmp = os.path.join(homedir, "tmp")
             os.mkdir(tmptmp)
-            os.chmod(tmptmp, 0777)
+            os.chmod(
+                tmptmp, stat.S_IXOTH | stat.S_IRGRP | stat.S_IWGRP |
+                stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH | stat.S_IRUSR |
+                stat.S_IWUSR | stat.S_IXUSR)
 
             argv = argv or []
             env = {'TMPDIR': 'tmp'}
@@ -237,14 +246,14 @@ class Jail(object):
             # Create the main file.
             if code:
                 with open(os.path.join(homedir, "jailed_code"), "wb") as jailed:
-                    jailed.write(code)
+                    jailed.write(code.encode())
 
                 argv = ["jailed_code"] + argv
 
             # Create extra files requested by the caller:
             for name, content in extra_files or ():
                 with open(os.path.join(homedir, name), "wb") as extra:
-                    extra.write(content)
+                    extra.write(content.encode())
 
             cmd = []
 

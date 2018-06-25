@@ -72,9 +72,9 @@ Other details here that depend on your configuration:
 
     $ sudo virtualenv <SANDENV>
 
-2. (Optional) If you have particular packages you want available to your
+2. Install particular packages you want available to your
    sandboxed code, install them by activating the sandbox virtual env, and
-   using pip to install them::
+   using pip to install them. For `OPAL` you can find the sandbox-requirements.txt `here <https://github.com/OPAL-Project/codejail/blob/master/sandbox-requirements.txt>`_::
 
     $ source <SANDENV>/bin/activate
     $ pip install -r sandbox-requirements.txt
@@ -93,17 +93,31 @@ Other details here that depend on your configuration:
     <SANDBOX_CALLER> ALL=(sandbox) SETENV:NOPASSWD:/usr/bin/find
     <SANDBOX_CALLER> ALL=(ALL) NOPASSWD:/usr/bin/pkill
 
-5. Edit an AppArmor profile.  This is a text file specifying the limits on the
+  Ensure that when you run <SANDENV>/bin/python, it must run as sandbox user. If this is
+  not the case then running below command might give you answers::
+
+    $ sudo -l
+
+
+5. Install apparmor-profiles::
+    
+    $ sudo apt-get install apparmor-profiles apparmor-utils
+
+
+6. Create and edit an AppArmor profile.  This is a text file specifying the limits on the
    sandboxed Python executable.  The file must be in `/etc/apparmor.d` and must
    be named based on the executable, with slashes replaced by dots.  For
-   example, if your sandboxed Python is at `/home/chris/ve/myproj-sandbox/bin/python`,
-   then your AppArmor profile must be `/etc/apparmor.d/home.chris.ve.myproj-sandbox.bin.python`::
+   example, if your sandboxed Python binary (not symlinks) is at `/home/chris/ve/myproj-sandbox/bin/python`,
+   then your AppArmor profile generated will be `/etc/apparmor.d/home.chris.ve.myproj-sandbox.bin.python`::
+
+    $ sudo aa-genprof /home/chris/ve/myproj-sandbox/bin/python  # generate apparmor profile
 
     $ sudo vim /etc/apparmor.d/home.chris.ve.myproj-sandbox.bin.python
 
     #include <tunables/global>
 
     <SANDENV>/bin/python {
+        # edit begins here
         #include <abstractions/base>
         #include <abstractions/python>
 
@@ -116,11 +130,11 @@ Other details here that depend on your configuration:
         /tmp/codejail-*/** wrix,
     }
 
-6. Parse the profiles::
+7. Parse the profiles::
 
     $ sudo apparmor_parser <APPARMOR_FILE>
 
-7. Reactivate your project's main virtualenv again.
+8. Reactivate your project's main virtualenv again.
 
 Using CodeJail
 --------------

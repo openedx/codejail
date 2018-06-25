@@ -13,3 +13,7 @@ htmlcov
 
 # OS detritus
 *.DS_Store
+
+dist/
+
+.idea/*

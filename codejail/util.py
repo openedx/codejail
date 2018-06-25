@@ -4,6 +4,10 @@ import contextlib
 import os
 import shutil
 import tempfile
+from past.builtins import long
+from builtins import str
+import six
+
 
 try:
     import simplejson as json
@@ -44,10 +48,10 @@ def json_safe(input_dict):
 
     Used to emulate reading data through a serialization straw.
     """
-    ok_types = (type(None), int, long, float, str, unicode, list, tuple, dict)
+    ok_types = (type(None), int, long, float, str, list, tuple, dict)
     bad_keys = ("__builtins__",)
     json_dict = {}
-    for key, value in input_dict.iteritems():
+    for key, value in six.iteritems(input_dict):
         if not isinstance(value, ok_types):
             continue
         if key in bad_keys:
