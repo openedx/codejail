@@ -1,0 +1,5 @@
+.git/
+.tox/
+**/__pycache__/
+*.py[cdo]
+*~
