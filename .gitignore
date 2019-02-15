@@ -13,3 +13,4 @@ htmlcov
 
 # OS detritus
 *.DS_Store
+.tox
