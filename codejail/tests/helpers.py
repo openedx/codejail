@@ -2,6 +2,7 @@
 Helper code to facilitate testing
 """
 
+from __future__ import absolute_import
 from contextlib import contextmanager
 import os.path
 import sys

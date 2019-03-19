@@ -1,5 +1,6 @@
 """Subprocess helpers for CodeJail."""
 
+from __future__ import absolute_import
 import functools
 import logging
 import os
@@ -11,10 +12,8 @@ import time
 log = logging.getLogger("codejail")
 
 
-def run_subprocess(
-    cmd, stdin=None, cwd=None, env=None, rlimits=None, realtime=None,
-    slug=None,
-):
+def run_subprocess(cmd, stdin=None, cwd=None, env=None, rlimits=None, realtime=None,
+                   slug=None,):
     """
     A helper to make a limited subprocess.
 

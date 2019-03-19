@@ -1,5 +1,6 @@
 """A proxy subprocess-making process for CodeJail."""
 
+from __future__ import absolute_import
 import ast
 import logging
 import os
@@ -17,8 +18,8 @@ log = logging.getLogger("codejail")
 # communicate a few values, and unpack them.  Lastly, we need to be sure we can
 # handle binary data.  Serializing with repr() and deserializing the literals
 # that result give us all the properties we need.
-serialize = repr
-deserialize = ast.literal_eval
+SERIALIZE = repr
+DESERIALIZE = ast.literal_eval
 
 ##
 ## Client code, runs in the parent CodeJail process.
@@ -31,12 +32,12 @@ def run_subprocess_through_proxy(*args, **kwargs):
     This will retry a few times if need be.
 
     """
-    for tries in xrange(3):
+    for tries in range(3):
         try:
             proxy = get_proxy()
 
             # Write the args and kwargs to the proxy process.
-            proxy_stdin = serialize((args, kwargs))
+            proxy_stdin = SERIALIZE((args, kwargs))
             proxy.stdin.write(proxy_stdin+"\n")
 
             # Read the result from the proxy.  This blocks until the process
@@ -45,7 +46,7 @@ def run_subprocess_through_proxy(*args, **kwargs):
             if not proxy_stdout:
                 # EOF: the proxy must have died.
                 raise Exception("Proxy process died unexpectedly!")
-            status, stdout, stderr, log_calls = deserialize(proxy_stdout.rstrip())
+            status, stdout, stderr, log_calls = DESERIALIZE(proxy_stdout.rstrip())
 
             # Write all the log messages to the log, and return.
             for level, msg, args in log_calls:
@@ -168,11 +169,11 @@ def proxy_main(argv):
             log.debug("proxy stdin: %r" % stdin)
             if not stdin:
                 break
-            args, kwargs = deserialize(stdin.rstrip())
+            args, kwargs = DESERIALIZE(stdin.rstrip())
             status, stdout, stderr = run_subprocess(*args, **kwargs)
             log.debug("run_subprocess result: status=%r\nstdout=%r\nstderr=%r" % (status, stdout, stderr))
             log_calls = capture_log.get_log_calls()
-            stdout = serialize((status, stdout, stderr, log_calls))
+            stdout = SERIALIZE((status, stdout, stderr, log_calls))
             sys.stdout.write(stdout+"\n")
     except Exception:
         # Note that this log message will not get back to the parent, because

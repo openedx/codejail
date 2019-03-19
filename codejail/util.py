@@ -1,14 +1,21 @@
 """Helpers for codejail."""
 
+from __future__ import absolute_import
 import contextlib
 import os
 import shutil
 import tempfile
+import six
 
 try:
     import simplejson as json
 except ImportError:
     import json
+
+try:
+    long
+except NameError:
+    long = int
 
 
 @contextlib.contextmanager
@@ -44,10 +51,10 @@ def json_safe(input_dict):
 
     Used to emulate reading data through a serialization straw.
     """
-    ok_types = (type(None), int, long, float, str, unicode, list, tuple, dict)
+    ok_types = (type(None), int, long, float, str, six.text_type, list, tuple, dict)
     bad_keys = ("__builtins__",)
     json_dict = {}
-    for key, value in input_dict.iteritems():
+    for key, value in input_dict.items():
         if not isinstance(value, ok_types):
             continue
         if key in bad_keys:

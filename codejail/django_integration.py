@@ -4,13 +4,14 @@ Code to glue codejail into a Django environment.
 
 """
 
+from __future__ import absolute_import
 from django.conf import settings as django_settings
 from django.core.exceptions import MiddlewareNotUsed
 
 from .integration import configure_from_settings
 
 
-class ConfigureCodeJailMiddleware(object):
+class ConfigureCodeJailMiddleware():
     """
     Middleware to configure codejail on startup.
 

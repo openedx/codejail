@@ -17,6 +17,7 @@ Preconfigured `Language` objects exist for `python2`, `python3`, and `other`, bu
 applications can define their own languages by instantiating `Language`.
 """
 
+from __future__ import absolute_import
 from collections import namedtuple
 import textwrap
 

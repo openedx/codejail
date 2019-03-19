@@ -2,8 +2,10 @@
 Test JSON serialization straw
 """
 
+from __future__ import absolute_import
 import unittest
 from codejail.util import json_safe
+from six import unichr
 
 
 class JsonSafeTest(unittest.TestCase):
@@ -12,7 +14,7 @@ class JsonSafeTest(unittest.TestCase):
     """
 
     # Unicode surrogate values
-    SURROGATE_RANGE = range(0xD800, 0xE000)
+    SURROGATE_RANGE = list(range(0xD800, 0xE000))
 
     def test_unicode(self):
         # Test that json_safe() handles non-surrogate unicode values.

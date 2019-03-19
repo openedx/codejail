@@ -2,6 +2,7 @@
 CodeJail: manages execution of untrusted code in secure sandboxes.
 """
 
+from __future__ import absolute_import
 from setuptools import setup
 
 setup(

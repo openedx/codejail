@@ -2,6 +2,7 @@
 Configurable system resource limits
 """
 
+from __future__ import absolute_import
 import resource
 
 

@@ -2,6 +2,7 @@
 Test configuring code jails from settings objects.
 """
 
+from __future__ import absolute_import
 from unittest import TestCase
 
 from codejail import django_integration, jail, languages

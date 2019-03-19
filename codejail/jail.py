@@ -2,6 +2,7 @@
 Core Jail class and supporting code
 """
 
+from __future__ import absolute_import
 from collections import namedtuple
 import json
 import logging
@@ -21,7 +22,7 @@ log = logging.getLogger("codejail")
 JailResult = namedtuple('JailResult', ['status', 'stdout', 'stderr'])
 
 
-class Jail(object):
+class Jail():
     """
     Self contained codejail type.
 
@@ -91,12 +92,8 @@ class Jail(object):
         """
         For refactoring ease, mimic the old COMMANDS[x] dict
         """
-        if item == 'user':
-            return self.user
-        elif item == 'cmdline_start':
-            return self.cmdline_start
-        else:
-            raise KeyError(item)
+        return {'user': self.user,
+                'cmdline_start': self.cmdline_start}[item]
 
     def safe_exec(self, code, globals_dict, files=None, python_path=None, slug=None, extra_files=None):
         """
@@ -213,13 +210,13 @@ class Jail(object):
 
             # Make directory readable by other users ('sandbox' user needs to be
             # able to read it).
-            os.chmod(homedir, 0775)
+            os.chmod(homedir, 0o775)
 
             # Make a subdir to use for temp files, world-writable so that the
             # sandbox user can write to it.
             tmptmp = os.path.join(homedir, "tmp")
             os.mkdir(tmptmp)
-            os.chmod(tmptmp, 0777)
+            os.chmod(tmptmp, 0o777)
 
             argv = argv or []
             env = {'TMPDIR': 'tmp'}

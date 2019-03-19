@@ -1,5 +1,6 @@
 """Safe execution of untrusted Python code."""
 
+from __future__ import absolute_import
 import logging
 import os.path
 import shutil
@@ -81,7 +82,7 @@ def not_safe_exec(
             if python_path:
                 sys.path.extend(python_path)
             try:
-                exec code in g_dict  # pylint: disable=exec-used
+                exec(code, g_dict)  # pylint: disable=exec-used
             except Exception as exc:
                 # Wrap the exception in a SafeExecException, but we don't
                 # try here to include the traceback, since this is just a

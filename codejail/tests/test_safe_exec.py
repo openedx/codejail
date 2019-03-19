@@ -1,12 +1,14 @@
 """Test safe_exec.py"""
 
-from cStringIO import StringIO
+from __future__ import absolute_import
 import os.path
 import textwrap
 import unittest
 import zipfile
 
 from mock import patch
+
+from six import StringIO
 
 from codejail.exceptions import JailError, SafeExecException
 from codejail.jail import get_codejail
