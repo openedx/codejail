@@ -5,6 +5,8 @@ build
 .coverage
 coverage.xml
 htmlcov
+reports/*
+.tox/*
 
 # Editor detritus
 *~
