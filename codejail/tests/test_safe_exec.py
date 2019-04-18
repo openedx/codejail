@@ -9,6 +9,7 @@ import zipfile
 from nose.plugins.skip import SkipTest
 
 from codejail import safe_exec
+from codejail.jail_code import set_limit
 
 
 class SafeExecTests(unittest.TestCase):
@@ -65,6 +66,7 @@ class SafeExecTests(unittest.TestCase):
         self.assertEqual(globs['a'], 17)
 
     def test_importing_lots_of_crap(self):
+        set_limit('REALTIME', 10)
         globs = {}
         self.safe_exec(textwrap.dedent("""\
             from numpy import *

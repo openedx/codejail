@@ -161,7 +161,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         self.assertResultOk(res)
         self.assertEqual(res.stdout, textwrap.dedent("""\
             ('.', ['pylib', 'tmp'], ['hello.txt', 'jailed_code'])
-            ('./pylib', [], ['module.py', 'module.pyc'])
+            ('./pylib', [], ['module.py'])
             ('./tmp', [], [])
             """))
 
@@ -198,7 +198,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
     def test_we_can_remove_tmp_files(self):
         # This test is meant to create a tmp file in a temp folder as the
         # sandbox user that the application user can't delete.
-        # This is because the sandbox user has the ability to delete
+        # This is because the sandbox caller has the ability to delete
         # any toplevel files in the tmp directory but not the abilty
         # to delete files in folders that are only owned by the sandbox
         # user, such as the temp directory created below.
@@ -217,12 +217,12 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
                     f.write("This is my dot file!")
                 # Now make it secret!
                 os.chmod("{}/overthere.txt".format(temp_dir), 0)
-                print os.listdir(temp_dir)
+                print sorted(os.listdir(temp_dir))
             """)
         self.assertResultOk(res)
         self.assertEqual(
             res.stdout,
-            "This is my file!\n['overthere.txt', '.myfile.txt']\n"
+            "This is my file!\n['.myfile.txt', 'overthere.txt']\n"
         )
 
     @mock.patch("codejail.subproc.log._log")
@@ -246,18 +246,18 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
 
     def test_cant_use_too_much_memory(self):
         # This will fail after setting the limit to 30Mb.
-        set_limit('VMEM', 30000000)
-        res = jailpy(code="print len(bytearray(40000000))")
+        set_limit('VMEM', 80000000)
+        res = jailpy(code="print len(bytearray(100000000))")
         self.assertEqual(res.stdout, "")
         self.assertIn("MemoryError", res.stderr)
         self.assertEqual(res.status, 1)
 
     def test_changing_vmem_limit(self):
         # Up the limit, it will succeed.
-        set_limit('VMEM', 80000000)
-        res = jailpy(code="print len(bytearray(40000000))")
+        set_limit('VMEM', 160000000)
+        res = jailpy(code="print len(bytearray(100000000))")
         self.assertEqual(res.stderr, "")
-        self.assertEqual(res.stdout, "40000000\n")
+        self.assertEqual(res.stdout, "100000000\n")
         self.assertEqual(res.status, 0)
 
     def test_disabling_vmem_limit(self):
@@ -270,10 +270,11 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
 
     def test_cant_use_too_much_cpu(self):
         set_limit('CPU', 1)
-        set_limit('REALTIME', 100)
+        set_limit('REALTIME', 10)
         res = jailpy(code="print sum(xrange(2**31-1))")
         self.assertEqual(res.stdout, "")
-        self.assertEqual(res.status, 128+signal.SIGXCPU)    # 137
+        self.assertEqual(res.stderr, "")
+        self.assertEqual(res.status, -signal.SIGXCPU)    # 137
 
     @mock.patch("codejail.subproc.log._log")
     def test_cant_use_too_much_time(self, log_log):
@@ -393,14 +394,17 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         self.assertIn("IOError", res.stderr)
 
     def test_cant_fork(self):
+        set_limit('NPROC', 1)
         res = jailpy(code="""\
                 import os
                 print "Forking"
                 child_ppid = os.fork()
+                print child_ppid
                 """)
-        self.assertNotEqual(res.status, 0)
+        # stdout should only contain the first print statement
         self.assertEqual(res.stdout, "Forking\n")
         self.assertIn("OSError", res.stderr)
+        self.assertNotEqual(res.status, 0)
 
     def test_cant_see_environment_variables(self):
         os.environ['HONEY_BOO_BOO'] = 'Look!'
