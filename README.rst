@@ -166,6 +166,12 @@ the rights to modify the files in its site-packages directory.
 Tests
 -----
 
+In order to target the sandboxed Python environment(s) you have created on your
+system, you must set the following environment variables for testing::
+
+    $ export CODEJAIL_TEST_USER=<owner of sandbox (usually 'sandbox')>
+    $ export CODEJAIL_TEST_VENV=<SANDENV>
+
 Run the tests with the Makefile::
 
     $ make tests
