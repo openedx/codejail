@@ -21,14 +21,14 @@ pipeline {
                 stage('Run tests with python 2.7') {
                     environment {
                         CODEJAIL_TEST_USER = 'sandbox'
-                        CODEJAIL_TEST_VENV = '/home/sandbox/codejail_sandbox-python-2-7'
+                        CODEJAIL_TEST_VENV = '/home/sandbox/codejail_sandbox-python2-7'
                     }
                     steps {
                         withPythonEnv('System-CPython-2.7') {
                             script {
                                 try {
                                     sh '''
-                                    sudo -u sandbox /home/sandbox/codejail_sandbox-python-2-7/bin/python
+                                    sudo -u sandbox /home/sandbox/codejail_sandbox-python2-7/bin/python
                                     tox -e py27
                                     '''
                                 } finally {
