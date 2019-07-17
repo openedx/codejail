@@ -29,8 +29,9 @@ pipeline {
                                 try {
                                     sh '''
                                     sudo -u sandbox /home/sandbox/codejail_sandbox-python2-7/bin/python --version
-                                    echo "blah"
-                                    tox -e py27
+                                    echo "blah";
+                                    pip install -r dev-requirements.txt;
+                                    make test_no_proxy
                                     '''
                                 } finally {
                                     junit '**/reports/nosetests*.xml'
