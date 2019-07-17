@@ -28,6 +28,7 @@ pipeline {
                             script {
                                 try {
                                     sh '''
+                                    sudo -u sandbox /home/sandbox/codejail_sandbox-python-2-7/bin/python
                                     tox -e py27
                                     '''
                                 } finally {
