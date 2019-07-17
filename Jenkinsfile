@@ -29,45 +29,8 @@ pipeline {
                                 try {
                                     sh '''
                                     sudo -u sandbox /home/sandbox/codejail_sandbox-python2-7/bin/python --version
+                                    echo "blah"
                                     tox -e py27
-                                    '''
-                                } finally {
-                                    junit '**/reports/nosetests*.xml'
-                                }
-                            }
-                        }
-                     }
-                }
-                stage('Run tests with python 3.5') {
-                    environment {
-                        CODEJAIL_TEST_USER = 'sandbox'
-                        CODEJAIL_TEST_VENV = '/home/sandbox/codejail_sandbox-python-3-5'
-                    }
-                    steps {
-                        withPythonEnv('System-CPython-2.7') {
-                            script {
-                                try {
-                                    sh '''
-                                    tox -e py35
-                                    '''
-                                } finally {
-                                    junit '**/reports/nosetests*.xml'
-                                }
-                            }
-                        }
-                     }
-                }
-                stage('Run tests with python 3.6') {
-                    environment {
-                        CODEJAIL_TEST_USER = 'sandbox'
-                        CODEJAIL_TEST_VENV = '/home/sandbox/codejail_sandbox-python-3-6'
-                    }
-                    steps {
-                        withPythonEnv('System-CPython-2.7') {
-                            script {
-                                try {
-                                    sh '''
-                                    tox -e py36
                                     '''
                                 } finally {
                                     junit '**/reports/nosetests*.xml'
