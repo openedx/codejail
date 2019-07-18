@@ -1,10 +1,14 @@
 """Test safe_exec.py"""
 
-from cStringIO import StringIO
 import os.path
 import textwrap
 import unittest
 import zipfile
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 from mock import patch
 
