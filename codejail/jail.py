@@ -213,13 +213,13 @@ class Jail(object):
 
             # Make directory readable by other users ('sandbox' user needs to be
             # able to read it).
-            os.chmod(homedir, 0775)
+            os.chmod(homedir, stat.S_IMODE(int("0775", 8)))
 
             # Make a subdir to use for temp files, world-writable so that the
             # sandbox user can write to it.
             tmptmp = os.path.join(homedir, "tmp")
             os.mkdir(tmptmp)
-            os.chmod(tmptmp, 0777)
+            os.chmod(tmptmp, stat.S_IMODE(int("0777", 8)))
 
             argv = argv or []
             env = {'TMPDIR': 'tmp'}
