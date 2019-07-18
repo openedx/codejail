@@ -21,7 +21,7 @@ pipeline {
                 stage('Run tests with python 2.7') {
                     environment {
                         CODEJAIL_TEST_USER = 'sandbox'
-                        CODEJAIL_TEST_VENV = '/home/sandbox/codejail_sandbox-python-2-7'
+                        CODEJAIL_TEST_VENV = '/home/sandbox/codejail_sandbox-python2-7'
                     }
                     steps {
                         withPythonEnv('System-CPython-2.7') {
@@ -40,7 +40,7 @@ pipeline {
                 stage('Run tests with python 3.5') {
                     environment {
                         CODEJAIL_TEST_USER = 'sandbox'
-                        CODEJAIL_TEST_VENV = '/home/sandbox/codejail_sandbox-python-3-5'
+                        CODEJAIL_TEST_VENV = '/home/sandbox/codejail_sandbox-python3-5'
                     }
                     steps {
                         withPythonEnv('System-CPython-2.7') {
@@ -59,7 +59,7 @@ pipeline {
                 stage('Run tests with python 3.6') {
                     environment {
                         CODEJAIL_TEST_USER = 'sandbox'
-                        CODEJAIL_TEST_VENV = '/home/sandbox/codejail_sandbox-python-3-6'
+                        CODEJAIL_TEST_VENV = '/home/sandbox/codejail_sandbox-python3-6'
                     }
                     steps {
                         withPythonEnv('System-CPython-2.7') {
