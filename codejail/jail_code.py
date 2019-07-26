@@ -60,7 +60,13 @@ def is_configured(command):
 # By default, look where our current Python is, and maybe there's a
 # python-sandbox alongside.  Only do this if running in a virtualenv.
 if hasattr(sys, 'real_prefix'):
-    if os.path.isdir(sys.prefix + "-sandbox"):
+    # On jenkins
+    sandbox_user = os.getenv('CODEJAIL_TEST_USER')
+    sandbox_env = os.getenv('CODEJAIL_TEST_VENV')
+    if sandbox_env and sandbox_user:
+        configure("python", "{}/bin/python".format(sandbox_env), sandbox_user)
+    # or fall back to defaults
+    elif os.path.isdir(sys.prefix + "-sandbox"):
         configure("python", sys.prefix + "-sandbox/bin/python", "sandbox")
 
 

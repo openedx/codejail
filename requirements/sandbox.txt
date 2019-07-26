@@ -1,0 +1,4 @@
+# These requirements should be installed during the creation
+# of sandboxes used for testing codejail
+django==1.11.22
+numpy==1.16.4
