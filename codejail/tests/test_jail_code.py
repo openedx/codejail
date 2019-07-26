@@ -96,7 +96,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
               File "jailed_code", line 1, in <module>
                 raise Exception('FAIL')
             Exception: FAIL
-            """, 'utf8')))
+            """), 'utf8'))
 
     def test_stdin_is_provided(self):
         res = jailpy(
