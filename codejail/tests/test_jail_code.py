@@ -186,7 +186,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
                 ("run.py", textwrap.dedent("""\
                             from __future__ import print_function
                             import os
-                            print sorted(os.listdir('.'))
+                            print(sorted(os.listdir('.')))
                             print(open('also.txt').read())
                             """)),
                 # This file has some non-ASCII, non-UTF8, just binary data.
@@ -415,8 +415,8 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
                 print(child_ppid)
                 """)
         # stdout should only contain the first print statement
-        self.assertEqual(res.stdout, "Forking\n")
-        self.assertIn("OSError", res.stderr)
+        self.assertEqual(res.stdout, b"Forking\n")
+        self.assertIn(b"OSError", res.stderr)
         self.assertNotEqual(res.status, 0)
 
     def test_cant_see_environment_variables(self):
@@ -425,16 +425,16 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
                 from __future__ import print_function
                 import os
                 for name, value in os.environ.items():
-                    print "%s: %r" % (name, value)
+                    print("%s: %r" % (name, value))
                 """)
         self.assertResultOk(res)
-        self.assertNotIn("HONEY", res.stdout)
+        self.assertNotIn(b"HONEY", res.stdout)
 
     def test_reading_dev_random(self):
         # We can read 10 bytes just fine.
         res = jailpy(code="from __future__ import print_function; x = open('/dev/urandom').read(10); print(len(x))")
         self.assertResultOk(res)
-        self.assertEqual(res.stdout, "10\n")
+        self.assertEqual(res.stdout, b"10\n")
 
         # If we try to read all of it, we'll be killed by the real-time limit.
         res = jailpy(code="from __future__ import print_function; x = open('/dev/urandom').read(); print('Done!')")
