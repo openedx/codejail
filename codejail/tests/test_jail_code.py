@@ -14,6 +14,7 @@ import time
 import unittest
 
 import mock
+from builtins import bytes
 from nose.plugins.skip import SkipTest
 
 from codejail.jail_code import jail_code, is_configured, set_limit, LIMITS
@@ -89,13 +90,13 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
     def test_ends_with_exception(self):
         res = jailpy(code="""raise Exception('FAIL')""")
         self.assertNotEqual(res.status, 0)
-        self.assertEqual(res.stdout, "")
-        self.assertEqual(res.stderr, textwrap.dedent("""\
+        self.assertEqual(res.stdout, b"")
+        self.assertEqual(res.stderr, bytes(textwrap.dedent("""\
             Traceback (most recent call last):
               File "jailed_code", line 1, in <module>
                 raise Exception('FAIL')
             Exception: FAIL
-            """))
+            """)))
 
     def test_stdin_is_provided(self):
         res = jailpy(
@@ -135,7 +136,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
             """
         )
         self.assertEqual(res.status, 0)
-        self.assertEqual(res.stdout, "OK!")
+        self.assertEqual(res.stdout, b"OK!")
         self.assertEqual(
             res.stderr,
             b"".join(chr(i) for i in range(256))*10000
@@ -163,11 +164,11 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
             files=[file_here("hello.txt"), file_here("pylib")]
         )
         self.assertResultOk(res)
-        self.assertEqual(res.stdout, textwrap.dedent("""\
+        self.assertEqual(res.stdout, bytes(textwrap.dedent("""\
             ('.', ['pylib', 'tmp'], ['hello.txt', 'jailed_code'])
             ('./pylib', [], ['module.py'])
             ('./tmp', [], [])
-            """))
+            """)))
 
     def test_executing_a_copied_file(self):
         res = jailpy(
@@ -183,12 +184,12 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
     def test_executing_extra_files(self):
         res = jailpy(
             extra_files=[
-                ("run.py", textwrap.dedent("""\
+                ("run.py", bytes(textwrap.dedent("""\
                             from __future__ import print_function
                             import os
                             print(sorted(os.listdir('.')))
                             print(open('also.txt').read())
-                            """)),
+                            """))),
                 # This file has some non-ASCII, non-UTF8, just binary data.
                 ("also.txt", "also here\xff\x00\xab"),
             ],
