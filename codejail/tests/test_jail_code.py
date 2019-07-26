@@ -75,7 +75,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
     def test_hello_world(self):
         res = jailpy(code="from __future__ import print_function; print('Hello, world!')")
         self.assertResultOk(res)
-        self.assertEqual(res.stdout, 'Hello, world!\n')
+        self.assertEqual(res.stdout, b'Hello, world!\n')
 
     def test_argv(self):
         res = jailpy(
