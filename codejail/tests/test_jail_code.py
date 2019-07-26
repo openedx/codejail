@@ -270,16 +270,16 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         # Disable the limit, it will succeed.
         set_limit('VMEM', 0)
         res = jailpy(code="from __future__ import print_function; print(len(bytearray(50000000)))")
-        self.assertEqual(res.stderr, "")
-        self.assertEqual(res.stdout, "50000000\n")
+        self.assertEqual(res.stderr, b"")
+        self.assertEqual(res.stdout, b"50000000\n")
         self.assertEqual(res.status, 0)
 
     def test_cant_use_too_much_cpu(self):
         set_limit('CPU', 1)
         set_limit('REALTIME', 10)
         res = jailpy(code="from __future__ import print_function; print(sum(xrange(2**31-1)))")
-        self.assertEqual(res.stdout, "")
-        self.assertEqual(res.stderr, "")
+        self.assertEqual(res.stdout, b"")
+        self.assertEqual(res.stderr, b"")
         self.assertEqual(res.status, -signal.SIGXCPU)    # 137
 
     @mock.patch("codejail.subproc.log._log")
@@ -287,7 +287,7 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         # Default time limit is 1 second.  Sleep for 1.5 seconds.
         set_limit('CPU', 100)
         res = jailpy(code="from __future__ import print_function; import time; time.sleep(1.5); print('Done!')")
-        self.assertEqual(res.stdout, "")
+        self.assertEqual(res.stdout, b"")
         self.assertEqual(res.status, -signal.SIGKILL)       # -9
 
         # Make sure we log that we are killing the process.
@@ -299,14 +299,14 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         set_limit('REALTIME', 2)
         res = jailpy(code="from __future__ import print_function; import time; time.sleep(1.5); print('Done!')")
         self.assertResultOk(res)
-        self.assertEqual(res.stdout, "Done!\n")
+        self.assertEqual(res.stdout, b"Done!\n")
 
     def test_disabling_realtime_limit(self):
         # Disable the time limit, sleeping for 1.5 will be fine.
         set_limit('REALTIME', 0)
         res = jailpy(code="from __future__ import print_function; import time; time.sleep(1.5); print('Done!')")
         self.assertResultOk(res)
-        self.assertEqual(res.stdout, "Done!\n")
+        self.assertEqual(res.stdout, b"Done!\n")
 
     def test_cant_write_files(self):
         res = jailpy(code="""\
@@ -318,8 +318,8 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
                     print("Got this:", f2.read())
                 """)
         self.assertNotEqual(res.status, 0)
-        self.assertEqual(res.stdout, "Trying\n")
-        self.assertIn("ermission denied", res.stderr)
+        self.assertEqual(res.stdout, b"Trying\n")
+        self.assertIn(b"ermission denied", res.stderr)
 
     def test_can_write_temp_files(self):
         set_limit('FSIZE', 1000)
@@ -335,7 +335,7 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
                     print("Got this:", f2.read())
                 """)
         self.assertResultOk(res)
-        self.assertEqual(res.stdout, "Trying mkstemp\nGot this: hello\n")
+        self.assertEqual(res.stdout, b"Trying mkstemp\nGot this: hello\n")
 
     def test_cant_write_large_temp_files(self):
         set_limit('FSIZE', 1000)
@@ -355,7 +355,7 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
                             print("Got this:", f2.read())
                 """)
         self.assertResultOk(res)
-        self.assertIn("Expected exception", res.stdout)
+        self.assertIn(b"Expected exception", res.stdout)
 
     def test_cant_write_many_small_temp_files(self):
         # We would like this to fail, but there's nothing that checks total
@@ -376,8 +376,8 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
                 print("Finished 250")
                 """)
         self.assertNotEqual(res.status, 0)
-        self.assertEqual(res.stdout, "Trying mkstemp 250\n")
-        self.assertIn("IOError", res.stderr)
+        self.assertEqual(res.stdout, b"Trying mkstemp 250\n")
+        self.assertIn(b"IOError", res.stderr)
 
     def test_cant_use_network(self):
         res = jailpy(code="""\
@@ -480,8 +480,8 @@ class TestSymlinks(JailCodeHelpers, unittest.TestCase):
                 """,
             files=[self.copied],
         )
-        self.assertEqual(res.stdout, "012345\n012345\n")
-        self.assertIn("ermission denied", res.stderr)
+        self.assertEqual(res.stdout, b"012345\n012345\n")
+        self.assertIn(b"ermission denied", res.stderr)
 
     def test_symlinks_wont_copy_data(self):
         # Run some code in the sandbox, with a copied file which is a symlink.
@@ -494,8 +494,8 @@ class TestSymlinks(JailCodeHelpers, unittest.TestCase):
                 """,
             files=[self.here_txt, self.herelink_txt, self.link_txt],
         )
-        self.assertEqual(res.stdout, "012345\n012345\n")
-        self.assertIn("ermission denied", res.stderr)
+        self.assertEqual(res.stdout, b"012345\n012345\n")
+        self.assertIn(b"ermission denied", res.stderr)
 
 
 class TestMalware(JailCodeHelpers, unittest.TestCase):
@@ -514,8 +514,8 @@ class TestMalware(JailCodeHelpers, unittest.TestCase):
             print("The afterlife!")
             """)
         self.assertNotEqual(res.status, 0)
-        self.assertEqual(res.stdout, "Here we go...\n")
-        self.assertEqual(res.stderr, "")
+        self.assertEqual(res.stdout, b"Here we go...\n")
+        self.assertEqual(res.stderr, b"")
 
     def test_read_etc_passwd(self):
         res = jailpy(code="""\
@@ -524,8 +524,8 @@ class TestMalware(JailCodeHelpers, unittest.TestCase):
             print('Gotcha', bytes)
             """)
         self.assertNotEqual(res.status, 0)
-        self.assertEqual(res.stdout, "")
-        self.assertIn("ermission denied", res.stderr)
+        self.assertEqual(res.stdout, b"")
+        self.assertIn(b"ermission denied", res.stderr)
 
     def test_find_other_sandboxes(self):
         res = jailpy(code="""
@@ -545,7 +545,7 @@ class TestMalware(JailCodeHelpers, unittest.TestCase):
             print("Done.")
             """)
         self.assertResultOk(res)
-        self.assertEqual(res.stdout, "Done.\n")
+        self.assertEqual(res.stdout, b"Done.\n")
 
 
 class TestProxyProcess(JailCodeHelpers, unittest.TestCase):
