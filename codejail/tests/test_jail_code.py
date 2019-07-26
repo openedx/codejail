@@ -73,7 +73,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
     """Test features of how `jail_code` runs Python."""
 
     def test_hello_world(self):
-        res = jailpy(code="print 'Hello, world!'")
+        res = jailpy(code="from __future__ import print_function; print('Hello, world!')")
         self.assertResultOk(res)
         self.assertEqual(res.stdout, 'Hello, world!\n')
 
