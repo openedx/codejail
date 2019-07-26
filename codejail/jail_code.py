@@ -205,14 +205,14 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
 
         # Create the main file.
         if code:
-            with io.open(os.path.join(homedir, "jailed_code"), "wb") as jailed:
+            with io.open(os.path.join(homedir, "jailed_code"), "w") as jailed:
                 jailed.write(code)
 
             argv = ["jailed_code"] + argv
 
         # Create extra files requested by the caller:
         for name, content in extra_files or ():
-            with io.open(os.path.join(homedir, name), "wb") as extra:
+            with io.open(os.path.join(homedir, name), "w") as extra:
                 extra.write(content)
 
         cmd = []
