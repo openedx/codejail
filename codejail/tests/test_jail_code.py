@@ -96,7 +96,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
               File "jailed_code", line 1, in <module>
                 raise Exception('FAIL')
             Exception: FAIL
-            """)))
+            """, 'utf8')))
 
     def test_stdin_is_provided(self):
         res = jailpy(
@@ -168,7 +168,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
             ('.', ['pylib', 'tmp'], ['hello.txt', 'jailed_code'])
             ('./pylib', [], ['module.py'])
             ('./tmp', [], [])
-            """)))
+            """), 'utf8'))
 
     def test_executing_a_copied_file(self):
         res = jailpy(
@@ -189,7 +189,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
                             import os
                             print(sorted(os.listdir('.')))
                             print(open('also.txt').read())
-                            """))),
+                            """), 'utf8')).
                 # This file has some non-ASCII, non-UTF8, just binary data.
                 ("also.txt", "also here\xff\x00\xab"),
             ],
