@@ -100,7 +100,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
     def test_stdin_is_provided(self):
         res = jailpy(
             code="from __future__ import print_function; import json,sys; print(sum(json.load(sys.stdin)))",
-            stdin="[1, 2.5, 33]"
+            stdin=b"[1, 2.5, 33]"
         )
         self.assertResultOk(res)
         self.assertEqual(res.stdout, b"36.5\n")
@@ -108,7 +108,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
     def test_stdin_can_be_large_and_binary(self):
         res = jailpy(
             code="from __future__ import print_function; import sys; print(sum(ord(c) for c in sys.stdin.read()))",
-            stdin="".join(chr(i) for i in range(256))*10000,
+            stdin=b"".join(chr(i) for i in range(256))*10000,
         )
         self.assertResultOk(res)
         self.assertEqual(res.stdout, b"326400000\n")
@@ -123,7 +123,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         self.assertResultOk(res)
         self.assertEqual(
             res.stdout,
-            "".join(chr(i) for i in range(256))*10000
+            b"".join(chr(i) for i in range(256))*10000
         )
 
     def test_stderr_can_be_large_and_binary(self):
@@ -138,7 +138,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         self.assertEqual(res.stdout, "OK!")
         self.assertEqual(
             res.stderr,
-            "".join(chr(i) for i in range(256))*10000
+            b"".join(chr(i) for i in range(256))*10000
         )
 
     def test_files_are_copied(self):
@@ -389,8 +389,8 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
                 print(len(google))
                 """)
         self.assertNotEqual(res.status, 0)
-        self.assertEqual(res.stdout, "Reading google\n")
-        self.assertIn("IOError", res.stderr)
+        self.assertEqual(res.stdout, b"Reading google\n")
+        self.assertIn(b"IOError", res.stderr)
 
     def test_cant_use_raw_network(self):
         res = jailpy(code="""\
@@ -402,8 +402,8 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
                 print(len(example))
                 """)
         self.assertNotEqual(res.status, 0)
-        self.assertEqual(res.stdout, "Reading example.com\n")
-        self.assertIn("IOError", res.stderr)
+        self.assertEqual(res.stdout, b"Reading example.com\n")
+        self.assertIn(b"IOError", res.stderr)
 
     def test_cant_fork(self):
         set_limit('NPROC', 1)
