@@ -18,17 +18,17 @@ pipeline {
 
         stage('Run the tests for each sandbox') {
             parallel {
-                stage('Run tests with python 2.7 without proxy') {
+                stage('Run unit tests without proxy') {
                     environment {
                         CODEJAIL_TEST_USER = 'sandbox'
-                        CODEJAIL_TEST_VENV = '/home/sandbox/codejail_sandbox-python2.7'
+                        CODEJAIL_TEST_VENV = "/home/sandbox/codejail_sandbox-python${PYTHON_VERSION}"
                     }
                     steps {
                         withPythonEnv('System-CPython-2.7') {
                             script {
                                 try {
                                     sh '''
-                                    tox -e py27
+                                    tox -e $TOX_ENV
                                     '''
                                 } finally {
                                     junit testResults: '**/reports/nosetests*.xml'
