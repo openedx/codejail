@@ -1,5 +1,6 @@
 """Run code in a jail."""
 
+from __future__ import absolute_import
 import logging
 import os
 import os.path
@@ -181,13 +182,13 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
 
         # Make directory readable by other users ('sandbox' user needs to be
         # able to read it).
-        os.chmod(homedir, 0775)
+        os.chmod(homedir, 0o775)
 
         # Make a subdir to use for temp files, world-writable so that the
         # sandbox user can write to it.
         tmptmp = os.path.join(homedir, "tmp")
         os.mkdir(tmptmp)
-        os.chmod(tmptmp, 0777)
+        os.chmod(tmptmp, 0o777)
 
         argv = argv or []
 

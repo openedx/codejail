@@ -37,6 +37,25 @@ pipeline {
                         }
                      }
                 }
+                stage('Run Python3 unit tests without proxy') {
+                    environment {
+                        CODEJAIL_TEST_USER = 'sandbox'
+                        CODEJAIL_TEST_VENV = "/home/sandbox/codejail_sandbox-python2.7"
+                    }
+                    steps {
+                        withPythonEnv('System-CPython-2.7') {
+                            script {
+                                try {
+                                    sh '''
+                                    tox -e $TOX_ENV
+                                    '''
+                                } finally {
+                                    junit testResults: '**/reports/nosetests*.xml'
+                                }
+                            }
+                        }
+                     }
+                }
             }
         }
      }

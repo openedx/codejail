@@ -1,10 +1,12 @@
 """Safe execution of untrusted Python code."""
 
+from __future__ import absolute_import
 import logging
 import os.path
 import shutil
 import sys
 import textwrap
+import six
 
 try:
     import simplejson as json
@@ -165,10 +167,10 @@ def json_safe(d):
     Used to emulate reading data through a serialization straw.
 
     """
-    ok_types = (type(None), int, long, float, str, unicode, list, tuple, dict)
+    ok_types = (type(None), int, int, float, str, six.text_type, list, tuple, dict)
     bad_keys = ("__builtins__",)
     jd = {}
-    for k, v in d.iteritems():
+    for k, v in six.iteritems(d):
         if not isinstance(v, ok_types):
             continue
         if k in bad_keys:
@@ -218,7 +220,7 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
             if python_path:
                 sys.path.extend(python_path)
             try:
-                exec code in g_dict
+                exec(code, g_dict)
             except Exception as e:
                 # Wrap the exception in a SafeExecException, but we don't
                 # try here to include the traceback, since this is just a
