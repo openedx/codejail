@@ -35,13 +35,13 @@ class SafeExecTests(unittest.TestCase):
 
     def test_set_values(self):
         globs = {}
-        self.safe_exec("a = 17", globs)
+        self.safe_exec(b"a = 17", globs)
         self.assertEqual(globs['a'], 17)
 
     def test_files_are_copied(self):
         globs = {}
         self.safe_exec(
-            "a = 'Look: ' + open('hello.txt').read()", globs,
+            b"a = 'Look: ' + open('hello.txt').read()", globs,
             files=[os.path.dirname(__file__) + "/hello.txt"]
         )
         self.assertEqual(globs['a'], 'Look: Hello there.\n')
@@ -49,7 +49,7 @@ class SafeExecTests(unittest.TestCase):
     def test_python_path(self):
         globs = {}
         self.safe_exec(
-            "import module; a = module.const", globs,
+            b"import module; a = module.const", globs,
             python_path=[os.path.dirname(__file__) + "/pylib"]
         )
         self.assertEqual(globs['a'], 42)
@@ -67,7 +67,7 @@ class SafeExecTests(unittest.TestCase):
 
     def test_printing_stuff_when_you_shouldnt(self):
         globs = {}
-        self.safe_exec("a = 17; print 'hi!'", globs)
+        self.safe_exec(b"from __future__ import print_function ;a = 17; print('hi!')", globs)
         self.assertEqual(globs['a'], 17)
 
     def test_importing_lots_of_crap(self):
