@@ -13,6 +13,8 @@ import tempfile
 import time
 import unittest
 
+from builtins import bytes
+
 import mock
 from nose.plugins.skip import SkipTest
 

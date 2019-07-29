@@ -8,6 +8,8 @@ import resource
 import shutil
 import sys
 
+from builtins import bytes
+
 from .proxy import run_subprocess_through_proxy
 from .subproc import run_subprocess
 from .util import temp_directory
@@ -205,14 +207,16 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         # Create the main file.
         if code:
             with open(os.path.join(homedir, "jailed_code"), "wb") as jailed:
-                jailed.write(code)
+                code_bytes = bytes(code, 'utf-8')
+                jailed.write(code_bytes)
 
             argv = ["jailed_code"] + argv
 
         # Create extra files requested by the caller:
         for name, content in extra_files or ():
             with open(os.path.join(homedir, name), "wb") as extra:
-                extra.write(content)
+                content_bytes = bytes(content, 'utf-8')
+                extra.write(content_bytes)
 
         cmd = []
         rm_cmd = []
