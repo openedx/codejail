@@ -80,7 +80,7 @@ Other details here that depend on your configuration:
    using pip to install them::
 
     $ source <SANDENV>/bin/activate
-    $ pip install -r sandbox-requirements.txt
+    $ pip install -r requirements/sandbox.txt
 
 3. Add a sandbox user::
 
@@ -149,7 +149,7 @@ the rights to modify the files in its site-packages directory.
 
 2. Install or otherwise change the packages installed::
 
-    $ pip install -r sandbox-requirements.txt
+    $ pip install -r requirements/sandbox.txt
 
 3. Re-enable AppArmor for your sandbox::
 
