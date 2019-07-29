@@ -67,7 +67,7 @@ class JailCodeHelpers(object):
         """Assert that `res` exited well (0), and had no stderr output."""
         if res.stderr:
             print("---- stderr:\n%s" % res.stderr)
-        self.assertEqual(res.stderr, "")        # pylint: disable=E1101
+        self.assertEqual(res.stderr, b'')        # pylint: disable=E1101
         self.assertEqual(res.status, 0)         # pylint: disable=E1101
 
 
@@ -77,7 +77,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
     def test_hello_world(self):
         res = jailpy(code="print 'Hello, world!'")
         self.assertResultOk(res)
-        self.assertEqual(res.stdout, 'Hello, world!\n')
+        self.assertEqual(res.stdout, b'Hello, world!\n')
 
     def test_argv(self):
         res = jailpy(
@@ -91,7 +91,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
     def test_ends_with_exception(self):
         res = jailpy(code="""raise Exception('FAIL')""")
         self.assertNotEqual(res.status, 0)
-        self.assertEqual(res.stdout, "")
+        self.assertEqual(res.stdout, b"")
         self.assertEqual(res.stderr, textwrap.dedent("""\
             Traceback (most recent call last):
               File "jailed_code", line 1, in <module>
@@ -105,7 +105,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
             stdin="[1, 2.5, 33]"
         )
         self.assertResultOk(res)
-        self.assertEqual(res.stdout, "36.5\n")
+        self.assertEqual(res.stdout, b"36.5\n")
 
     def test_stdin_can_be_large_and_binary(self):
         res = jailpy(
@@ -113,7 +113,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
             stdin="".join(chr(i) for i in range(256))*10000,
         )
         self.assertResultOk(res)
-        self.assertEqual(res.stdout, "326400000\n")
+        self.assertEqual(res.stdout, b"326400000\n")
 
     def test_stdout_can_be_large_and_binary(self):
         res = jailpy(
@@ -483,8 +483,8 @@ class TestSymlinks(JailCodeHelpers, unittest.TestCase):
                 """,
             files=[self.here_txt, self.herelink_txt, self.link_txt],
         )
-        self.assertEqual(res.stdout, "012345\n012345\n")
-        self.assertIn("ermission denied", res.stderr)
+        self.assertEqual(res.stdout, b"012345\n012345\n")
+        self.assertIn(b"ermission denied", res.stderr)
 
 
 class TestMalware(JailCodeHelpers, unittest.TestCase):
@@ -502,8 +502,8 @@ class TestMalware(JailCodeHelpers, unittest.TestCase):
             print "The afterlife!"
             """)
         self.assertNotEqual(res.status, 0)
-        self.assertEqual(res.stdout, "Here we go...\n")
-        self.assertEqual(res.stderr, "")
+        self.assertEqual(res.stdout, b"Here we go...\n")
+        self.assertEqual(res.stderr, b"")
 
     def test_read_etc_passwd(self):
         res = jailpy(code="""\
@@ -511,8 +511,8 @@ class TestMalware(JailCodeHelpers, unittest.TestCase):
             print 'Gotcha', bytes
             """)
         self.assertNotEqual(res.status, 0)
-        self.assertEqual(res.stdout, "")
-        self.assertIn("ermission denied", res.stderr)
+        self.assertEqual(res.stdout, b"")
+        self.assertIn(b"ermission denied", res.stderr)
 
     def test_find_other_sandboxes(self):
         res = jailpy(code="""
@@ -531,7 +531,7 @@ class TestMalware(JailCodeHelpers, unittest.TestCase):
             print "Done."
             """)
         self.assertResultOk(res)
-        self.assertEqual(res.stdout, "Done.\n")
+        self.assertEqual(res.stdout, b"Done.\n")
 
 
 class TestProxyProcess(JailCodeHelpers, unittest.TestCase):
@@ -550,7 +550,7 @@ class TestProxyProcess(JailCodeHelpers, unittest.TestCase):
         num = int(time.time()*100000)
         res = jailpy(code="print 'Look: %d'" % num)
         self.assertResultOk(res)
-        self.assertEqual(res.stdout, 'Look: %d\n' % num)
+        self.assertEqual(res.stdout, b'Look: %d\n' % num)
 
     def test_proxy_is_persistent(self):
         # Running code twice, you use the same proxy process.
