@@ -395,8 +395,8 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
                 print(len(google))
                 """)
         self.assertNotEqual(res.status, 0)
-        self.assertEqual(res.stdout, b"Reading google\n")
         self.assertIn(b"IOError", res.stderr)
+        self.assertEqual(res.stdout, b"Reading google\n")
 
     def test_cant_use_raw_network(self):
         res = jailpy(code="""\
@@ -408,8 +408,8 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
                 print(len(example))
                 """)
         self.assertNotEqual(res.status, 0)
-        self.assertEqual(res.stdout, b"Reading example.com\n")
         self.assertIn(b"IOError", res.stderr)
+        self.assertEqual(res.stdout, b"Reading example.com\n")
 
     def test_cant_fork(self):
         set_limit('NPROC', 1)
@@ -438,12 +438,12 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
 
     def test_reading_dev_random(self):
         # We can read 10 bytes just fine.
-        res = jailpy(code="from __future__ import print_function; x = open('/dev/urandom').read(10); print(len(x))")
+        res = jailpy(code="from __future__ import print_function; x = open('/dev/urandom', 'rb').read(10); print(len(x))")
         self.assertResultOk(res)
         self.assertEqual(res.stdout, b"10\n")
 
         # If we try to read all of it, we'll be killed by the real-time limit.
-        res = jailpy(code="from __future__ import print_function; x = open('/dev/urandom').read(); print('Done!')")
+        res = jailpy(code="from __future__ import print_function; x = open('/dev/urandom', 'rb').read(); print('Done!')")
         self.assertNotEqual(res.status, 0)
 
 
