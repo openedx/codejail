@@ -1,3 +1,7 @@
+future==0.17.1
+isort==4.3.21
+modernize==0.7
 nose==1.3.7
 mock==2.0.0
+six==1.11.0
 pylint==1.5.6
