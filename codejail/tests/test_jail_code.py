@@ -107,14 +107,18 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         self.assertEqual(res.stdout, b"36.5\n")
 
     def test_stdin_can_be_large_and_binary(self):
+        char_string = "".join(chr(i) for i in range(256))*10000,
+        input_bytes = bytes(char_string)
         res = jailpy(
             code="from __future__ import print_function; import sys; print(sum(ord(c) for c in sys.stdin.read()))",
-            stdin=b"".join(chr(i) for i in range(256))*10000,
+            stdin=input_bytes
         )
         self.assertResultOk(res)
         self.assertEqual(res.stdout, b"326400000\n")
 
     def test_stdout_can_be_large_and_binary(self):
+        char_string = "".join(chr(i) for i in range(256))*10000
+        output_bytes = bytes(char_string)
         res = jailpy(
             code="""
                 import sys
@@ -123,11 +127,12 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         )
         self.assertResultOk(res)
         self.assertEqual(
-            res.stdout,
-            b"".join(chr(i) for i in range(256))*10000
+            res.stdout, output_bytes
         )
 
     def test_stderr_can_be_large_and_binary(self):
+        char_string = "".join(chr(i) for i in range(256))*10000
+        output_bytes = bytes(char_string)
         res = jailpy(
             code="""
                 import sys
@@ -138,8 +143,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         self.assertEqual(res.status, 0)
         self.assertEqual(res.stdout, b"OK!")
         self.assertEqual(
-            res.stderr,
-            b"".join(chr(i) for i in range(256))*10000
+            res.stderr, output_bytes
         )
 
     def test_files_are_copied(self):
@@ -178,7 +182,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         self.assertResultOk(res)
         self.assertEqual(
             res.stdout,
-            "This is doit.py!\nMy args are ['doit.py', '1', '2', '3']\n"
+            b"This is doit.py!\nMy args are ['doit.py', '1', '2', '3']\n"
         )
 
     def test_executing_extra_files(self):
