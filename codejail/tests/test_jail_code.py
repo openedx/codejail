@@ -108,7 +108,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
 
     def test_stdin_can_be_large_and_binary(self):
         char_string = "".join(chr(i) for i in range(256))*10000,
-        input_bytes = bytes(char_string)
+        input_bytes = bytes(char_string, 'utf-8')
         res = jailpy(
             code="from __future__ import print_function; import sys; print(sum(ord(c) for c in sys.stdin.read()))",
             stdin=input_bytes
@@ -118,7 +118,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
 
     def test_stdout_can_be_large_and_binary(self):
         char_string = "".join(chr(i) for i in range(256))*10000
-        output_bytes = bytes(char_string)
+        output_bytes = bytes(char_string, 'utf-8')
         res = jailpy(
             code="""
                 import sys
@@ -132,7 +132,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
 
     def test_stderr_can_be_large_and_binary(self):
         char_string = "".join(chr(i) for i in range(256))*10000
-        output_bytes = bytes(char_string)
+        output_bytes = bytes(char_string, 'utf-8')
         res = jailpy(
             code="""
                 import sys
