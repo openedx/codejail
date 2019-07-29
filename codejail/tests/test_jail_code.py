@@ -107,7 +107,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         self.assertEqual(res.stdout, b"36.5\n")
 
     def test_stdin_can_be_large_and_binary(self):
-        char_string = "".join(chr(i) for i in range(256))*10000,
+        char_string = "".join(chr(i) for i in range(256))*10000
         input_bytes = bytes(char_string, 'utf-8')
         res = jailpy(
             code="from __future__ import print_function; import sys; print(sum(ord(c) for c in sys.stdin.read()))",

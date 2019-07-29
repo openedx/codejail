@@ -216,8 +216,7 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         # Create extra files requested by the caller:
         for name, content in extra_files or ():
             with io.open(os.path.join(homedir, name), "wb") as extra:
-                content_bytes = bytes(content, 'utf8')
-                extra.write(content_bytes)
+                extra.write(content)
 
         cmd = []
         rm_cmd = []
