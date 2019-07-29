@@ -1,4 +1,6 @@
 # These requirements should be installed during the creation
 # of sandboxes used for testing codejail
 django==1.11.22
+future==0.17.1
 numpy==1.16.4
+six==1.11.0
