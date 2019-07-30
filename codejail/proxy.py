@@ -1,5 +1,6 @@
 """A proxy subprocess-making process for CodeJail."""
 
+from __future__ import absolute_import
 import ast
 import logging
 import os
@@ -9,6 +10,7 @@ import sys
 import time
 
 from .subproc import run_subprocess
+from six.moves import range
 
 log = logging.getLogger("codejail")
 
@@ -31,7 +33,7 @@ def run_subprocess_through_proxy(*args, **kwargs):
     This will retry a few times if need be.
 
     """
-    for tries in xrange(3):
+    for tries in range(3):
         try:
             proxy = get_proxy()
 
