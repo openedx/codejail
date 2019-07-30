@@ -4,15 +4,16 @@
 #
 #    make upgrade
 #
+attrs==19.1.0             # via packaging
 configparser==3.7.4       # via importlib-metadata
 contextlib2==0.5.5        # via importlib-metadata
 filelock==3.0.12          # via tox
 importlib-metadata==0.19  # via pluggy, tox
-packaging==19.0           # via tox
+packaging==19.1           # via tox
 pathlib2==2.3.4           # via importlib-metadata
 pluggy==0.12.0            # via tox
 py==1.8.0                 # via tox
-pyparsing==2.4.1.1        # via packaging
+pyparsing==2.4.2          # via packaging
 scandir==1.10.0           # via pathlib2
 six==1.12.0               # via packaging, pathlib2, tox
 toml==0.10.0              # via tox

@@ -21,6 +21,7 @@ upgrade: export CUSTOM_COMPILE_COMMAND=make upgrade
 upgrade: ## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
 	pip install -q -r requirements/pip_tools.txt
 	pip-compile --upgrade -o requirements/pip_tools.txt requirements/pip_tools.in
-	pip-compile --upgrade -o requirements/tox.txt requirements/tox.in
-	pip-compile --upgrade -o requirements/testing.txt requirements/testing.in
+	pip-compile --upgrade -o requirements/development.txt requirements/development.in
 	pip-compile --upgrade -o requirements/sandbox.txt requirements/sandbox.in
+	pip-compile --upgrade -o requirements/testing.txt requirements/testing.in
+	pip-compile --upgrade -o requirements/tox.txt requirements/tox.in
