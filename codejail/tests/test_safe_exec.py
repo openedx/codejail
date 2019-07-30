@@ -1,11 +1,15 @@
 """Test safe_exec.py"""
 
 from __future__ import absolute_import
-from cStringIO import StringIO
 import os.path
 import textwrap
 import unittest
 import zipfile
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 from nose.plugins.skip import SkipTest
 
