@@ -92,17 +92,17 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         res = jailpy(code="""raise Exception('FAIL')""")
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, b"")
-        self.assertEqual(res.stderr, textwrap.dedent("""\
+        self.assertEqual(res.stderr, bytes(textwrap.dedent("""\
             Traceback (most recent call last):
               File "jailed_code", line 1, in <module>
                 raise Exception('FAIL')
             Exception: FAIL
-            """))
+            """), 'utf8'))
 
     def test_stdin_is_provided(self):
         res = jailpy(
             code="from __future__ import print_function; import json,sys; print(sum(json.load(sys.stdin)))",
-            stdin="[1, 2.5, 33]"
+            stdin=b"[1, 2.5, 33]"
         )
         self.assertResultOk(res)
         self.assertEqual(res.stdout, b"36.5\n")
