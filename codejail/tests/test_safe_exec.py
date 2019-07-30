@@ -6,6 +6,8 @@ import textwrap
 import unittest
 import zipfile
 
+from builtins import bytes
+
 try:
     from cStringIO import StringIO
 except ImportError:
