@@ -83,7 +83,9 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
 
     the_code.append(textwrap.dedent(
         """
+        from __future__ import absolute_import
         import sys
+        import six
         try:
             import simplejson as json
         except ImportError:
@@ -119,7 +121,7 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
         # Clean the globals for sending back as JSON over stdout.
         """
         ok_types = (
-            type(None), int, long, float, str, unicode, list, tuple, dict
+            type(None), int, float, str, six.text_type, list, tuple, dict
         )
         bad_keys = ("__builtins__",)
         def jsonable(v):
@@ -132,7 +134,7 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
             return True
         g_dict = {
             k:v
-            for k,v in g_dict.iteritems()
+            for k,v in six.iteritems(g_dict)
             if jsonable(v) and k not in bad_keys
         }
         """
