@@ -144,7 +144,7 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
         """))
 
     stdin = json.dumps([code, json_safe(globals_dict)])
-    jailed_code = bytes("".join(the_code), 'utf-8')
+    jailed_code = "".join(the_code), 'utf-8'
 
     # Turn this on to see what's being executed.
     if LOG_ALL_CODE:        # pragma: no cover
