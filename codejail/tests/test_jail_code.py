@@ -260,7 +260,7 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         # This will fail after setting the limit to 30Mb.
         set_limit('VMEM', 80000000)
         res = jailpy(code="from __future__ import print_function; print(len(bytearray(100000000)))")
-        self.assertEqual(res.stdout, "")
+        self.assertEqual(res.stdout, b"")
         self.assertIn(b"MemoryError", res.stderr)
         self.assertEqual(res.status, 1)
 
@@ -390,9 +390,9 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
     def test_cant_use_network(self):
         res = jailpy(code="""\
                 from __future__ import print_function
-                import urllib
+                from six.moves.urllib.request import urlopen
                 print("Reading google")
-                u = urllib.urlopen("http://google.com")
+                u = urlopen("http://google.com")
                 google = u.read()
                 print(len(google))
                 """)
@@ -403,9 +403,9 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
     def test_cant_use_raw_network(self):
         res = jailpy(code="""\
                 from __future__ import print_function
-                import urllib
+                from six.moves.urllib.request import urlopen
                 print("Reading example.com")
-                u = urllib.urlopen("http://93.184.216.119")
+                u = urlopen("http://93.184.216.119")
                 example = u.read()
                 print(len(example))
                 """)
