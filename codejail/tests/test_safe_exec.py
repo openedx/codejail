@@ -58,27 +58,27 @@ class SafeExecTests(unittest.TestCase):
 
     def test_functions_calling_each_other(self):
         globs = {}
-        self.safe_exec(textwrap.dedent("""\
+        self.safe_exec(bytes(textwrap.dedent("""\
             def f():
                 return 1723
             def g():
                 return f()
             x = g()
-            """), globs)
+            """), 'utf-8'), globs)
         self.assertEqual(globs['x'], 1723)
 
     def test_printing_stuff_when_you_shouldnt(self):
         globs = {}
-        self.safe_exec("a = 17; print 'hi!'", globs)
+        self.safe_exec("from __future__ import print_function; a = 17; print('hi!')", globs)
         self.assertEqual(globs['a'], 17)
 
     def test_importing_lots_of_crap(self):
         set_limit('REALTIME', 10)
         globs = {}
-        self.safe_exec(textwrap.dedent("""\
+        self.safe_exec(bytes(textwrap.dedent("""\
             from numpy import *
             a = 1723
-            """), globs)
+            """), 'utf-8'), globs)
         self.assertEqual(globs['a'], 1723)
 
     def test_raising_exceptions(self):
