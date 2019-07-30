@@ -65,7 +65,7 @@ class JailCodeHelpers(object):
         """Assert that `res` exited well (0), and had no stderr output."""
         if res.stderr:
             print("---- stderr:\n%s" % res.stderr)
-        self.assertEqual(res.stderr, "")        # pylint: disable=E1101
+        self.assertEqual(res.stderr, b"")        # pylint: disable=E1101
         self.assertEqual(res.status, 0)         # pylint: disable=E1101
 
 
