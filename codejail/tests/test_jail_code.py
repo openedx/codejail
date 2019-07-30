@@ -196,7 +196,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
                             print(open('also.txt').read())
                             """), 'utf8')),
                 # This file has some non-ASCII, non-UTF8, just binary data.
-                ("also.txt", "also here\xff\x00\xab"),
+                ("also.txt", b"also here\xff\x00\xab"),
             ],
             argv=["run.py"],
         )
