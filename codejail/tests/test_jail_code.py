@@ -75,6 +75,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         self.assertEqual(res.stdout, 'Hello, world!\n')
 
     def test_argv(self):
+        set_limit('REALTIME', 2)
         res = jailpy(
             code="import sys; print ':'.join(sys.argv[1:])",
             argv=["Hello", "world", "-x"],
@@ -280,6 +281,7 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
     def test_cant_use_too_much_time(self, log_log):
         # Default time limit is 1 second.  Sleep for 1.5 seconds.
         set_limit('CPU', 100)
+        set_limit('REALTIME', 1)
         res = jailpy(code="import time; time.sleep(1.5); print 'Done!'")
         self.assertEqual(res.stdout, "")
         self.assertEqual(res.status, -signal.SIGKILL)       # -9
