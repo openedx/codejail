@@ -14,6 +14,7 @@ import time
 import unittest
 
 import mock
+from builtins import bytes
 from nose.plugins.skip import SkipTest
 
 from codejail.jail_code import jail_code, is_configured, set_limit, LIMITS
