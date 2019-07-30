@@ -9,7 +9,7 @@ backports.functools-lru-cache==1.5  # via astroid, isort, pylint
 configparser==3.7.4       # via pylint
 enum34==1.1.6             # via astroid
 funcsigs==1.0.2           # via mock
-futures==3.3.0            # via isort
+futures==3.3.0 ; python_version == "2.7"  # via isort
 isort==4.3.21             # via pylint
 lazy-object-proxy==1.4.1  # via astroid
 mccabe==0.6.1             # via pylint
