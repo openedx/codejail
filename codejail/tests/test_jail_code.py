@@ -107,14 +107,18 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         self.assertEqual(res.stdout, b"36.5\n")
 
     def test_stdin_can_be_large_and_binary(self):
+        char_string = "".join(chr(i) for i in  range(256))*10000
+        input_bytes = bytes(char_string, 'utf-8')
         res = jailpy(
             code="from __future__ import print_function; import sys; print(sum(ord(c) for c in sys.stdin.read()))",
-            stdin="".join(chr(i) for i in range(256))*10000,
+            stdin=input_bytes
         )
         self.assertResultOk(res)
         self.assertEqual(res.stdout, b"326400000\n")
 
     def test_stdout_can_be_large_and_binary(self):
+        char_string = "".join(chr(i) for i in range(256))*10000
+        output_bytes = bytes(char_string, 'utf-8')
         res = jailpy(
             code="""
                 import sys
@@ -123,11 +127,12 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         )
         self.assertResultOk(res)
         self.assertEqual(
-            res.stdout,
-            "".join(chr(i) for i in range(256))*10000
+            res.stdout, output_bytes
         )
 
     def test_stderr_can_be_large_and_binary(self):
+        char_string = "".join(chr(i) for i in range(256))*10000
+        output_bytes = bytes(char_string, 'utf-8')
         res = jailpy(
             code="""
                 import sys
@@ -138,8 +143,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         self.assertEqual(res.status, 0)
         self.assertEqual(res.stdout, b"OK!")
         self.assertEqual(
-            res.stderr,
-            "".join(chr(i) for i in range(256))*10000
+            res.stderr, output_bytes
         )
 
     def test_files_are_copied(self):
@@ -278,7 +282,7 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
     def test_cant_use_too_much_cpu(self):
         set_limit('CPU', 1)
         set_limit('REALTIME', 10)
-        res = jailpy(code="from __future__ import print_function; print(sum(xrange(2**31-1)))")
+        res = jailpy(code="from __future__ import print_function; from six.moves import range; print(sum(range(2**31-1)))")
         self.assertEqual(res.stdout, b"")
         self.assertEqual(res.stderr, b"")
         self.assertEqual(res.status, -signal.SIGXCPU)    # 137
@@ -344,12 +348,13 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         res = jailpy(code="""\
                 from __future__ import print_function
                 import os, tempfile
+                from six.moves import range
                 print("Trying mkstemp")
                 f, path = tempfile.mkstemp()
                 os.close(f)
                 with open(path, "w") as f1:
                     try:
-                        f1.write(".".join("%05d" % i for i in xrange(1000)))
+                        f1.write(".".join("%05d" % i for i in range(1000)))
                     except IOError as e:
                         print("Expected exception: %s" % e)
                     else:
