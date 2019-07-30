@@ -6,10 +6,14 @@ import textwrap
 import unittest
 import zipfile
 
+import six
+from builtins import bytes
+
 try:
     from cStringIO import StringIO
 except ImportError:
     from io import StringIO
+from io import BytesIO
 
 from nose.plugins.skip import SkipTest
 
@@ -37,6 +41,14 @@ class SafeExecTests(unittest.TestCase):
         globs = {}
         self.safe_exec("a = 17", globs)
         self.assertEqual(globs['a'], 17)
+
+    def test_complex_globals(self):
+        globs = {}
+        self.safe_exec(
+            "from builtins import bytes; test_dict = {1: bytes('a', 'utf8'), 2: 'b', 3: {1: bytes('b', 'utf8'), 2: (1, bytes('a', 'utf8'))}}",
+            globs
+        )
+        self.assertDictEqual(globs['test_dict'], {'1': 'a', '2': 'b', '3': {'1': 'b', '2': [1, 'a']}})
 
     def test_files_are_copied(self):
         globs = {}
@@ -67,7 +79,7 @@ class SafeExecTests(unittest.TestCase):
 
     def test_printing_stuff_when_you_shouldnt(self):
         globs = {}
-        self.safe_exec("a = 17; print 'hi!'", globs)
+        self.safe_exec("from __future__ import print_function; a = 17; print('hi!')", globs)
         self.assertEqual(globs['a'], 17)
 
     def test_importing_lots_of_crap(self):
@@ -96,29 +108,36 @@ class SafeExecTests(unittest.TestCase):
     def test_extra_files(self):
         globs = {}
         extras = [
-            ("extra.txt", "I'm extra!\n"),
-            ("also.dat", "\x01\xff\x02\xfe"),
+            ("extra.txt", b"I'm extra!\n"),
+            ("also.dat", b"\x01\xff\x02\xfe"),
         ]
         self.safe_exec(textwrap.dedent("""\
-            with open("extra.txt") as f:
+            import six
+            with open("extra.txt", 'rb') as f:
                 extra = f.read()
-            with open("also.dat") as f:
-                also = f.read().encode("hex")
+            with open("also.dat", 'rb') as f:
+                if six.PY2:
+                    also = f.read().encode("hex")
+                else:
+                    also = f.read().hex()
             """), globs, extra_files=extras)
         self.assertEqual(globs['extra'], "I'm extra!\n")
         self.assertEqual(globs['also'], "01ff02fe")
 
     def test_extra_files_as_pythonpath_zipfile(self):
-        zipstring = StringIO()
+        if six.PY2:
+            zipstring = StringIO()
+        else:
+            zipstring = BytesIO()
         zipf = zipfile.ZipFile(zipstring, "w")
-        zipf.writestr("zipped_module1.py", textwrap.dedent("""\
+        zipf.writestr("zipped_module1.py", bytes(textwrap.dedent("""\
             def func1(x):
                 return 2*x + 3
-            """))
-        zipf.writestr("zipped_module2.py", textwrap.dedent("""\
+            """), 'utf-8'))
+        zipf.writestr("zipped_module2.py", bytes(textwrap.dedent("""\
             def func2(s):
                 return "X" + s + s + "X"
-            """))
+            """), 'utf-8'))
         zipf.close()
         globs = {}
         extras = [("code.zip", zipstring.getvalue())]

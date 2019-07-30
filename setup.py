@@ -4,13 +4,18 @@ from setuptools import setup
 
 setup(
     name="codejail",
-    version="0.1",
+    version="2.0",
     packages=['codejail'],
     classifiers=[
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: POSIX :: Ubuntu",
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "Programming Language :: Python :: 2.7",
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
 )
