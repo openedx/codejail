@@ -1,5 +1,6 @@
 """Subprocess helpers for CodeJail."""
 
+from __future__ import absolute_import
 import functools
 import logging
 import os
