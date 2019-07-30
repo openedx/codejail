@@ -99,38 +99,38 @@ class SafeExecTests(unittest.TestCase):
             ("extra.txt", "I'm extra!\n"),
             ("also.dat", "\x01\xff\x02\xfe"),
         ]
-        self.safe_exec(textwrap.dedent("""\
+        self.safe_exec(bytes(textwrap.dedent("""\
             with open("extra.txt") as f:
                 extra = f.read()
             with open("also.dat") as f:
                 also = f.read().encode("hex")
-            """), globs, extra_files=extras)
-        self.assertEqual(globs['extra'], "I'm extra!\n")
-        self.assertEqual(globs['also'], "01ff02fe")
+            """), 'utf-8'), globs, extra_files=extras)
+        self.assertEqual(globs['extra'], b"I'm extra!\n")
+        self.assertEqual(globs['also'], b"01ff02fe")
 
     def test_extra_files_as_pythonpath_zipfile(self):
         zipstring = StringIO()
         zipf = zipfile.ZipFile(zipstring, "w")
-        zipf.writestr("zipped_module1.py", textwrap.dedent("""\
+        zipf.writestr("zipped_module1.py", bytes(textwrap.dedent("""\
             def func1(x):
                 return 2*x + 3
-            """))
-        zipf.writestr("zipped_module2.py", textwrap.dedent("""\
+            """), 'utf-8'))
+        zipf.writestr("zipped_module2.py", bytes(textwrap.dedent("""\
             def func2(s):
                 return "X" + s + s + "X"
-            """))
+            """), 'utf-8'))
         zipf.close()
         globs = {}
         extras = [("code.zip", zipstring.getvalue())]
-        self.safe_exec(textwrap.dedent("""\
+        self.safe_exec(bytes(textwrap.dedent("""\
             import zipped_module1 as zm1
             import zipped_module2 as zm2
             a = zm1.func1(10)
             b = zm2.func2("hello")
-            """), globs, python_path=["code.zip"], extra_files=extras)
+            """), 'utf-8'), globs, python_path=["code.zip"], extra_files=extras)
 
         self.assertEqual(globs['a'], 23)
-        self.assertEqual(globs['b'], "XhellohelloX")
+        self.assertEqual(globs['b'], b"XhellohelloX")
 
 
 class TestSafeExec(SafeExecTests, unittest.TestCase):
