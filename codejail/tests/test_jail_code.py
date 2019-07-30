@@ -168,11 +168,11 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
             files=[file_here("hello.txt"), file_here("pylib")]
         )
         self.assertResultOk(res)
-        self.assertEqual(res.stdout, textwrap.dedent("""\
+        self.assertEqual(res.stdout, bytes(textwrap.dedent("""\
             ('.', ['pylib', 'tmp'], ['hello.txt', 'jailed_code'])
             ('./pylib', [], ['module.py'])
             ('./tmp', [], [])
-            """))
+            """), 'utf-8'))
 
     def test_executing_a_copied_file(self):
         res = jailpy(
@@ -188,12 +188,12 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
     def test_executing_extra_files(self):
         res = jailpy(
             extra_files=[
-                ("run.py", textwrap.dedent("""\
+                ("run.py", bytes(textwrap.dedent("""\
                             from __future__ import print_function
                             import os
                             print(sorted(os.listdir('.')))
                             print(open('also.txt').read())
-                            """)),
+                            """), 'utf-8')),
                 # This file has some non-ASCII, non-UTF8, just binary data.
                 ("also.txt", "also here\xff\x00\xab"),
             ],
