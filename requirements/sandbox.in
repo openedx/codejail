@@ -1,9 +1,7 @@
 # These requirements should be installed during the creation
 # of sandboxes used for testing codejail
 
--c constraints.txt
-
 django
-futures; python_version == "2.7"
+future
 numpy
 six

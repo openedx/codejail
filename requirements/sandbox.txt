@@ -5,7 +5,7 @@
 #    make upgrade
 #
 django==1.11.22
-futures==3.3.0 ; python_version == "2.7"
+future==0.17.1
 numpy==1.16.4
 pytz==2019.1              # via django
 six==1.12.0
