@@ -1,11 +1,14 @@
 """Run code in a jail."""
 
+from __future__ import absolute_import
 import logging
 import os
 import os.path
 import resource
 import shutil
 import sys
+
+from builtins import bytes
 
 from .proxy import run_subprocess_through_proxy
 from .subproc import run_subprocess
@@ -181,13 +184,13 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
 
         # Make directory readable by other users ('sandbox' user needs to be
         # able to read it).
-        os.chmod(homedir, 0775)
+        os.chmod(homedir, 0o775)
 
         # Make a subdir to use for temp files, world-writable so that the
         # sandbox user can write to it.
         tmptmp = os.path.join(homedir, "tmp")
         os.mkdir(tmptmp)
-        os.chmod(tmptmp, 0777)
+        os.chmod(tmptmp, 0o777)
 
         argv = argv or []
 
@@ -204,7 +207,8 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         # Create the main file.
         if code:
             with open(os.path.join(homedir, "jailed_code"), "wb") as jailed:
-                jailed.write(code)
+                code_bytes = bytes(code, 'utf8')
+                jailed.write(code_bytes)
 
             argv = ["jailed_code"] + argv
 

@@ -1,5 +1,7 @@
 """Test jail_code.py"""
 
+from __future__ import absolute_import
+from __future__ import print_function
 import json
 import logging
 import os
@@ -16,6 +18,7 @@ from nose.plugins.skip import SkipTest
 
 from codejail.jail_code import jail_code, is_configured, set_limit, LIMITS
 from codejail import proxy
+from six.moves import range
 
 
 def jailpy(code=None, *args, **kwargs):
@@ -61,8 +64,8 @@ class JailCodeHelpers(object):
     def assertResultOk(self, res):
         """Assert that `res` exited well (0), and had no stderr output."""
         if res.stderr:
-            print "---- stderr:\n%s" % res.stderr
-        self.assertEqual(res.stderr, "")        # pylint: disable=E1101
+            print("---- stderr:\n%s" % res.stderr)
+        self.assertEqual(res.stderr, b"")        # pylint: disable=E1101
         self.assertEqual(res.status, 0)         # pylint: disable=E1101
 
 
@@ -563,7 +566,7 @@ class TestProxyProcess(JailCodeHelpers, unittest.TestCase):
         pids.add(proxy.PROXY_PROCESS.pid)
 
         # Run this a number of times, to try to catch some cases.
-        for i in xrange(10):
+        for i in range(10):
             # The proxy process dies unexpectedly!
             proxy.PROXY_PROCESS.kill()
 
