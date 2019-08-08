@@ -82,6 +82,7 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
     the_code.append(textwrap.dedent(
         """
         import sys
+        import six
         try:
             import simplejson as json
         except ImportError:
@@ -112,14 +113,33 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
     the_code.append(textwrap.dedent(
         # Execute the sandboxed code.
         """
-        exec code in g_dict
+        exec(code, g_dict)
         """
         # Clean the globals for sending back as JSON over stdout.
         """
         ok_types = (
-            type(None), int, long, float, str, unicode, list, tuple, dict
+            type(None), int, float, str, six.text_type, list, tuple, dict
         )
         bad_keys = ("__builtins__",)
+        """
+        # bytes are not considered an `ok type` with regards to serialization,
+        # so recursively convert them to strings prior to creating the final globals
+        # dict
+        """
+        def decode_object(obj):
+            if isinstance(obj, bytes):
+                return obj.decode('utf8')
+            elif isinstance(obj, list):
+                return [decode_object(i) for i in obj]
+            elif isinstance(obj, dict):
+                return {k: decode_object(v) for k, v in six.iteritems(obj)}
+            elif isinstance(obj, tuple):
+                return tuple(decode_object(i) for i in obj)
+            else:
+                return obj
+
+        decoded_dict = decode_object(g_dict)
+
         def jsonable(v):
             if not isinstance(v, ok_types):
                 return False
@@ -130,7 +150,7 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
             return True
         g_dict = {
             k:v
-            for k,v in g_dict.iteritems()
+            for k,v in six.iteritems(decoded_dict)
             if jsonable(v) and k not in bad_keys
         }
         """
@@ -157,7 +177,7 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
             "Couldn't execute jailed code: stdout: {res.stdout!r}, "
             "stderr: {res.stderr!r} with status code: {res.status}"
         ).format(res=res))
-    globals_dict.update(json.loads(res.stdout))
+    globals_dict.update(json.loads(res.stdout.decode('utf-8')))
 
 
 def json_safe(d):
@@ -167,10 +187,23 @@ def json_safe(d):
     Used to emulate reading data through a serialization straw.
 
     """
-    ok_types = (type(None), int, int, float, str, six.text_type, list, tuple, dict)
+    def decode_object(obj):
+        if isinstance(obj, bytes):
+            return obj.decode('utf8')
+        elif isinstance(obj, list):
+            return [decode_object(i) for i in obj]
+        elif isinstance(obj, dict):
+            return {k: decode_object(v) for k, v in six.iteritems(obj)}
+        elif isinstance(obj, tuple):
+            return tuple(decode_object(i) for i in obj)
+        else:
+            return obj
+    decoded_dict = decode_object(d)
+
+    ok_types = (type(None), int, float, str, six.text_type, list, tuple, dict)
     bad_keys = ("__builtins__",)
     jd = {}
-    for k, v in six.iteritems(d):
+    for k, v in six.iteritems(decoded_dict):
         if not isinstance(v, ok_types):
             continue
         if k in bad_keys:
@@ -213,7 +246,7 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
                 shutil.copyfile(filename, dest)
             for filename, contents in extra_files or ():
                 dest = os.path.join(tmpdir, filename)
-                with open(dest, "w") as f:
+                with open(dest, "wb") as f:
                     f.write(contents)
 
             original_path = sys.path

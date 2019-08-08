@@ -245,6 +245,9 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         else:
             run_subprocess_fn = run_subprocess
 
+        if stdin:
+            stdin = bytes(stdin, 'utf-8')
+
         # Run the subprocess.
         status, stdout, stderr = run_subprocess_fn(
             cmd=cmd, cwd=homedir, env={}, slug=slug,
