@@ -151,6 +151,12 @@ class SafeExecTests(unittest.TestCase):
         self.assertEqual(globs['a'], 23)
         self.assertEqual(globs['b'], "XhellohelloX")
 
+    def test_encodings(self):
+        globs = {}
+        self.safe_exec("a = '𝕤'", globs)
+        self.assertEqual(globs['a'], '𝕤')
+
+
 
 class TestSafeExec(SafeExecTests, unittest.TestCase):
     """Run SafeExecTests, with the real safe_exec."""
