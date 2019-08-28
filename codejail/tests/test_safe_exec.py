@@ -152,14 +152,14 @@ class SafeExecTests(unittest.TestCase):
             """), globs, python_path=["code.zip"], extra_files=extras)
 
         self.assertEqual(globs['a'], 23)
-        self.assertEqual(globs['b'], "XhellohelloX")
+        self.assertEqual(globs['b'], "ᚠᛇᚻhellohelloX")
 
     def test_encodings(self):
         pwd = os.getcwd()
         globs = {}
         code = "from __future__ import print_function; from my_lib import funk; var = funk(); print(var)"
         self.safe_exec(code, globs, python_path=[os.path.join(pwd, 'zip_test/my_lib.zip')])
-        self.assertEqual(globs['var'], '𝕤')
+        self.assertEqual(globs['var'], 'hello world')
 
 
 
