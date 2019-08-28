@@ -1,2 +1,2 @@
 def funk():
-    return 'hello world'
+    return 'hello world ᚻ'

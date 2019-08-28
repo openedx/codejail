@@ -139,7 +139,7 @@ class SafeExecTests(unittest.TestCase):
             """), 'utf-8'))
         zipf.writestr("zipped_module2.py", bytes(textwrap.dedent("""\
             def func2(s):
-                return "ᚠᛇᚻ" + s + s + "X"
+                return "X" + s + s + "X"
             """), 'utf-8'))
         zipf.close()
         globs = {}
@@ -152,7 +152,7 @@ class SafeExecTests(unittest.TestCase):
             """), globs, python_path=["code.zip"], extra_files=extras)
 
         self.assertEqual(globs['a'], 23)
-        self.assertEqual(globs['b'], "ᚠᛇᚻhellohelloX")
+        self.assertEqual(globs['b'], "XhellohelloX")
 
     def test_encodings(self):
         pwd = os.getcwd()
