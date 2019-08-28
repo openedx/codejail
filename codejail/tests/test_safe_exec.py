@@ -153,7 +153,7 @@ class SafeExecTests(unittest.TestCase):
         self.assertEqual(globs['a'], 23)
         self.assertEqual(globs['b'], "XhellohelloX")
 
-    def test_encodings(self):
+    def encodings(self):
         pwd = os.getcwd()
         globs = {}
         code = "from __future__ import print_function; from my_lib import funk; var = funk(); print(var)"
