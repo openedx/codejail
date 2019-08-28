@@ -157,7 +157,7 @@ class SafeExecTests(unittest.TestCase):
         pwd = os.getcwd()
         globs = {}
         code = "from __future__ import print_function; from my_lib import funk; var = funk(); print(var)"
-        self.safe_exec(code, globs, python_path=os.path.join(pwd, 'zip_test/my_lib.zip'))
+        self.safe_exec(code, globs, python_path=[os.path.join(pwd, 'zip_test/my_lib.zip')])
         self.assertEqual(globs['var'], '𝕤')
 
 
