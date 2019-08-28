@@ -138,7 +138,7 @@ class SafeExecTests(unittest.TestCase):
             """), 'utf-8'))
         zipf.writestr("zipped_module2.py", bytes(textwrap.dedent("""\
             def func2(s):
-                return "X" + s + s + "X"
+                return "ᚠᛇᚻ" + s + s + "X"
             """), 'utf-8'))
         zipf.close()
         globs = {}
