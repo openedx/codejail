@@ -6,6 +6,8 @@ import textwrap
 import unittest
 import zipfile
 
+import os
+
 import six
 from builtins import bytes
 
@@ -152,9 +154,11 @@ class SafeExecTests(unittest.TestCase):
         self.assertEqual(globs['b'], "XhellohelloX")
 
     def test_encodings(self):
+        pwd = os.getcwd()
         globs = {}
-        self.safe_exec("a = '𝕤'", globs)
-        self.assertEqual(globs['a'], '𝕤')
+        code = "from __future__ import print_function; from my_lib import funk; var = funk(); print(var)"
+        self.safe_exec(code, globs, python_path=os.path.join(pwd, 'zip_test/my_lib.zip')
+        self.assertEqual(globs['var'], '𝕤')
 
 
 
