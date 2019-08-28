@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Test safe_exec.py"""
 
 from __future__ import absolute_import
