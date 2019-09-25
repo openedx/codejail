@@ -22,7 +22,7 @@ log = logging.getLogger("codejail")
 # Flags to let developers temporarily change some behavior in this file.
 
 # Set this to True to log all the code and globals being executed.
-LOG_ALL_CODE = False
+LOG_ALL_CODE = True
 # Set this to True to use the unsafe code, so that you can debug it.
 ALWAYS_BE_UNSAFE = False
 
@@ -97,6 +97,9 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
         class DevNull(object):
             def write(self, *args, **kwargs):
                 pass
+
+            def flush(self, *args, **kwargs):
+                pass
         sys.stdout = DevNull()
         """
         # Read the code and the globals from the stdin.
@@ -126,20 +129,6 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
         # so recursively convert them to strings prior to creating the final globals
         # dict
         """
-        def decode_object(obj):
-            if isinstance(obj, bytes):
-                return obj.decode('utf8')
-            elif isinstance(obj, list):
-                return [decode_object(i) for i in obj]
-            elif isinstance(obj, dict):
-                return {k: decode_object(v) for k, v in six.iteritems(obj)}
-            elif isinstance(obj, tuple):
-                return tuple(decode_object(i) for i in obj)
-            else:
-                return obj
-
-        decoded_dict = decode_object(g_dict)
-
         def jsonable(v):
             if not isinstance(v, ok_types):
                 return False
@@ -148,11 +137,48 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
             except Exception:
                 return False
             return True
-        g_dict = {
-            k:v
-            for k,v in six.iteritems(decoded_dict)
-            if jsonable(v) and k not in bad_keys
-        }
+
+        def filter_unserializable(obj):
+            if isinstance(obj, bytes):
+                return obj.decode('utf-8')
+            elif isinstance(obj, list):
+                new_list = []
+                for i in obj:
+                    try:
+                        new_obj = filter_unserializable(i)
+                        if jsonable(new_obj):
+                            new_list.append(new_obj)
+                    except Exception as e:
+                        pass # Don't add the item if we can't decode it
+                return new_list
+            elif isinstance(obj, dict):
+                new_dict = {}
+                for k,v in six.iteritems(obj):
+                    try:
+                        new_value = filter_unserializable(v)
+                        if jsonable(new_value):
+                            new_dict[k] = new_value
+                    except Exception as e:
+                        pass # Don't add the item if we can't decode it
+                return new_dict
+            elif isinstance(obj, tuple):
+                list_for_new_tuple = []
+                for i in obj:
+                    try:
+                        new_obj = filter_unserializable(i)
+                        if jsonable(new_obj):
+                            list_for_new_tuple.append(new_obj)
+                    except Exception as e:
+                        pass # Don't add the item if we can't decode it
+                return tuple(list_for_new_tuple)
+            else:
+                return obj
+
+        for key in bad_keys:
+            if key in g_dict:
+                del g_dict[key]
+
+        g_dict = filter_unserializable(g_dict)
         """
         # Write the globals back to the calling process.
         """
@@ -172,6 +198,12 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
         "python", code=jailed_code, stdin=stdin, files=files, slug=slug,
         extra_files=extra_files,
     )
+
+    if LOG_ALL_CODE:
+        log.debug("Status: %s", res.status)
+        log.debug("Stdout: %s", res.stdout)
+        log.debug("Stderr: %s", res.stderr)
+
     if res.status != 0:
         raise SafeExecException((
             "Couldn't execute jailed code: stdout: {res.stdout!r}, "
@@ -187,23 +219,60 @@ def json_safe(d):
     Used to emulate reading data through a serialization straw.
 
     """
-    def decode_object(obj):
-        if isinstance(obj, bytes):
-            return obj.decode('utf8')
-        elif isinstance(obj, list):
-            return [decode_object(i) for i in obj]
-        elif isinstance(obj, dict):
-            return {k: decode_object(v) for k, v in six.iteritems(obj)}
-        elif isinstance(obj, tuple):
-            return tuple(decode_object(i) for i in obj)
-        else:
-            return obj
-    decoded_dict = decode_object(d)
 
     ok_types = (type(None), int, float, str, six.text_type, list, tuple, dict)
+
+    def jsonable(v):
+        if not isinstance(v, ok_types):
+            return False
+        try:
+            json.dumps(v)
+        except Exception:
+            return False
+        return True
+ 
+    def filter_unserializable(obj):
+        if isinstance(obj, bytes):
+            return obj.decode('utf-8')
+        elif isinstance(obj, list):
+            new_list = []
+            for i in obj:
+                try:
+                    new_obj = filter_unserializable(i)
+                    if jsonable(new_obj):
+                        new_list.append(new_obj)
+                except Exception:
+                    pass # Don't add the item if we can't decode it
+            return new_list
+        elif isinstance(obj, dict):
+            new_dict = {}
+            for k,v in six.iteritems(obj):
+                try:
+                    new_value = filter_unserializable(v)
+                    if jsonable(new_value):
+                        new_dict[k] = new_value
+                except Exception:
+                    pass # Don't add the item if we can't decode it
+            return new_dict
+        elif isinstance(obj, tuple):
+            list_for_new_tuple = []
+            for i in obj:
+                try:
+                    new_obj = filter_unserializable(i)
+                    if jsonable(new_obj):
+                        list_for_new_tuple.append(new_obj)
+                except Exception:
+                    pass # Don't add the item if we can't decode it
+            return tuple(list_for_new_tuple)
+        else:
+            return obj
+
+    serializable_dict = filter_unserializable(d)
+    #serializable_dict = d
+
     bad_keys = ("__builtins__",)
     jd = {}
-    for k, v in six.iteritems(decoded_dict):
+    for k, v in six.iteritems(serializable_dict):
         if not isinstance(v, ok_types):
             continue
         if k in bad_keys:

@@ -45,9 +45,16 @@ class SafeExecTests(unittest.TestCase):
     def test_complex_globals(self):
         globs = {}
         self.safe_exec(
-            "from builtins import bytes; test_dict = {1: bytes('a', 'utf8'), 2: 'b', 3: {1: bytes('b', 'utf8'), 2: (1, bytes('a', 'utf8'))}}",
+            textwrap.dedent("""\
+            from builtins import bytes
+            test_dict = {1: bytes('a', 'utf8'), 2: 'b', 3: {1: bytes('b', 'utf8'), 2: (1, bytes('a', 'utf8'))}}
+            foo = "bar"
+            test_dict_type = type(test_dict)
+            """),
             globs
         )
+        from pprint import pprint
+        pprint(globs)
         self.assertDictEqual(globs['test_dict'], {'1': 'a', '2': 'b', '3': {'1': 'b', '2': [1, 'a']}})
 
     def test_files_are_copied(self):
@@ -113,7 +120,8 @@ class SafeExecTests(unittest.TestCase):
         ]
         self.safe_exec(textwrap.dedent("""\
             import six
-            with open("extra.txt", 'rb') as f:
+            import io
+            with io.open("extra.txt", 'r') as f:
                 extra = f.read()
             with open("also.dat", 'rb') as f:
                 if six.PY2:
@@ -121,6 +129,7 @@ class SafeExecTests(unittest.TestCase):
                 else:
                     also = f.read().hex()
             """), globs, extra_files=extras)
+
         self.assertEqual(globs['extra'], "I'm extra!\n")
         self.assertEqual(globs['also'], "01ff02fe")
 
