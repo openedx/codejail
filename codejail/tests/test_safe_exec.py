@@ -53,8 +53,6 @@ class SafeExecTests(unittest.TestCase):
             """),
             globs
         )
-        from pprint import pprint
-        pprint(globs)
         self.assertDictEqual(globs['test_dict'], {'1': 'a', '2': 'b', '3': {'1': 'b', '2': [1, 'a']}})
 
     def test_files_are_copied(self):

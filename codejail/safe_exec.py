@@ -22,7 +22,7 @@ log = logging.getLogger("codejail")
 # Flags to let developers temporarily change some behavior in this file.
 
 # Set this to True to log all the code and globals being executed.
-LOG_ALL_CODE = True
+LOG_ALL_CODE = False
 # Set this to True to use the unsafe code, so that you can debug it.
 ALWAYS_BE_UNSAFE = False
 
@@ -155,9 +155,10 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
                 new_dict = {}
                 for k,v in six.iteritems(obj):
                     try:
+                        new_key = filter_unserializable(k)
                         new_value = filter_unserializable(v)
-                        if jsonable(new_value):
-                            new_dict[k] = new_value
+                        if jsonable(new_value) and jsonable(new_key):
+                            new_dict[new_key] = new_value
                     except Exception as e:
                         pass # Don't add the item if we can't decode it
                 return new_dict
@@ -248,9 +249,10 @@ def json_safe(d):
             new_dict = {}
             for k,v in six.iteritems(obj):
                 try:
+                    new_key = filter_unserializable(k)
                     new_value = filter_unserializable(v)
-                    if jsonable(new_value):
-                        new_dict[k] = new_value
+                    if jsonable(new_value) and jsonable(new_key):
+                        new_dict[new_key] = new_value
                 except Exception:
                     pass # Don't add the item if we can't decode it
             return new_dict
@@ -268,7 +270,6 @@ def json_safe(d):
             return obj
 
     serializable_dict = filter_unserializable(d)
-    #serializable_dict = d
 
     bad_keys = ("__builtins__",)
     jd = {}
