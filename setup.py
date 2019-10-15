@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name="codejail",
-    version="2.1",
+    version="2.2",
     packages=['codejail'],
     classifiers=[
         "License :: OSI Approved :: Apache Software License",
