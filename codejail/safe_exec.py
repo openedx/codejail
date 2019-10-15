@@ -7,6 +7,7 @@ import shutil
 import sys
 import textwrap
 import six
+import inspect
 
 try:
     import simplejson as json
@@ -117,69 +118,13 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
         # Execute the sandboxed code.
         """
         exec(code, g_dict)
-        """
-        # Clean the globals for sending back as JSON over stdout.
-        """
-        ok_types = (
-            type(None), int, float, str, six.text_type, list, tuple, dict
-        )
-        bad_keys = ("__builtins__",)
-        """
-        # bytes are not considered an `ok type` with regards to serialization,
-        # so recursively convert them to strings prior to creating the final globals
-        # dict
-        """
-        def jsonable(v):
-            if not isinstance(v, ok_types):
-                return False
-            try:
-                json.dumps(v)
-            except Exception:
-                return False
-            return True
+        """))
 
-        def filter_unserializable(obj):
-            if isinstance(obj, bytes):
-                return obj.decode('utf-8')
-            elif isinstance(obj, list):
-                new_list = []
-                for i in obj:
-                    try:
-                        new_obj = filter_unserializable(i)
-                        if jsonable(new_obj):
-                            new_list.append(new_obj)
-                    except Exception as e:
-                        pass # Don't add the item if we can't decode it
-                return new_list
-            elif isinstance(obj, dict):
-                new_dict = {}
-                for k,v in six.iteritems(obj):
-                    try:
-                        new_key = filter_unserializable(k)
-                        new_value = filter_unserializable(v)
-                        if jsonable(new_value) and jsonable(new_key):
-                            new_dict[new_key] = new_value
-                    except Exception as e:
-                        pass # Don't add the item if we can't decode it
-                return new_dict
-            elif isinstance(obj, tuple):
-                list_for_new_tuple = []
-                for i in obj:
-                    try:
-                        new_obj = filter_unserializable(i)
-                        if jsonable(new_obj):
-                            list_for_new_tuple.append(new_obj)
-                    except Exception as e:
-                        pass # Don't add the item if we can't decode it
-                return tuple(list_for_new_tuple)
-            else:
-                return obj
+    the_code.append(inspect.getsource(json_safe))
 
-        for key in bad_keys:
-            if key in g_dict:
-                del g_dict[key]
-
-        g_dict = filter_unserializable(g_dict)
+    the_code.append(textwrap.dedent(
+        """
+        g_dict = json_safe(g_dict)
         """
         # Write the globals back to the calling process.
         """
