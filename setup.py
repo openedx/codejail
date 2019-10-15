@@ -6,6 +6,7 @@ setup(
     name="codejail",
     version="2.2",
     packages=['codejail'],
+    zip_safe=False,
     classifiers=[
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: POSIX :: Ubuntu",

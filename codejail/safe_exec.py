@@ -160,65 +160,50 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
 
 def json_safe(d):
     """
-    Return only the JSON-safe part of d.
+    Return only the JSON-safe part of d(a python dict object).
 
     Used to emulate reading data through a serialization straw.
 
     """
 
-    ok_types = (type(None), int, float, str, six.text_type, list, tuple, dict)
+    # six.binary_type is here because bytes are sometimes ok if they represent valid utf8 
+    # so we consider them valid for now and try to decode them with decode_object.  If that
+    # doesn't work they'll get dropped later in the process.
+    ok_types = (type(None), int, float, six.binary_type, six.text_type, list, tuple, dict)
 
-    def jsonable(v):
-        if not isinstance(v, ok_types):
-            return False
-        try:
-            json.dumps(v)
-        except Exception:
-            return False
-        return True
- 
-    def filter_unserializable(obj):
+    def decode_object(obj):
+        """
+        Convert an object to a JSON serializable form by decoding all byte strings.
+
+        In particular if we find any byte strings try to convert them to
+        utf-8 strings.  If we run into byte strings that can't be decoded as utf8 strings
+        throw an exception.
+
+        For other non-serializable objects we return them as is.
+
+        raises: Exception
+        """
         if isinstance(obj, bytes):
             return obj.decode('utf-8')
-        elif isinstance(obj, list):
+        elif isinstance(obj, (list,tuple)):
             new_list = []
             for i in obj:
-                try:
-                    new_obj = filter_unserializable(i)
-                    if jsonable(new_obj):
-                        new_list.append(new_obj)
-                except Exception:
-                    pass # Don't add the item if we can't decode it
+                new_obj = decode_object(i)
+                new_list.append(new_obj)
             return new_list
         elif isinstance(obj, dict):
             new_dict = {}
             for k,v in six.iteritems(obj):
-                try:
-                    new_key = filter_unserializable(k)
-                    new_value = filter_unserializable(v)
-                    if jsonable(new_value) and jsonable(new_key):
-                        new_dict[new_key] = new_value
-                except Exception:
-                    pass # Don't add the item if we can't decode it
+                new_key = decode_object(k)
+                new_value = decode_object(v)
+                new_dict[new_key] = new_value
             return new_dict
-        elif isinstance(obj, tuple):
-            list_for_new_tuple = []
-            for i in obj:
-                try:
-                    new_obj = filter_unserializable(i)
-                    if jsonable(new_obj):
-                        list_for_new_tuple.append(new_obj)
-                except Exception:
-                    pass # Don't add the item if we can't decode it
-            return tuple(list_for_new_tuple)
         else:
             return obj
 
-    serializable_dict = filter_unserializable(d)
-
     bad_keys = ("__builtins__",)
     jd = {}
-    for k, v in six.iteritems(serializable_dict):
+    for k, v in six.iteritems(d):
         if not isinstance(v, ok_types):
             continue
         if k in bad_keys:
@@ -229,11 +214,11 @@ def json_safe(d):
             # contains unicode "unpaired surrogates" (only on Linux)
             # To test for this, we try decoding the output and check
             # for a ValueError
-            json.loads(json.dumps(v))
+            v = json.loads(json.dumps(decode_object(v)))
 
             # Also ensure that the keys encode/decode correctly
-            json.loads(json.dumps(k))
-        except (TypeError, ValueError):
+            k = json.loads(json.dumps(decode_object(k)))
+        except Exception:
             continue
         else:
             jd[k] = v

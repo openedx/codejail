@@ -21,6 +21,27 @@ from codejail import safe_exec
 from codejail.jail_code import set_limit
 
 
+
+class TestJsonSafe(unittest.TestCase):
+    def test_decodable_dict(self):
+        test_dict = {1: bytes('a', 'utf8'), 2: 'b', 3: {1: bytes('b', 'utf8'), 2: (1, bytes('a', 'utf8'))}}
+        cleaned_dict = safe_exec.json_safe(test_dict)
+
+        self.assertDictEqual(cleaned_dict, {'1': 'a', '2': 'b', '3': {'1': 'b', '2': [1, 'a']}})
+
+    def test_bad_key(self):
+        test_dict = {b'\x99bad_key': b'good_value', 'a': 'b'}
+        cleaned_dict = safe_exec.json_safe(test_dict)
+
+        self.assertDictEqual(cleaned_dict, {'a': 'b'})
+
+    def test_bad_value(self):
+        test_dict = {b'good_key': b'\x99bad_value', 'a': 'b'}
+        cleaned_dict = safe_exec.json_safe(test_dict)
+
+        self.assertDictEqual(cleaned_dict, {'a': 'b'})
+
+
 class SafeExecTests(unittest.TestCase):
     """The tests for `safe_exec`, to be mixed into specific test classes."""
 
@@ -48,12 +69,12 @@ class SafeExecTests(unittest.TestCase):
             textwrap.dedent("""\
             from builtins import bytes
             test_dict = {1: bytes('a', 'utf8'), 2: 'b', 3: {1: bytes('b', 'utf8'), 2: (1, bytes('a', 'utf8'))}}
-            foo = "bar"
-            test_dict_type = type(test_dict)
+            bad_val = b'\\x99'
             """),
             globs
         )
         self.assertDictEqual(globs['test_dict'], {'1': 'a', '2': 'b', '3': {'1': 'b', '2': [1, 'a']}})
+        assert 'bad_val' not in globs
 
     def test_files_are_copied(self):
         globs = {}
