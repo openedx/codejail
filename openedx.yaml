@@ -1,0 +1,10 @@
+# Open edX repo metadata
+# See: https://open-edx-proposals.readthedocs.io/en/latest/oep-0002-bp-repo-metadata.html
+
+owner: nedbat
+supporting_teams: edx/teaching-and-learning
+
+oeps:
+  oep-2: true
+  oep-7: true
+  oep-18: true
