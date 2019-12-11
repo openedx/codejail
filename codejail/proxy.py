@@ -8,6 +8,7 @@ import os.path
 import subprocess
 import sys
 import time
+import six
 
 from .subproc import run_subprocess
 from six.moves import range
@@ -33,13 +34,14 @@ def run_subprocess_through_proxy(*args, **kwargs):
     This will retry a few times if need be.
 
     """
+    last_exception = None
     for tries in range(3):
         try:
             proxy = get_proxy()
 
             # Write the args and kwargs to the proxy process.
             proxy_stdin = serialize((args, kwargs))
-            proxy.stdin.write(proxy_stdin+"\n")
+            proxy.stdin.write(proxy_stdin+b"\n")
 
             # Read the result from the proxy.  This blocks until the process
             # is done.
@@ -57,10 +59,12 @@ def run_subprocess_through_proxy(*args, **kwargs):
             log.exception("Proxy process failed")
             # Give the proxy process a chance to die completely if it is dying.
             time.sleep(.001)
+            last_exception = sys.exc_info()
             continue
 
     # If we finished all the tries, then raise the last exception we got.
-    raise
+    if last_exception:
+        six.reraise(*last_exception)
 
 
 # There is one global proxy process.
