@@ -20,8 +20,31 @@ log = logging.getLogger("codejail")
 # communicate a few values, and unpack them.  Lastly, we need to be sure we can
 # handle binary data.  Serializing with repr() and deserializing the literals
 # that result give us all the properties we need.
-serialize = repr
-deserialize = ast.literal_eval
+if six.PY2:
+    # Python 2: everything is bytes everywhere.
+    serialize_in = serialize_out = repr
+    deserialize_in = deserialize_out = ast.literal_eval
+else:
+    # Python 3: the outside of subprocess talks in bytes (the pipes from
+    # subprocess.* are all about bytes). The inside of the Python code it runs
+    # talks in text (reading from sys.stdin is text, writing to sys.stdout
+    # expects text).
+    def serialize_out(val):
+        """Send data out of the proxy process. Needs to make unicode."""
+        return repr(val)
+
+    def serialize_in(val):
+        """Send data into the proxy process. Needs to make bytes."""
+        return serialize_out(val).encode('utf8')
+
+    def deserialize_in(ustr):
+        """Get data into the proxy process. Needs to take unicode."""
+        return ast.literal_eval(ustr)
+
+    def deserialize_out(bstr):
+        """Get data from the proxy process. Needs to take bytes."""
+        return deserialize_in(bstr.decode('utf8'))
+
 
 ##
 ## Client code, runs in the parent CodeJail process.
@@ -40,8 +63,9 @@ def run_subprocess_through_proxy(*args, **kwargs):
             proxy = get_proxy()
 
             # Write the args and kwargs to the proxy process.
-            proxy_stdin = serialize((args, kwargs))
+            proxy_stdin = serialize_in((args, kwargs))
             proxy.stdin.write(proxy_stdin+b"\n")
+            proxy.stdin.flush()
 
             # Read the result from the proxy.  This blocks until the process
             # is done.
@@ -49,7 +73,7 @@ def run_subprocess_through_proxy(*args, **kwargs):
             if not proxy_stdout:
                 # EOF: the proxy must have died.
                 raise Exception("Proxy process died unexpectedly!")
-            status, stdout, stderr, log_calls = deserialize(proxy_stdout.rstrip())
+            status, stdout, stderr, log_calls = deserialize_out(proxy_stdout.rstrip())
 
             # Write all the log messages to the log, and return.
             for level, msg, args in log_calls:
@@ -103,7 +127,6 @@ def get_proxy():
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             )
-
         log.info("Started CodeJail proxy process (pid %d)", PROXY_PROCESS.pid)
 
     return PROXY_PROCESS
@@ -174,12 +197,13 @@ def proxy_main(argv):
             log.debug("proxy stdin: %r" % stdin)
             if not stdin:
                 break
-            args, kwargs = deserialize(stdin.rstrip())
+            args, kwargs = deserialize_in(stdin.rstrip())
             status, stdout, stderr = run_subprocess(*args, **kwargs)
             log.debug("run_subprocess result: status=%r\nstdout=%r\nstderr=%r" % (status, stdout, stderr))
             log_calls = capture_log.get_log_calls()
-            stdout = serialize((status, stdout, stderr, log_calls))
+            stdout = serialize_out((status, stdout, stderr, log_calls))
             sys.stdout.write(stdout+"\n")
+            sys.stdout.flush()
     except Exception:
         # Note that this log message will not get back to the parent, because
         # we are dying and not communicating back to the parent. This will be
