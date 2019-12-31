@@ -7,11 +7,12 @@ Code to glue codejail into a Django environment.
 from __future__ import absolute_import
 from django.core.exceptions import MiddlewareNotUsed
 from django.conf import settings
+from django.utils.deprecation import MiddlewareMixin
 
 import codejail.jail_code
 
 
-class ConfigureCodeJailMiddleware(object):
+class ConfigureCodeJailMiddleware(MiddlewareMixin):
     """
     Middleware to configure codejail on startup.
 
@@ -20,7 +21,7 @@ class ConfigureCodeJailMiddleware(object):
     raise `MiddlewareNotUsed` to disable the middleware.
 
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         python_bin = settings.CODE_JAIL.get('python_bin')
         if python_bin:
             user = settings.CODE_JAIL['user']
@@ -29,5 +30,7 @@ class ConfigureCodeJailMiddleware(object):
         limits = settings.CODE_JAIL.get('limits', {})
         for name, value in limits.items():
             codejail.jail_code.set_limit(name, value)
+
+        super(ConfigureCodeJailMiddleware, self).__init__(*args, **kwargs)
 
         raise MiddlewareNotUsed
