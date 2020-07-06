@@ -1,5 +1,5 @@
 -c constraints.txt
 
 mock
-nose
 pylint
+pytest

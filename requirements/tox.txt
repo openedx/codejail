@@ -4,18 +4,23 @@
 #
 #    make upgrade
 #
-configparser==3.7.4       # via importlib-metadata
-contextlib2==0.5.5        # via importlib-metadata
-filelock==3.0.12          # via tox
-importlib-metadata==0.19  # via pluggy, tox
-packaging==19.0           # via tox
-pathlib2==2.3.4           # via importlib-metadata
-pluggy==0.12.0            # via tox
-py==1.8.0                 # via tox
-pyparsing==2.4.1.1        # via packaging
+appdirs==1.4.4            # via virtualenv
+configparser==4.0.2       # via importlib-metadata
+contextlib2==0.6.0.post1  # via importlib-metadata, importlib-resources, zipp
+distlib==0.3.1            # via virtualenv
+filelock==3.0.12          # via tox, virtualenv
+importlib-metadata==1.7.0  # via pluggy, tox, virtualenv
+importlib-resources==3.0.0  # via virtualenv
+packaging==20.4           # via tox
+pathlib2==2.3.5           # via importlib-metadata, importlib-resources, virtualenv
+pluggy==0.13.1            # via tox
+py==1.9.0                 # via tox
+pyparsing==2.4.7          # via packaging
 scandir==1.10.0           # via pathlib2
-six==1.12.0               # via packaging, pathlib2, tox
-toml==0.10.0              # via tox
-tox==3.13.2
-virtualenv==16.7.2        # via tox
-zipp==0.5.2               # via importlib-metadata
+singledispatch==3.4.0.3   # via importlib-resources
+six==1.15.0               # via packaging, pathlib2, tox, virtualenv
+toml==0.10.1              # via tox
+tox==3.16.1               # via -r requirements/tox.in
+typing==3.7.4.1           # via importlib-resources
+virtualenv==20.0.25       # via tox
+zipp==1.2.0               # via importlib-metadata, importlib-resources
