@@ -4,8 +4,9 @@
 #
 #    make upgrade
 #
-django==1.11.29           # via -r requirements/sandbox.in
+django==2.2.14            # via -c requirements/constraints.txt, -r requirements/sandbox.in
 future==0.18.2            # via -r requirements/sandbox.in
-numpy==1.16.6             # via -r requirements/sandbox.in
+numpy==1.18.5             # via -r requirements/sandbox.in
 pytz==2020.1              # via django
 six==1.15.0               # via -r requirements/sandbox.in
+sqlparse==0.3.1           # via django
