@@ -62,15 +62,18 @@ def is_configured(command):
 
 # By default, look where our current Python is, and maybe there's a
 # python-sandbox alongside.  Only do this if running in a virtualenv.
-# if hasattr(sys, 'real_prefix'):
-# On jenkins
-sandbox_user = os.getenv('CODEJAIL_TEST_USER')
-sandbox_env = os.getenv('CODEJAIL_TEST_VENV')
-if sandbox_env and sandbox_user:
-    configure("python", "{}/bin/python".format(sandbox_env), sandbox_user)
-# or fall back to defaults
-elif os.path.isdir(sys.prefix + "-sandbox"):
-    configure("python", sys.prefix + "-sandbox/bin/python", "sandbox")
+real_prefix = getattr(sys, "real_prefix", None)
+base_prefix = getattr(sys, "base_prefix", sys.prefix)
+running_in_virtualenv = (base_prefix or real_prefix) != sys.prefix
+if running_in_virtualenv:
+    # On jenkins
+    sandbox_user = os.getenv('CODEJAIL_TEST_USER')
+    sandbox_env = os.getenv('CODEJAIL_TEST_VENV')
+    if sandbox_env and sandbox_user:
+        configure("python", "{}/bin/python".format(sandbox_env), sandbox_user)
+    # or fall back to defaults
+    elif os.path.isdir(sys.prefix + "-sandbox"):
+        configure("python", sys.prefix + "-sandbox/bin/python", "sandbox")
 
 
 # Configurable limits
