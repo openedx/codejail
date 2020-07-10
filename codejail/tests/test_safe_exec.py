@@ -3,8 +3,8 @@
 from __future__ import absolute_import
 import os.path
 import textwrap
-import unittest
 import zipfile
+from unittest import SkipTest, TestCase
 
 import six
 from builtins import bytes
@@ -15,14 +15,12 @@ except ImportError:
     from io import StringIO
 from io import BytesIO
 
-from nose.plugins.skip import SkipTest
-
 from codejail import safe_exec
 from codejail.jail_code import set_limit
 
 
 
-class TestJsonSafe(unittest.TestCase):
+class TestJsonSafe(TestCase):
     def test_decodable_dict(self):
         test_dict = {1: bytes('a', 'utf8'), 2: 'b', 3: {1: bytes('b', 'utf8'), 2: (1, bytes('a', 'utf8'))}}
         cleaned_dict = safe_exec.json_safe(test_dict)
@@ -42,11 +40,11 @@ class TestJsonSafe(unittest.TestCase):
         self.assertDictEqual(cleaned_dict, {'a': 'b'})
 
 
-class SafeExecTests(unittest.TestCase):
+class SafeExecTests(TestCase):
     """The tests for `safe_exec`, to be mixed into specific test classes."""
 
     # SafeExecTests is a TestCase so pylint understands the methods it can
-    # call, but it's abstract, so stop nose from running the tests.
+    # call, but it's abstract, so stop pytest from running the tests.
     __test__ = False
 
     def safe_exec(self, *args, **kwargs):
@@ -180,7 +178,7 @@ class SafeExecTests(unittest.TestCase):
         self.assertEqual(globs['b'], "XhellohelloX")
 
 
-class TestSafeExec(SafeExecTests, unittest.TestCase):
+class TestSafeExec(SafeExecTests, TestCase):
     """Run SafeExecTests, with the real safe_exec."""
 
     __test__ = True
@@ -189,7 +187,7 @@ class TestSafeExec(SafeExecTests, unittest.TestCase):
         safe_exec.safe_exec(*args, **kwargs)
 
 
-class TestNotSafeExec(SafeExecTests, unittest.TestCase):
+class TestNotSafeExec(SafeExecTests, TestCase):
     """Run SafeExecTests, with not_safe_exec."""
 
     __test__ = True

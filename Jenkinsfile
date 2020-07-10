@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Install tox') {
             steps {
-                withPythonEnv('System-CPython-2.7') {
+                withPythonEnv('PYTHON_3.5') {
                     sh '''
                     pip install -r requirements/tox.txt
                     '''
@@ -24,14 +24,14 @@ pipeline {
                         CODEJAIL_TEST_VENV = "/home/sandbox/codejail_sandbox-python${PYTHON_VERSION}"
                     }
                     steps {
-                        withPythonEnv('System-CPython-2.7') {
+                        withPythonEnv('PYTHON_3.5') {
                             script {
                                 try {
                                     sh '''
                                     tox -e $TOX_ENV
                                     '''
                                 } finally {
-                                    junit testResults: '**/reports/nosetests*.xml'
+                                    junit testResults: '**/reports/pytest*.xml'
                                 }
                             }
                         }

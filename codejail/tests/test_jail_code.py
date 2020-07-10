@@ -11,12 +11,11 @@ import signal
 import textwrap
 import tempfile
 import time
-import unittest
+from unittest import SkipTest, TestCase
 
 import mock
 import six
 from builtins import bytes
-from nose.plugins.skip import SkipTest
 
 from codejail.jail_code import jail_code, is_configured, set_limit, LIMITS
 from codejail import proxy
@@ -71,7 +70,7 @@ class JailCodeHelpers(object):
         self.assertEqual(res.status, 0)         # pylint: disable=E1101
 
 
-class TestFeatures(JailCodeHelpers, unittest.TestCase):
+class TestFeatures(JailCodeHelpers, TestCase):
     """Test features of how `jail_code` runs Python."""
 
     def test_hello_world(self):
@@ -269,7 +268,7 @@ class TestFeatures(JailCodeHelpers, unittest.TestCase):
         self.assertRegexpMatches(log_text, r"INFO: Executed jailed code HELLO in .*, with PID .*")
 
 
-class TestLimits(JailCodeHelpers, unittest.TestCase):
+class TestLimits(JailCodeHelpers, TestCase):
     """Tests of the resource limits, and changing them."""
 
     def setUp(self):
@@ -551,7 +550,7 @@ class TestLimits(JailCodeHelpers, unittest.TestCase):
         self.assertNotEqual(res.status, 0)
 
 
-class TestSymlinks(JailCodeHelpers, unittest.TestCase):
+class TestSymlinks(JailCodeHelpers, TestCase):
     """Testing symlink behavior."""
 
     def setUp(self):
@@ -608,7 +607,7 @@ class TestSymlinks(JailCodeHelpers, unittest.TestCase):
         self.assertIn(b"ermission denied", res.stderr)
 
 
-class TestMalware(JailCodeHelpers, unittest.TestCase):
+class TestMalware(JailCodeHelpers, TestCase):
     """Tests that attempt actual malware against the interpreter or system."""
 
     def test_crash_cpython(self):
@@ -664,7 +663,7 @@ class TestMalware(JailCodeHelpers, unittest.TestCase):
         self.assertEqual(res.stdout, b"Done.\n")
 
 
-class TestProxyProcess(JailCodeHelpers, unittest.TestCase):
+class TestProxyProcess(JailCodeHelpers, TestCase):
     """Tests of the proxy process."""
 
     def setUp(self):

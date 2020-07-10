@@ -4,8 +4,8 @@
 #
 #    make upgrade
 #
-django==1.11.22
-future==0.17.1
-numpy==1.16.4
-pytz==2019.1              # via django
-six==1.12.0
+django==1.11.29           # via -r requirements/sandbox.in
+future==0.18.2            # via -r requirements/sandbox.in
+numpy==1.16.6             # via -r requirements/sandbox.in
+pytz==2020.1              # via django
+six==1.15.0               # via -r requirements/sandbox.in
