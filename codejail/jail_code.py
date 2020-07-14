@@ -62,9 +62,11 @@ def is_configured(command):
 
 # By default, look where our current Python is, and maybe there's a
 # python-sandbox alongside.  Only do this if running in a virtualenv.
-real_prefix = getattr(sys, "real_prefix", None)
-base_prefix = getattr(sys, "base_prefix", sys.prefix)
-running_in_virtualenv = (base_prefix or real_prefix) != sys.prefix
+# The check for sys.real_prefix covers virtualenv
+# the equality of non-empty sys.base_prefix with sys.prefix covers venv
+running_in_virtualenv = (hasattr(sys, 'real_prefix') or
+    (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix))
+
 if running_in_virtualenv:
     # On jenkins
     sandbox_user = os.getenv('CODEJAIL_TEST_USER')
