@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name="codejail",
-    version="3.0.0",
+    version="3.0.1",
     packages=['codejail'],
     zip_safe=False,
     classifiers=[
