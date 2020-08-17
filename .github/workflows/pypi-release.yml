@@ -1,0 +1,33 @@
+name: Publish package to PyPi
+
+on:
+  release:
+    types: [published]
+
+jobs:
+
+  push:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.5
+
+      - name: Install pip
+        run: pip install pip
+
+      - name: Install Dependencies
+        run: pip install setuptools wheel
+
+      - name: Build package
+        run: python setup.py sdist bdist_wheel
+
+      - name: Publish to PyPi
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_UPLOAD_TOKEN }}
