@@ -97,6 +97,9 @@ LIMITS = {
     "PROXY": None,
 }
 
+# Map from limit_overrides_contexts (strings) to dictionaries in the shape of LIMITS.
+LIMIT_OVERRIDES = {}
+
 
 def set_limit(limit_name, value):
     """
@@ -133,6 +136,42 @@ def set_limit(limit_name, value):
     LIMITS[limit_name] = value
 
 
+def get_effective_limits(overrides_context=None):
+    """
+    Calculate the effective limits dictionary.
+
+    Arguments:
+        overrides_context (str|None): Identifies which set of overrides to use.
+            If None or missing from `LIMIT_OVERRIDES`, then just return `LIMITS` as-is.
+    """
+    overrides = LIMIT_OVERRIDES.get(overrides_context, {}) if overrides_context else {}
+    return {**LIMITS, **overrides}
+
+
+def override_limit(limit_name, value, limit_overrides_context):
+    """
+    Override a limit for `jail_code`, but only in the context of `limit_overrides_context`.
+
+    See `set_limit` for the meaning of `limit_name` and `value`.
+
+    All limits may be overriden except PROXY. Having this setting be different between
+    executions of code is not supported. If one attempts to override PROXY, the override
+    will be ignored and the globally-configured value will be used instead.
+    """
+    if limit_name == 'PROXY' and LIMITS['PROXY'] != value:
+        log.error(
+            'Tried to override value of PROXY to %s. '
+            'Overriding PROXY on a per-context basis is not permitted. '
+            'Will use globally-configured value instead: %s.',
+            value,
+            LIMITS['PROXY'],
+        )
+        return
+    if limit_overrides_context not in LIMIT_OVERRIDES:
+        LIMIT_OVERRIDES[limit_overrides_context] = {}
+    LIMIT_OVERRIDES[limit_overrides_context][limit_name] = value
+
+
 class JailResult(object):
     """
     A passive object for us to return from jail_code.
@@ -142,7 +181,7 @@ class JailResult(object):
 
 
 def jail_code(command, code=None, files=None, extra_files=None, argv=None,
-              stdin=None, slug=None):
+              stdin=None, limit_overrides_context=None, slug=None):
     """
     Run code in a jailed subprocess.
 
@@ -168,6 +207,10 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
     `argv` is the command-line arguments to supply.
 
     `stdin` is a string, the data to provide as the stdin for the process.
+
+    `limit_overrides_context` is an optional string to use as a key against the
+    configured limit overrides contexts. If omitted or if no such limit override context
+    has been configured, then use the default limits.
 
     `slug` is an arbitrary string, a description that's meaningful to the
     caller, that will be used in log messages.
@@ -240,9 +283,12 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         # Add the code-specific command line pieces.
         cmd.extend(argv)
 
+        # Determine effective resource limits.
+        effective_limits = get_effective_limits(limit_overrides_context)
+
         # Use the configuration and maybe an environment variable to determine
         # whether to use a proxy process.
-        use_proxy = LIMITS["PROXY"]
+        use_proxy = effective_limits["PROXY"]
         if use_proxy is None:
             use_proxy = int(os.environ.get("CODEJAIL_PROXY", "0"))
         if use_proxy:
@@ -257,7 +303,8 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         status, stdout, stderr = run_subprocess_fn(
             cmd=cmd, cwd=homedir, env={}, slug=slug,
             stdin=stdin,
-            realtime=LIMITS["REALTIME"], rlimits=create_rlimits(),
+            realtime=effective_limits["REALTIME"],
+            rlimits=create_rlimits(effective_limits),
             )
 
         result = JailResult()
@@ -279,20 +326,23 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
     return result
 
 
-def create_rlimits():
+def create_rlimits(effective_limits):
     """
     Create a list of resource limits for our jailed processes.
+
+    Arguments:
+        effective_limits (dict)
     """
     rlimits = []
 
     # Allow a small number of subprocess and threads.  One limit controls both,
     # and at least OpenBLAS (imported by numpy) requires threads.
-    nproc = LIMITS["NPROC"]
+    nproc = effective_limits["NPROC"]
     if nproc:
         rlimits.append((resource.RLIMIT_NPROC, (nproc, nproc)))
 
     # CPU seconds, not wall clock time.
-    cpu = LIMITS["CPU"]
+    cpu = effective_limits["CPU"]
     if cpu:
         # Set the soft limit and the hard limit differently.  When the process
         # reaches the soft limit, a SIGXCPU will be sent, which should kill the
@@ -301,12 +351,12 @@ def create_rlimits():
         rlimits.append((resource.RLIMIT_CPU, (cpu, cpu+1)))
 
     # Total process virtual memory.
-    vmem = LIMITS["VMEM"]
+    vmem = effective_limits["VMEM"]
     if vmem:
         rlimits.append((resource.RLIMIT_AS, (vmem, vmem)))
 
     # Size of written files.  Can be zero (nothing can be written).
-    fsize = LIMITS["FSIZE"]
+    fsize = effective_limits["FSIZE"]
     rlimits.append((resource.RLIMIT_FSIZE, (fsize, fsize)))
 
     return rlimits
