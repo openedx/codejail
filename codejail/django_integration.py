@@ -4,12 +4,11 @@ Code to glue codejail into a Django environment.
 
 """
 
-from __future__ import absolute_import
 from django.core.exceptions import MiddlewareNotUsed
 from django.conf import settings
 from django.utils.deprecation import MiddlewareMixin
 
-import codejail.jail_code
+from . import django_integration_utils
 
 
 class ConfigureCodeJailMiddleware(MiddlewareMixin):
@@ -19,18 +18,8 @@ class ConfigureCodeJailMiddleware(MiddlewareMixin):
     This is a Django idiom to have code run once on server startup: put the
     code in the `__init__` of some middleware, and have it do the work, then
     raise `MiddlewareNotUsed` to disable the middleware.
-
     """
     def __init__(self, *args, **kwargs):
-        python_bin = settings.CODE_JAIL.get('python_bin')
-        if python_bin:
-            user = settings.CODE_JAIL['user']
-            codejail.jail_code.configure("python", python_bin, user=user)
-
-        limits = settings.CODE_JAIL.get('limits', {})
-        for name, value in limits.items():
-            codejail.jail_code.set_limit(name, value)
-
+        django_integration_utils.apply_django_settings(settings.CODE_JAIL)
         super(ConfigureCodeJailMiddleware, self).__init__(*args, **kwargs)
-
         raise MiddlewareNotUsed

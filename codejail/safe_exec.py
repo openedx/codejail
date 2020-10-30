@@ -39,8 +39,8 @@ class SafeExecException(Exception):
     pass
 
 
-def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
-              extra_files=None):
+def safe_exec(code, globals_dict, files=None, python_path=None,
+              limit_overrides_context=None, slug=None, extra_files=None):
     """
     Execute code as "exec" does, but safely.
 
@@ -57,6 +57,10 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
     added to `sys.path` so that modules they contain can be imported.  Only
     directories and zip files are supported.  If the name is not provided in
     `extras_files`, it will be copied just as if it had been listed in `files`.
+
+    `limit_overrides_context` is an optional string to use as a key against the
+    configured limit overrides contexts. If omitted or if no such limit override context
+    has been configured, then use the default limits.
 
     `slug` is an arbitrary string, a description that's meaningful to the
     caller, that will be used in log messages.
@@ -141,8 +145,9 @@ def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
         log.debug("Stdin: %s", stdin)
 
     res = jail_code.jail_code(
-        "python", code=jailed_code, stdin=stdin, files=files, slug=slug,
-        extra_files=extra_files,
+        "python", code=jailed_code, stdin=stdin, files=files,
+        limit_overrides_context=limit_overrides_context,
+        slug=slug, extra_files=extra_files,
     )
 
     if LOG_ALL_CODE:
@@ -225,8 +230,9 @@ def json_safe(d):
     return json.loads(json.dumps(jd))
 
 
-def not_safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
-                  extra_files=None):
+def not_safe_exec(code, globals_dict, files=None, python_path=None,
+                  limit_overrides_context=None,  # pylint: disable=unused-argument
+                  slug=None, extra_files=None):
     """
     Another implementation of `safe_exec`, but not safe.
 
@@ -235,6 +241,8 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
     This is not thread-safe, due to temporarily changing the current directory
     and modifying sys.path.
 
+    Note that `limit_overrides_context` is ignored here, because resource limits
+    are not applied.
     """
     g_dict = json_safe(globals_dict)
 
