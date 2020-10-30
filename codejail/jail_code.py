@@ -78,9 +78,8 @@ if running_in_virtualenv:
         configure("python", sys.prefix + "-sandbox/bin/python", "sandbox")
 
 
-# Configurable limits
-
-LIMITS = {
+# The resource limits that we unless otherwise configured.
+DEFAULT_LIMITS = {
     # CPU seconds, defaulting to 1.
     "CPU": 1,
     # Real time, defaulting to 1 second.
@@ -97,7 +96,12 @@ LIMITS = {
     "PROXY": None,
 }
 
+# Configured resource limits.
+# Modified by calling `set_limit`.
+LIMITS = DEFAULT_LIMITS.copy()
+
 # Map from limit_overrides_contexts (strings) to dictionaries in the shape of LIMITS.
+# Modified by calling `override_limit`.
 LIMIT_OVERRIDES = {}
 
 

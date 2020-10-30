@@ -5,30 +5,13 @@ from unittest import TestCase
 from .. import jail_code
 from ..django_integration_utils import apply_django_settings
 
+from .util import ResetJailCodeStateMixin
 
-class ApplyDjangoSettingsTest(TestCase):
+
+class ApplyDjangoSettingsTest(ResetJailCodeStateMixin, TestCase):
     """
     Test `apply_settings_from_django` function.
     """
-
-    def setUp(self):
-        """
-        Copy the global variables that we modify.
-        """
-        super().setUp()
-        # pylint: disable=invalid-name
-        self._COMMANDS = jail_code.COMMANDS.copy()
-        self._LIMITS = jail_code.LIMITS.copy()
-        self._LIMIT_OVERRIDES = jail_code.LIMIT_OVERRIDES.copy()
-
-    def tearDown(self):
-        """
-        Restore the copied global variables.
-        """
-        super().setUp()
-        jail_code.COMMANDS = self._COMMANDS
-        jail_code.LIMITS = self._LIMITS
-        jail_code.LIMIT_OVERRIDES = self._LIMIT_OVERRIDES
 
     def test_not_configured(self):
         """
