@@ -131,10 +131,9 @@ Using CodeJail
 If your CodeJail is properly configured to use safe_exec, try these
 commands at your Python terminal::
 
-    import codejail.jail_code
-    codejail.jail_code.configure('python', '<SANDENV>/bin/python')
-    import codejail.safe_exec
-    codejail.safe_exec.safe_exec("import os\nos.system('ls /etc')", {})
+    from codejail import config_manual, safe_exec
+    config_manual.configure(commands={'python': {'bin_path': '<SANDENV>/bin/python'}})
+    safe_exec.safe_exec("import os\nos.system('ls /etc')", {})
 
 This should fail with an exception. 
 
