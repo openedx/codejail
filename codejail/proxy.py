@@ -1,6 +1,5 @@
 """A proxy subprocess-making process for CodeJail."""
 
-from __future__ import absolute_import
 import ast
 import logging
 import os
@@ -8,10 +7,11 @@ import os.path
 import subprocess
 import sys
 import time
+
 import six
+from six.moves import range
 
 from .subproc import run_subprocess
-from six.moves import range
 
 log = logging.getLogger("codejail")
 
@@ -47,7 +47,7 @@ else:
 
 
 ##
-## Client code, runs in the parent CodeJail process.
+# Client code, runs in the parent CodeJail process.
 ##
 
 def run_subprocess_through_proxy(*args, **kwargs):
@@ -58,7 +58,7 @@ def run_subprocess_through_proxy(*args, **kwargs):
 
     """
     last_exception = None
-    for tries in range(3):
+    for _tries in range(3):
         try:
             proxy = get_proxy()
 
@@ -79,7 +79,7 @@ def run_subprocess_through_proxy(*args, **kwargs):
             for level, msg, args in log_calls:
                 log.log(level, msg, *args)
             return status, stdout, stderr
-        except Exception as e:
+        except Exception:  # pylint: disable=broad-except
             log.exception("Proxy process failed")
             # Give the proxy process a chance to die completely if it is dying.
             time.sleep(.001)
@@ -94,8 +94,10 @@ def run_subprocess_through_proxy(*args, **kwargs):
 # There is one global proxy process.
 PROXY_PROCESS = None
 
+
 def get_proxy():
-    global PROXY_PROCESS
+    # pylint: disable=missing-function-docstring
+    global PROXY_PROCESS  # pylint: disable=global-statement
 
     # If we had a proxy process, but it died, clean up.
     if PROXY_PROCESS is not None:
@@ -132,7 +134,7 @@ def get_proxy():
     return PROXY_PROCESS
 
 ##
-## Proxy process code
+# Proxy process code
 ##
 
 
@@ -145,6 +147,9 @@ class CapturingHandler(logging.Handler):
     the caller, the current exception, the current time, etc.
 
     """
+    # pylint wants us to override emit().
+    # pylint: disable=abstract-method
+
     def __init__(self):
         super(CapturingHandler, self).__init__()
         self.log_calls = []
@@ -156,6 +161,7 @@ class CapturingHandler(logging.Handler):
         self.log_calls.append((record.levelno, record.msg, record.args))
 
     def get_log_calls(self):
+        # pylint: disable=missing-function-docstring
         retval = self.log_calls
         self.log_calls = []
         return retval
@@ -194,17 +200,20 @@ def proxy_main(argv):
     try:
         while True:
             stdin = sys.stdin.readline()
-            log.debug("proxy stdin: %r" % stdin)
+            log.debug("proxy stdin: %r", stdin)
             if not stdin:
                 break
             args, kwargs = deserialize_in(stdin.rstrip())
             status, stdout, stderr = run_subprocess(*args, **kwargs)
-            log.debug("run_subprocess result: status=%r\nstdout=%r\nstderr=%r" % (status, stdout, stderr))
+            log.debug(
+                "run_subprocess result: status=%r\nstdout=%r\nstderr=%r",
+                status, stdout, stderr,
+            )
             log_calls = capture_log.get_log_calls()
             stdout = serialize_out((status, stdout, stderr, log_calls))
             sys.stdout.write(stdout+"\n")
             sys.stdout.flush()
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         # Note that this log message will not get back to the parent, because
         # we are dying and not communicating back to the parent. This will be
         # useful only if you add another handler at the top of this function.

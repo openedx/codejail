@@ -4,8 +4,10 @@ Code to glue codejail into a Django environment.
 
 """
 
-from django.core.exceptions import MiddlewareNotUsed
+# pylint: skip-file
+
 from django.conf import settings
+from django.core.exceptions import MiddlewareNotUsed
 from django.utils.deprecation import MiddlewareMixin
 
 from . import django_integration_utils

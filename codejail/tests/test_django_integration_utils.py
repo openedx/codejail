@@ -4,7 +4,6 @@ from unittest import TestCase
 
 from .. import jail_code
 from ..django_integration_utils import apply_django_settings
-
 from .util import ResetJailCodeStateMixin
 
 

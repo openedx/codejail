@@ -1,13 +1,14 @@
 """Memory-stress a long-running CodeJail-using process."""
 
-from __future__ import absolute_import
-from __future__ import print_function
-from codejail import safe_exec
 from six.moves import range
+
+from codejail import safe_exec
 
 GOBBLE_CHUNK = int(1e7)
 
+
 def main():
+    # pylint: disable=missing-function-docstring
     gobble = []
     for i in range(int(1e7)):
         print(i)
@@ -16,6 +17,7 @@ def main():
         assert globs["a"] == 17
 
         gobble.append("x"*GOBBLE_CHUNK)
+
 
 if __name__ == "__main__":
     main()

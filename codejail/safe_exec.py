@@ -1,21 +1,22 @@
 """Safe execution of untrusted Python code."""
 
-from __future__ import absolute_import
+import inspect
 import logging
 import os.path
 import shutil
 import sys
 import textwrap
+
 import six
-import inspect
+
+from codejail import jail_code
+from codejail.util import change_directory, temp_directory
 
 try:
     import simplejson as json
 except ImportError:
     import json
 
-from codejail import jail_code
-from codejail.util import temp_directory, change_directory
 
 log = logging.getLogger("codejail")
 
@@ -36,11 +37,17 @@ class SafeExecException(Exception):
     contain the original exception message.
 
     """
-    pass
 
 
-def safe_exec(code, globals_dict, files=None, python_path=None,
-              limit_overrides_context=None, slug=None, extra_files=None):
+def safe_exec(
+        code,
+        globals_dict,
+        files=None,
+        python_path=None,
+        limit_overrides_context=None,
+        slug=None,
+        extra_files=None,
+):
     """
     Execute code as "exec" does, but safely.
 
@@ -170,8 +177,9 @@ def json_safe(d):
     Used to emulate reading data through a serialization straw.
 
     """
+    # pylint: disable=invalid-name
 
-    # six.binary_type is here because bytes are sometimes ok if they represent valid utf8 
+    # six.binary_type is here because bytes are sometimes ok if they represent valid utf8
     # so we consider them valid for now and try to decode them with decode_object.  If that
     # doesn't work they'll get dropped later in the process.
     ok_types = (type(None), int, float, six.binary_type, six.text_type, list, tuple, dict)
@@ -190,21 +198,20 @@ def json_safe(d):
         """
         if isinstance(obj, bytes):
             return obj.decode('utf-8')
-        elif isinstance(obj, (list,tuple)):
+        if isinstance(obj, (list, tuple)):
             new_list = []
             for i in obj:
                 new_obj = decode_object(i)
                 new_list.append(new_obj)
             return new_list
-        elif isinstance(obj, dict):
+        if isinstance(obj, dict):
             new_dict = {}
-            for k,v in six.iteritems(obj):
+            for k, v in six.iteritems(obj):
                 new_key = decode_object(k)
                 new_value = decode_object(v)
                 new_dict[new_key] = new_value
             return new_dict
-        else:
-            return obj
+        return obj
 
     bad_keys = ("__builtins__",)
     jd = {}
@@ -223,16 +230,22 @@ def json_safe(d):
 
             # Also ensure that the keys encode/decode correctly
             k = json.loads(json.dumps(decode_object(k)))
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             continue
         else:
             jd[k] = v
     return json.loads(json.dumps(jd))
 
 
-def not_safe_exec(code, globals_dict, files=None, python_path=None,
-                  limit_overrides_context=None,  # pylint: disable=unused-argument
-                  slug=None, extra_files=None):
+def not_safe_exec(
+        code,
+        globals_dict,
+        files=None,
+        python_path=None,
+        limit_overrides_context=None,  # pylint: disable=unused-argument
+        slug=None,  # pylint: disable=unused-argument
+        extra_files=None,
+):
     """
     Another implementation of `safe_exec`, but not safe.
 
@@ -248,6 +261,7 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None,
 
     with temp_directory() as tmpdir:
         with change_directory(tmpdir):
+            # pylint: disable=invalid-name
             # Copy the files here.
             for filename in files or ():
                 dest = os.path.join(tmpdir, os.path.basename(filename))
@@ -261,7 +275,7 @@ def not_safe_exec(code, globals_dict, files=None, python_path=None,
             if python_path:
                 sys.path.extend(python_path)
             try:
-                exec(code, g_dict)
+                exec(code, g_dict)  # pylint: disable=exec-used
             except Exception as e:
                 # Wrap the exception in a SafeExecException, but we don't
                 # try here to include the traceback, since this is just a

@@ -1,13 +1,11 @@
 """Run code in a jail."""
 
-from __future__ import absolute_import
 import logging
 import os
 import os.path
 import resource
 import shutil
 import sys
-
 from builtins import bytes
 
 from .proxy import run_subprocess_through_proxy
@@ -16,7 +14,7 @@ from .util import temp_directory
 
 log = logging.getLogger("codejail")
 
-# TODO: limit too much stdout data?
+# TODO: limit too much stdout data?  # pylint: disable=fixme
 
 # Configure the commands
 
@@ -60,12 +58,15 @@ def is_configured(command):
     """
     return command in COMMANDS
 
+
 # By default, look where our current Python is, and maybe there's a
 # python-sandbox alongside.  Only do this if running in a virtualenv.
 # The check for sys.real_prefix covers virtualenv
 # the equality of non-empty sys.base_prefix with sys.prefix covers venv
-running_in_virtualenv = (hasattr(sys, 'real_prefix') or
-    (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix))
+running_in_virtualenv = (
+    hasattr(sys, 'real_prefix') or
+    (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix)
+)
 
 if running_in_virtualenv:
     # On jenkins
@@ -176,7 +177,7 @@ def override_limit(limit_name, value, limit_overrides_context):
     LIMIT_OVERRIDES[limit_overrides_context][limit_name] = value
 
 
-class JailResult(object):
+class JailResult:
     """
     A passive object for us to return from jail_code.
     """
