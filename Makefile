@@ -24,3 +24,8 @@ upgrade: ## update the requirements/*.txt files with the latest packages satisfy
 	pip-compile --upgrade -o requirements/tox.txt requirements/tox.in
 	pip-compile --upgrade -o requirements/testing.txt requirements/testing.in
 	pip-compile --upgrade -o requirements/sandbox.txt requirements/sandbox.in
+
+quality: ## check coding style with pycodestyle and pylint
+	pycodestyle codejail *.py
+	isort --check-only --diff --recursive codejail *.py
+	pylint codejail *.py
