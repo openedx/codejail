@@ -71,7 +71,7 @@ class ProcessKillerThread(threading.Thread):
     A thread to kill a process after a given time limit.
     """
     def __init__(self, subproc, limit):
-        super(ProcessKillerThread, self).__init__()
+        super().__init__()
         self.subproc = subproc
         self.limit = limit
 
