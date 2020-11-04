@@ -1,4 +1,6 @@
 # Makefile for CodeJail
+.PHONY: clean dev-requirements quality requirements test test_no_proxy \
+        test_proxy upgrade upgrade
 
 clean:
 	find codejail -name '*.pyc' -exec rm -f {} +
@@ -24,8 +26,18 @@ upgrade: ## update the requirements/*.txt files with the latest packages satisfy
 	pip-compile --upgrade -o requirements/tox.txt requirements/tox.in
 	pip-compile --upgrade -o requirements/testing.txt requirements/testing.in
 	pip-compile --upgrade -o requirements/sandbox.txt requirements/sandbox.in
+	pip-compile --upgrade -o requirements/development.txt requirements/development.in
 
 quality: ## check coding style with pycodestyle and pylint
 	pycodestyle codejail *.py
 	isort --check-only --diff --recursive codejail *.py
 	pylint codejail *.py
+
+isort: ## apply automatic import sorting
+	isort --recursive codejail *.py
+
+requirements: dev-requirements
+
+dev-requirements:
+	pip install -r requirements/sandbox.txt
+	pip install -r requirements/development.txt

@@ -281,7 +281,7 @@ def not_safe_exec(
                 # try here to include the traceback, since this is just a
                 # substitute implementation.
                 msg = "{0.__class__.__name__}: {0!s}".format(e)
-                raise SafeExecException(msg)
+                raise SafeExecException(msg)  # pylint: disable=raise-missing-from
             finally:
                 sys.path = original_path
 
