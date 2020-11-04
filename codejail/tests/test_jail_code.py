@@ -9,9 +9,8 @@ import tempfile
 import textwrap
 import time
 from builtins import bytes
-from unittest import SkipTest, TestCase
+from unittest import SkipTest, TestCase, mock
 
-import mock
 import six
 from six.moves import range
 
@@ -55,7 +54,7 @@ def text_of_logs(mock_calls):
 class JailCodeHelpersMixin:
     """Assert helpers for jail_code tests."""
     def setUp(self):
-        super(JailCodeHelpersMixin, self).setUp()
+        super().setUp()
         if not is_configured("python"):
             raise SkipTest
 
@@ -269,13 +268,13 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
     """Tests of the resource limits, and changing them."""
 
     def setUp(self):
-        super(TestLimits, self).setUp()
+        super().setUp()
         self.old_limits = dict(LIMITS)
 
     def tearDown(self):
         for name, value in self.old_limits.items():
             set_limit(name, value)
-        super(TestLimits, self).tearDown()
+        super().tearDown()
 
     def test_cant_use_too_much_memory(self):
         # This will fail after setting the limit to 30Mb.
@@ -670,7 +669,7 @@ class TestProxyProcess(JailCodeHelpersMixin, TestCase):
         if not int(os.environ.get("CODEJAIL_PROXY", "0")):
             raise SkipTest()
 
-        super(TestProxyProcess, self).setUp()
+        super().setUp()
 
     def run_ok(self):
         """Run some code to see that it works."""
