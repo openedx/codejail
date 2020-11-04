@@ -23,5 +23,5 @@ class ConfigureCodeJailMiddleware(MiddlewareMixin):
     """
     def __init__(self, *args, **kwargs):
         django_integration_utils.apply_django_settings(settings.CODE_JAIL)
-        super(ConfigureCodeJailMiddleware, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         raise MiddlewareNotUsed

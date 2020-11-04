@@ -151,7 +151,7 @@ class CapturingHandler(logging.Handler):
     # pylint: disable=abstract-method
 
     def __init__(self):
-        super(CapturingHandler, self).__init__()
+        super().__init__()
         self.log_calls = []
 
     def createLock(self):
