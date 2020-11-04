@@ -8,6 +8,7 @@ import shutil
 import sys
 from builtins import bytes
 
+from .config import get_configuration
 from .proxy import run_subprocess_through_proxy
 from .subproc import run_subprocess
 from .util import temp_directory
@@ -15,49 +16,6 @@ from .util import temp_directory
 log = logging.getLogger("codejail")
 
 # TODO: limit too much stdout data?  # pylint: disable=fixme
-
-# Configure the commands
-
-# COMMANDS is a map from an abstract command name to a list of command-line
-# pieces, such as subprocess.Popen wants.
-COMMANDS = {}
-
-
-def configure(command, bin_path, user=None):
-    """
-    Configure a command for `jail_code` to use.
-
-    `command` is the abstract command you're configuring, such as "python" or
-    "node".  `bin_path` is the path to the binary.  `user`, if provided, is
-    the user name to run the command under.
-
-    """
-    cmd_argv = [bin_path]
-
-    # Command-specific arguments
-    if command == "python":
-        # -E means ignore the environment variables PYTHON*
-        # -B means don't try to write .pyc files.
-        cmd_argv.extend(['-E', '-B'])
-
-    COMMANDS[command] = {
-        # The start of the command line for this program.
-        'cmdline_start': cmd_argv,
-        # The user to run this as, perhaps None.
-        'user': user,
-    }
-
-
-def is_configured(command):
-    """
-    Has `jail_code` been configured for `command`?
-
-    Returns true if the abstract command `command` has been configured for use
-    in the `jail_code` function.
-
-    """
-    return command in COMMANDS
-
 
 # By default, look where our current Python is, and maybe there's a
 # python-sandbox alongside.  Only do this if running in a virtualenv.
@@ -77,104 +35,6 @@ if running_in_virtualenv:
     # or fall back to defaults
     elif os.path.isdir(sys.prefix + "-sandbox"):
         configure("python", sys.prefix + "-sandbox/bin/python", "sandbox")
-
-
-# The resource limits that we unless otherwise configured.
-DEFAULT_LIMITS = {
-    # CPU seconds, defaulting to 1.
-    "CPU": 1,
-    # Real time, defaulting to 1 second.
-    "REALTIME": 1,
-    # Total process virutal memory, in bytes, defaulting to unlimited.
-    "VMEM": 0,
-    # Size of files creatable, in bytes, defaulting to nothing can be written.
-    "FSIZE": 0,
-    # The number of processes and threads to allow.
-    "NPROC": 15,
-    # Whether to use a proxy process or not.  None means use an environment
-    # variable to decide. NOTE: using a proxy process is NOT THREAD-SAFE, only
-    # one thread can use CodeJail at a time if you are using a proxy process.
-    "PROXY": None,
-}
-
-# Configured resource limits.
-# Modified by calling `set_limit`.
-LIMITS = DEFAULT_LIMITS.copy()
-
-# Map from limit_overrides_contexts (strings) to dictionaries in the shape of LIMITS.
-# Modified by calling `override_limit`.
-LIMIT_OVERRIDES = {}
-
-
-def set_limit(limit_name, value):
-    """
-    Set a limit for `jail_code`.
-
-    `limit_name` is a string, the name of the limit to set. `value` is the
-    value to use for that limit.  The type, meaning, default, and range of
-    accepted values depend on `limit_name`.
-
-    These limits are available:
-
-        * `"CPU"`: the maximum number of CPU seconds the jailed code can use.
-            The value is an integer, defaulting to 1.
-
-        * `"REALTIME"`: the maximum number of seconds the jailed code can run,
-            in real time.  The default is 1 second.
-
-        * `"VMEM"`: the total virtual memory available to the jailed code, in
-            bytes.  The default is 0 (no memory limit).
-
-        * `"FSIZE"`: the maximum size of files creatable by the jailed code,
-            in bytes.  The default is 0 (no files may be created).
-
-        * `"NPROC"`: the maximum number of process or threads creatable by the
-            jailed code.  The default is 15.
-
-        * `"PROXY"`: 1 to use a proxy process, 0 to not use one. This isn't
-            really a limit, sorry about that.
-
-    Limits are process-wide, and will affect all future calls to jail_code.
-    Providing a limit of 0 will disable that limit.
-
-    """
-    LIMITS[limit_name] = value
-
-
-def get_effective_limits(overrides_context=None):
-    """
-    Calculate the effective limits dictionary.
-
-    Arguments:
-        overrides_context (str|None): Identifies which set of overrides to use.
-            If None or missing from `LIMIT_OVERRIDES`, then just return `LIMITS` as-is.
-    """
-    overrides = LIMIT_OVERRIDES.get(overrides_context, {}) if overrides_context else {}
-    return {**LIMITS, **overrides}
-
-
-def override_limit(limit_name, value, limit_overrides_context):
-    """
-    Override a limit for `jail_code`, but only in the context of `limit_overrides_context`.
-
-    See `set_limit` for the meaning of `limit_name` and `value`.
-
-    All limits may be overriden except PROXY. Having this setting be different between
-    executions of code is not supported. If one attempts to override PROXY, the override
-    will be ignored and the globally-configured value will be used instead.
-    """
-    if limit_name == 'PROXY' and LIMITS['PROXY'] != value:
-        log.error(
-            'Tried to override value of PROXY to %s. '
-            'Overriding PROXY on a per-context basis is not permitted. '
-            'Will use globally-configured value instead: %s.',
-            value,
-            LIMITS['PROXY'],
-        )
-        return
-    if limit_overrides_context not in LIMIT_OVERRIDES:
-        LIMIT_OVERRIDES[limit_overrides_context] = {}
-    LIMIT_OVERRIDES[limit_overrides_context][limit_name] = value
 
 
 class JailResult:
@@ -227,7 +87,10 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         .status: exit status of the process: an int, 0 for success
 
     """
-    if not is_configured(command):
+    codejail_config = get_configuration()
+
+    command_config = codejail_config.get_config_for_command(command)
+    if not command_config:
         raise Exception("jail_code needs to be configured for %r" % command)
 
     # We make a temp directory to serve as the home of the sandboxed code.
@@ -274,26 +137,29 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         rm_cmd = []
 
         # Build the command to run.
-        user = COMMANDS[command]['user']
-        if user:
+        if command_config.user:
             # Run as the specified user
-            cmd.extend(['sudo', '-u', user])
-            rm_cmd.extend(['sudo', '-u', user])
+            cmd.extend(['sudo', '-u', command_config.user])
+            rm_cmd.extend(['sudo', '-u', command_config.user])
 
         # Point TMPDIR at our temp directory.
         cmd.extend(['TMPDIR=tmp'])
         # Start with the command line dictated by "python" or whatever.
-        cmd.extend(COMMANDS[command]['cmdline_start'])
+        cmd.extend([command_config.bin_path])
+        if command == "python":
+            # -E means ignore the environment variables PYTHON*
+            # -B means don't try to write .pyc files.
+            cmd.extend(['-E', '-B'])
 
         # Add the code-specific command line pieces.
         cmd.extend(argv)
 
         # Determine effective resource limits.
-        effective_limits = get_effective_limits(limit_overrides_context)
+        effective_limits = codejail_confcig.get_efcfective_limits(limit_overrides_context)
 
         # Use the configuration and maybe an environment variable to determine
         # whether to use a proxy process.
-        use_proxy = effective_limits["PROXY"]
+        use_proxy = effective_limits.PROXY
         if use_proxy is None:
             use_proxy = int(os.environ.get("CODEJAIL_PROXY", "0"))
         if use_proxy:
@@ -308,7 +174,7 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         status, stdout, stderr = run_subprocess_fn(
             cmd=cmd, cwd=homedir, env={}, slug=slug,
             stdin=stdin,
-            realtime=effective_limits["REALTIME"],
+            realtime=effective_limits.REALTIME,
             rlimits=create_rlimits(effective_limits),
             )
 
@@ -336,18 +202,18 @@ def create_rlimits(effective_limits):
     Create a list of resource limits for our jailed processes.
 
     Arguments:
-        effective_limits (dict)
+        effective_limits (LimitsConfiguration)
     """
     rlimits = []
 
     # Allow a small number of subprocess and threads.  One limit controls both,
     # and at least OpenBLAS (imported by numpy) requires threads.
-    nproc = effective_limits["NPROC"]
+    nproc = effective_limits.NPROC
     if nproc:
         rlimits.append((resource.RLIMIT_NPROC, (nproc, nproc)))
 
     # CPU seconds, not wall clock time.
-    cpu = effective_limits["CPU"]
+    cpu = effective_limits.CPU
     if cpu:
         # Set the soft limit and the hard limit differently.  When the process
         # reaches the soft limit, a SIGXCPU will be sent, which should kill the
@@ -356,12 +222,12 @@ def create_rlimits(effective_limits):
         rlimits.append((resource.RLIMIT_CPU, (cpu, cpu+1)))
 
     # Total process virtual memory.
-    vmem = effective_limits["VMEM"]
+    vmem = effective_limits.VMEM
     if vmem:
         rlimits.append((resource.RLIMIT_AS, (vmem, vmem)))
 
     # Size of written files.  Can be zero (nothing can be written).
-    fsize = effective_limits["FSIZE"]
+    fsize = effective_limits.FSIZE
     rlimits.append((resource.RLIMIT_FSIZE, (fsize, fsize)))
 
     return rlimits
