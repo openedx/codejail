@@ -5,23 +5,18 @@
 #    make upgrade
 #
 astroid==2.4.2            # via pylint
-attrs==19.3.0             # via pytest
-importlib-metadata==1.7.0  # via pluggy, pytest
-isort==4.3.21             # via pylint
+attrs==20.2.0             # via pytest
+iniconfig==1.1.1          # via pytest
+isort==4.3.21             # via -r requirements/testing.in, pylint
 lazy-object-proxy==1.4.3  # via astroid
 mccabe==0.6.1             # via pylint
-mock==3.0.5               # via -r requirements/testing.in
-more-itertools==8.4.0     # via pytest
 packaging==20.4           # via pytest
-pathlib2==2.3.5           # via pytest
 pluggy==0.13.1            # via pytest
 py==1.9.0                 # via pytest
-pylint==2.5.3             # via -r requirements/testing.in
+pycodestyle==2.6.0        # via -r requirements/testing.in
+pylint==2.6.0             # via -r requirements/testing.in
 pyparsing==2.4.7          # via packaging
-pytest==5.4.3             # via -r requirements/testing.in
-six==1.15.0               # via astroid, mock, packaging, pathlib2
-toml==0.10.1              # via pylint
-typed-ast==1.4.1          # via astroid
-wcwidth==0.2.5            # via pytest
+pytest==6.1.2             # via -r requirements/testing.in
+six==1.15.0               # via astroid, packaging
+toml==0.10.2              # via pylint, pytest
 wrapt==1.12.1             # via astroid
-zipp==1.2.0               # via importlib-metadata
