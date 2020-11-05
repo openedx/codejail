@@ -8,6 +8,7 @@ import shutil
 import sys
 from builtins import bytes
 
+from .django_integration_utils import try_load_configuration_from_django
 from .proxy import run_subprocess_through_proxy
 from .subproc import run_subprocess
 from .util import temp_directory
@@ -227,6 +228,12 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         .status: exit status of the process: an int, 0 for success
 
     """
+
+    # Re-load configuration from Django.
+    # If we've already done this, or if we're not using Django, then
+    # this is a no-op.
+    try_load_configuration_from_django()
+
     if not is_configured(command):
         raise Exception("jail_code needs to be configured for %r" % command)
 

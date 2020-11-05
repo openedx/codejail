@@ -10,7 +10,7 @@ from django.conf import settings
 from django.core.exceptions import MiddlewareNotUsed
 from django.utils.deprecation import MiddlewareMixin
 
-from . import django_integration_utils
+from .django_integration_utils import try_load_configuration_from_django
 
 
 class ConfigureCodeJailMiddleware(MiddlewareMixin):
@@ -22,6 +22,6 @@ class ConfigureCodeJailMiddleware(MiddlewareMixin):
     raise `MiddlewareNotUsed` to disable the middleware.
     """
     def __init__(self, *args, **kwargs):
-        django_integration_utils.apply_django_settings(settings.CODE_JAIL)
-        super(ConfigureCodeJailMiddleware, self).__init__(*args, **kwargs)
+        try_load_configuration_from_django()
         raise MiddlewareNotUsed
+
