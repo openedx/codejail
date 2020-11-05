@@ -15,7 +15,9 @@ import six
 from six.moves import range
 
 from codejail import proxy
-from codejail.jail_code import LIMITS, is_configured, jail_code, set_limit
+from codejail.jail_code import LIMITS, is_configured, jail_code
+from codejail.jail_code import log as jail_code_log
+from codejail.jail_code import set_limit
 
 
 def jailpy(code=None, *args, **kwargs):  # pylint: disable=keyword-arg-before-vararg
@@ -315,6 +317,27 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
         self.assertEqual(res.stdout, b"50000000\n")
         self.assertEqual(res.status, 0)
 
+    @mock.patch.object(jail_code_log, "info")
+    def test_overriding_vmem_limit(self, mock_log_info):
+        """
+        Test that limit overrides work by overriding the VMEM limit for a special context.
+
+        We expect any limit (except PROXY) to be overridable, but we only need to test
+        overriding one of them, as the mechanism is the same for the others.
+        """
+        set_limit('VMEM', 80000000)
+        override_limit('VMEM', 120000000, "special_context")
+        res = jailpy(
+            code="""
+                from __future__ import print_function
+                print(len(bytearray(100000000)))
+            """
+        )
+        mock_log_info.assert_called_once_with("hi")
+        self.assertEqual(res.stderr, b"")
+        self.assertEqual(res.stdout, b"100000000\n")
+        self.assertEqual(res.status, 0)
+
     def test_cant_use_too_much_cpu(self):
         set_limit('CPU', 1)
         set_limit('REALTIME', 10)
@@ -545,6 +568,33 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
             """
         )
         self.assertNotEqual(res.status, 0)
+
+
+class TestLimitOverrides(JailCodeHelpersMixin, TestCase):
+    """Test resource limits overrides behavior"""
+
+    def setUp(self):
+        super().setUp()
+        self.old_limits = dict(LIMITS)
+
+    def tearDown(self):
+        for name, value in self.old_limits.items():
+            set_limit(name, value)
+        super().tearDown()
+
+    def test_vmem_overriden(self):
+        # This will fail after setting the limit to 80Mb.
+        set_limit('VMEM', 80000000)
+        override_limit('VMEM', 120000000, "special_context")
+        res = jailpy(
+            code="""
+                from __future__ import print_function
+                print(len(bytearray(100000000)))
+            """
+        )
+        self.assertEqual(res.stdout, b"")
+        self.assertIn(b"MemoryError", res.stderr)
+        self.assertEqual(res.status, 1)
 
 
 class TestSymlinks(JailCodeHelpersMixin, TestCase):
