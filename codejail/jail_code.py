@@ -227,6 +227,8 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         .status: exit status of the process: an int, 0 for success
 
     """
+    # pylint: disable=too-many-statements
+
     if not is_configured(command):
         raise Exception("jail_code needs to be configured for %r" % command)
 
@@ -290,6 +292,11 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
 
         # Determine effective resource limits.
         effective_limits = get_effective_limits(limit_overrides_context)
+        log.info(
+            "Preparing to execute jailed code %s with resource limits: %r",
+            jail_code,
+            effective_limits,
+        )
 
         # Use the configuration and maybe an environment variable to determine
         # whether to use a proxy process.
