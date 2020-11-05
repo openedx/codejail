@@ -4,8 +4,6 @@ Code to glue codejail into a Django environment.
 
 """
 
-# pylint: skip-file
-
 from django.conf import settings
 from django.core.exceptions import MiddlewareNotUsed
 from django.utils.deprecation import MiddlewareMixin
@@ -23,5 +21,5 @@ class ConfigureCodeJailMiddleware(MiddlewareMixin):
     """
     def __init__(self, *args, **kwargs):
         django_integration_utils.apply_django_settings(settings.CODE_JAIL)
-        super(ConfigureCodeJailMiddleware, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         raise MiddlewareNotUsed
