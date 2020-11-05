@@ -2,12 +2,11 @@
 Test JSON serialization straw
 """
 
+from __future__ import absolute_import
 import unittest
-
+from codejail.safe_exec import json_safe
 from six import unichr
 from six.moves import range
-
-from codejail.safe_exec import json_safe
 
 
 class JsonSafeTest(unittest.TestCase):

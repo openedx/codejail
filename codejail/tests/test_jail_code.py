@@ -1,25 +1,28 @@
 """Test jail_code.py"""
 
+from __future__ import absolute_import
+from __future__ import print_function
+import json
 import logging
 import os
 import os.path
 import shutil
 import signal
-import tempfile
 import textwrap
+import tempfile
 import time
-from builtins import bytes
 from unittest import SkipTest, TestCase
 
 import mock
 import six
+from builtins import bytes
+
+from codejail.jail_code import jail_code, is_configured, set_limit, LIMITS
+from codejail import proxy
 from six.moves import range
 
-from codejail import proxy
-from codejail.jail_code import LIMITS, is_configured, jail_code, set_limit
 
-
-def jailpy(code=None, *args, **kwargs):  # pylint: disable=keyword-arg-before-vararg
+def jailpy(code=None, *args, **kwargs):
     """Run `jail_code` on Python."""
     if code:
         code = textwrap.dedent(code)
@@ -41,21 +44,21 @@ def text_of_logs(mock_calls):
         def test_with_log_messages(self, log_log):
             do_something_that_makes_log_messages()
             log_text = text_of_logs(log_log.mock_calls)
-            self.assertRegex(log_text, r"INFO: Something cool happened")
+            self.assertRegexpMatches(log_text, r"INFO: Something cool happened")
 
     """
     text = ""
-    for call in mock_calls:
-        level, msg, args = call[1]
+    for m in mock_calls:
+        level, msg, args = m[1]
         msg_formatted = msg % args
         text += "%s: %s\n" % (logging.getLevelName(level), msg_formatted)
     return text
 
 
-class JailCodeHelpersMixin:
+class JailCodeHelpers(object):
     """Assert helpers for jail_code tests."""
     def setUp(self):
-        super(JailCodeHelpersMixin, self).setUp()
+        super(JailCodeHelpers, self).setUp()
         if not is_configured("python"):
             raise SkipTest
 
@@ -67,7 +70,7 @@ class JailCodeHelpersMixin:
         self.assertEqual(res.status, 0)         # pylint: disable=E1101
 
 
-class TestFeatures(JailCodeHelpersMixin, TestCase):
+class TestFeatures(JailCodeHelpers, TestCase):
     """Test features of how `jail_code` runs Python."""
 
     def test_hello_world(self):
@@ -255,17 +258,17 @@ class TestFeatures(JailCodeHelpersMixin, TestCase):
 
     @mock.patch("codejail.subproc.log._log")
     def test_slugs_get_logged(self, log_log):
-        jailpy(
+        res = jailpy(
             code="""
                 from __future__ import print_function; print('Hello, world!')
             """,
             slug="HELLO"
         )
         log_text = text_of_logs(log_log.mock_calls)
-        self.assertRegex(log_text, r"INFO: Executed jailed code HELLO in .*, with PID .*")
+        self.assertRegexpMatches(log_text, r"INFO: Executed jailed code HELLO in .*, with PID .*")
 
 
-class TestLimits(JailCodeHelpersMixin, TestCase):
+class TestLimits(JailCodeHelpers, TestCase):
     """Tests of the resource limits, and changing them."""
 
     def setUp(self):
@@ -348,7 +351,7 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
 
         # Make sure we log that we are killing the process.
         log_text = text_of_logs(log_log.mock_calls)
-        self.assertRegex(log_text, r"WARNING: Killing process \d+")
+        self.assertRegexpMatches(log_text, r"WARNING: Killing process \d+")
 
     def test_changing_realtime_limit(self):
         # Change time limit to 2 seconds, sleeping for 1.5 will be fine.
@@ -436,7 +439,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
         # We would like this to fail, but there's nothing that checks total
         # file size written, so the sandbox does not prevent it yet.
         raise SkipTest("There's nothing checking total file size yet.")
-        # pylint: disable=unreachable
         set_limit('FSIZE', 1000)
         res = jailpy(code="""\
                 from __future__ import print_function
@@ -548,7 +550,7 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
         self.assertNotEqual(res.status, 0)
 
 
-class TestSymlinks(JailCodeHelpersMixin, TestCase):
+class TestSymlinks(JailCodeHelpers, TestCase):
     """Testing symlink behavior."""
 
     def setUp(self):
@@ -605,7 +607,7 @@ class TestSymlinks(JailCodeHelpersMixin, TestCase):
         self.assertIn(b"ermission denied", res.stderr)
 
 
-class TestMalware(JailCodeHelpersMixin, TestCase):
+class TestMalware(JailCodeHelpers, TestCase):
     """Tests that attempt actual malware against the interpreter or system."""
 
     def test_crash_cpython(self):
@@ -661,7 +663,7 @@ class TestMalware(JailCodeHelpersMixin, TestCase):
         self.assertEqual(res.stdout, b"Done.\n")
 
 
-class TestProxyProcess(JailCodeHelpersMixin, TestCase):
+class TestProxyProcess(JailCodeHelpers, TestCase):
     """Tests of the proxy process."""
 
     def setUp(self):

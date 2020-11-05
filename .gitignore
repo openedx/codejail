@@ -15,6 +15,3 @@ reports/*
 
 # OS detritus
 *.DS_Store
-
-# Virtual environment
-/venv/

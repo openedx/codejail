@@ -1,25 +1,26 @@
 """Test safe_exec.py"""
 
+from __future__ import absolute_import
 import os.path
 import textwrap
 import zipfile
-from builtins import bytes
-from io import BytesIO
 from unittest import SkipTest, TestCase
 
 import six
-
-from codejail import safe_exec
-from codejail.jail_code import set_limit
+from builtins import bytes
 
 try:
     from cStringIO import StringIO
 except ImportError:
-    from io import StringIO  # pylint: disable=ungrouped-imports
+    from io import StringIO
+from io import BytesIO
+
+from codejail import safe_exec
+from codejail.jail_code import set_limit
+
 
 
 class TestJsonSafe(TestCase):
-    # pylint: disable=missing-class-docstring
     def test_decodable_dict(self):
         test_dict = {1: bytes('a', 'utf8'), 2: 'b', 3: {1: bytes('b', 'utf8'), 2: (1, bytes('a', 'utf8'))}}
         cleaned_dict = safe_exec.json_safe(test_dict)
@@ -123,7 +124,7 @@ class SafeExecTests(TestCase):
         msg = str(what_happened.exception)
         # The result may be repr'd or not, so the backslash needs to be
         # optional in this match.
-        self.assertRegex(
+        self.assertRegexpMatches(
             msg,
             r"ValueError: That\\?'s not how you pour soup!"
         )

@@ -1,5 +1,6 @@
 """Subprocess helpers for CodeJail."""
 
+from __future__ import absolute_import
 import functools
 import logging
 import os
@@ -12,8 +13,8 @@ log = logging.getLogger("codejail")
 
 
 def run_subprocess(
-        cmd, stdin=None, cwd=None, env=None, rlimits=None, realtime=None,
-        slug=None,
+    cmd, stdin=None, cwd=None, env=None, rlimits=None, realtime=None,
+    slug=None,
 ):
     """
     A helper to make a limited subprocess.
@@ -36,11 +37,11 @@ def run_subprocess(
     the stdout and stderr of the process, as strings.
 
     """
-    subproc = subprocess.Popen(  # pylint: disable=subprocess-popen-preexec-fn
+    subproc = subprocess.Popen(
         cmd, cwd=cwd, env=env,
         preexec_fn=functools.partial(set_process_limits, rlimits or ()),
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-    )
+        )
 
     if slug:
         log.info("Executed jailed code %s in %s, with PID %s", slug, cwd, subproc.pid)

@@ -1,22 +1,21 @@
 """Safe execution of untrusted Python code."""
 
-import inspect
+from __future__ import absolute_import
 import logging
 import os.path
 import shutil
 import sys
 import textwrap
-
 import six
-
-from codejail import jail_code
-from codejail.util import change_directory, temp_directory
+import inspect
 
 try:
     import simplejson as json
 except ImportError:
     import json
 
+from codejail import jail_code
+from codejail.util import temp_directory, change_directory
 
 log = logging.getLogger("codejail")
 
@@ -37,17 +36,11 @@ class SafeExecException(Exception):
     contain the original exception message.
 
     """
+    pass
 
 
-def safe_exec(
-        code,
-        globals_dict,
-        files=None,
-        python_path=None,
-        limit_overrides_context=None,
-        slug=None,
-        extra_files=None,
-):
+def safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
+              extra_files=None):
     """
     Execute code as "exec" does, but safely.
 
@@ -64,10 +57,6 @@ def safe_exec(
     added to `sys.path` so that modules they contain can be imported.  Only
     directories and zip files are supported.  If the name is not provided in
     `extras_files`, it will be copied just as if it had been listed in `files`.
-
-    `limit_overrides_context` is an optional string to use as a key against the
-    configured limit overrides contexts. If omitted or if no such limit override context
-    has been configured, then use the default limits.
 
     `slug` is an arbitrary string, a description that's meaningful to the
     caller, that will be used in log messages.
@@ -152,9 +141,8 @@ def safe_exec(
         log.debug("Stdin: %s", stdin)
 
     res = jail_code.jail_code(
-        "python", code=jailed_code, stdin=stdin, files=files,
-        limit_overrides_context=limit_overrides_context,
-        slug=slug, extra_files=extra_files,
+        "python", code=jailed_code, stdin=stdin, files=files, slug=slug,
+        extra_files=extra_files,
     )
 
     if LOG_ALL_CODE:
@@ -177,9 +165,8 @@ def json_safe(d):
     Used to emulate reading data through a serialization straw.
 
     """
-    # pylint: disable=invalid-name
 
-    # six.binary_type is here because bytes are sometimes ok if they represent valid utf8
+    # six.binary_type is here because bytes are sometimes ok if they represent valid utf8 
     # so we consider them valid for now and try to decode them with decode_object.  If that
     # doesn't work they'll get dropped later in the process.
     ok_types = (type(None), int, float, six.binary_type, six.text_type, list, tuple, dict)
@@ -198,20 +185,21 @@ def json_safe(d):
         """
         if isinstance(obj, bytes):
             return obj.decode('utf-8')
-        if isinstance(obj, (list, tuple)):
+        elif isinstance(obj, (list,tuple)):
             new_list = []
             for i in obj:
                 new_obj = decode_object(i)
                 new_list.append(new_obj)
             return new_list
-        if isinstance(obj, dict):
+        elif isinstance(obj, dict):
             new_dict = {}
-            for k, v in six.iteritems(obj):
+            for k,v in six.iteritems(obj):
                 new_key = decode_object(k)
                 new_value = decode_object(v)
                 new_dict[new_key] = new_value
             return new_dict
-        return obj
+        else:
+            return obj
 
     bad_keys = ("__builtins__",)
     jd = {}
@@ -230,22 +218,15 @@ def json_safe(d):
 
             # Also ensure that the keys encode/decode correctly
             k = json.loads(json.dumps(decode_object(k)))
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             continue
         else:
             jd[k] = v
     return json.loads(json.dumps(jd))
 
 
-def not_safe_exec(
-        code,
-        globals_dict,
-        files=None,
-        python_path=None,
-        limit_overrides_context=None,  # pylint: disable=unused-argument
-        slug=None,  # pylint: disable=unused-argument
-        extra_files=None,
-):
+def not_safe_exec(code, globals_dict, files=None, python_path=None, slug=None,
+                  extra_files=None):
     """
     Another implementation of `safe_exec`, but not safe.
 
@@ -254,14 +235,11 @@ def not_safe_exec(
     This is not thread-safe, due to temporarily changing the current directory
     and modifying sys.path.
 
-    Note that `limit_overrides_context` is ignored here, because resource limits
-    are not applied.
     """
     g_dict = json_safe(globals_dict)
 
     with temp_directory() as tmpdir:
         with change_directory(tmpdir):
-            # pylint: disable=invalid-name
             # Copy the files here.
             for filename in files or ():
                 dest = os.path.join(tmpdir, os.path.basename(filename))
@@ -275,7 +253,7 @@ def not_safe_exec(
             if python_path:
                 sys.path.extend(python_path)
             try:
-                exec(code, g_dict)  # pylint: disable=exec-used
+                exec(code, g_dict)
             except Exception as e:
                 # Wrap the exception in a SafeExecException, but we don't
                 # try here to include the traceback, since this is just a
