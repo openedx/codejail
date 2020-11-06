@@ -70,6 +70,7 @@ class TestFeatures(JailCodeHelpersMixin, TestCase):
     """Test features of how `jail_code` runs Python."""
 
     def test_hello_world(self):
+        assert False
         res = jailpy(code="""
             from __future__ import print_function; print('Hello, world!')
         """)
