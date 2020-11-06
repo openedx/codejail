@@ -292,9 +292,15 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
 
         # Determine effective resource limits.
         effective_limits = get_effective_limits(limit_overrides_context)
+        limit_overrides_log_string = (
+            " (using overrides context '{}'')".format(limit_overrides_context)
+            if limit_overrides_context
+            else ""
+        )
         log.info(
-            "Preparing to execute jailed code %s with resource limits: %r",
+            "Preparing to execute jailed code %s%s with resource limits: %r",
             jail_code,
+            limit_overrides_log_string,
             effective_limits,
         )
 
