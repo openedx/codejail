@@ -307,6 +307,7 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
             run_subprocess_fn = run_subprocess_through_proxy
         else:
             run_subprocess_fn = run_subprocess
+        x = 5
 
         if stdin:
             stdin = bytes(stdin, 'utf-8')
