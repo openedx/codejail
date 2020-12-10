@@ -6,7 +6,8 @@ build
 coverage.xml
 htmlcov
 reports/*
-.tox/*
+.tox
+.pytest_cache
 
 # Editor detritus
 *~

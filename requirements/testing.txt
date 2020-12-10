@@ -6,21 +6,20 @@
 #
 astroid==2.4.2            # via pylint
 attrs==20.3.0             # via pytest
-importlib-metadata==2.0.0  # via pluggy, pytest
+importlib-metadata==3.1.1  # via pluggy, pytest
 iniconfig==1.1.1          # via pytest
 isort==4.3.21             # via -r requirements/testing.in, pylint
 lazy-object-proxy==1.4.3  # via astroid
 mccabe==0.6.1             # via pylint
-packaging==20.4           # via pytest
-pathlib2==2.3.5           # via pytest
+packaging==20.7           # via pytest
 pluggy==0.13.1            # via pytest
 py==1.9.0                 # via pytest
 pycodestyle==2.6.0        # via -r requirements/testing.in
 pylint==2.6.0             # via -r requirements/testing.in
 pyparsing==2.4.7          # via packaging
 pytest==6.1.2             # via -r requirements/testing.in
-six==1.15.0               # via astroid, packaging, pathlib2
+six==1.15.0               # via astroid
 toml==0.10.2              # via pylint, pytest
 typed-ast==1.4.1          # via astroid
 wrapt==1.12.1             # via astroid
-zipp==1.2.0               # via importlib-metadata
+zipp==3.4.0               # via importlib-metadata

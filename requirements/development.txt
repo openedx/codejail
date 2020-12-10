@@ -4,24 +4,25 @@
 #
 #    make upgrade
 #
+appdirs==1.4.4            # via fissix
 astroid==2.4.2            # via -r requirements/testing.txt, pylint
 attrs==20.3.0             # via -r requirements/testing.txt, pytest
-importlib-metadata==2.0.0  # via -r requirements/testing.txt, pluggy, pytest
+fissix==20.8.0            # via modernize
+importlib-metadata==3.1.1  # via -r requirements/testing.txt, pluggy, pytest
 iniconfig==1.1.1          # via -r requirements/testing.txt, pytest
 isort==4.3.21             # via -r requirements/testing.txt, pylint
 lazy-object-proxy==1.4.3  # via -r requirements/testing.txt, astroid
 mccabe==0.6.1             # via -r requirements/testing.txt, pylint
-modernize==0.7            # via -r requirements/development.in
-packaging==20.4           # via -r requirements/testing.txt, pytest
-pathlib2==2.3.5           # via -r requirements/testing.txt, pytest
+modernize==0.8.0          # via -r requirements/development.in
+packaging==20.7           # via -r requirements/testing.txt, pytest
 pluggy==0.13.1            # via -r requirements/testing.txt, pytest
 py==1.9.0                 # via -r requirements/testing.txt, pytest
 pycodestyle==2.6.0        # via -r requirements/testing.txt
 pylint==2.6.0             # via -r requirements/testing.txt
 pyparsing==2.4.7          # via -r requirements/testing.txt, packaging
 pytest==6.1.2             # via -r requirements/testing.txt
-six==1.15.0               # via -r requirements/testing.txt, astroid, packaging, pathlib2
+six==1.15.0               # via -r requirements/testing.txt, astroid
 toml==0.10.2              # via -r requirements/testing.txt, pylint, pytest
 typed-ast==1.4.1          # via -r requirements/testing.txt, astroid
 wrapt==1.12.1             # via -r requirements/testing.txt, astroid
-zipp==1.2.0               # via -r requirements/testing.txt, importlib-metadata
+zipp==3.4.0               # via -r requirements/testing.txt, importlib-metadata
