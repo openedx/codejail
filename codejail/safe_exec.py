@@ -17,6 +17,7 @@ try:
 except ImportError:
     import json
 
+from codejail.custom_encoder import GlobalEncoder
 
 log = logging.getLogger("codejail")
 
@@ -121,7 +122,7 @@ def safe_exec(
 
     for pydir in python_path:
         pybase = os.path.basename(pydir)
-        the_code.append("sys.path.append(%r)\n" % pybase)
+        the_code.append(f"sys.path.append('{pybase}')\n")
         if pybase not in extra_names:
             files.append(pydir)
 
@@ -135,6 +136,7 @@ def safe_exec(
 
     the_code.append(textwrap.dedent(
         """
+        from custom_encoder import GlobalEncoder
         g_dict = json_safe(g_dict)
         """
         # Write the globals back to the calling process.
@@ -226,11 +228,11 @@ def json_safe(d):
             # contains unicode "unpaired surrogates" (only on Linux)
             # To test for this, we try decoding the output and check
             # for a ValueError
-            v = json.loads(json.dumps(decode_object(v)))
+            v = json.loads(json.dumps(decode_object(v), cls=GlobalEncoder, default=lambda o: repr(o)))
 
             # Also ensure that the keys encode/decode correctly
-            k = json.loads(json.dumps(decode_object(k)))
-        except Exception:  # pylint: disable=broad-except
+            k = json.loads(json.dumps(decode_object(k), cls=GlobalEncoder, default=lambda o: repr(o)))
+        except Exception as e:  # pylint: disable=broad-except
             continue
         else:
             jd[k] = v

@@ -128,7 +128,7 @@ def get_proxy():
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            )
+        )
         log.info("Started CodeJail proxy process (pid %d)", PROXY_PROCESS.pid)
 
     return PROXY_PROCESS
