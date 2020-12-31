@@ -6,7 +6,7 @@
 #
 django==2.2.17            # via -c requirements/constraints.txt, -r requirements/sandbox.in
 future==0.18.2            # via -r requirements/sandbox.in
-numpy==1.18.5             # via -r requirements/sandbox.in
-pytz==2020.4              # via django
+numpy==1.19.4             # via -r requirements/sandbox.in
+pytz==2020.5              # via django
 six==1.15.0               # via -r requirements/sandbox.in
 sqlparse==0.4.1           # via django

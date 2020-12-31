@@ -6,7 +6,6 @@ import os.path
 import resource
 import shutil
 import sys
-from builtins import bytes
 
 from .proxy import run_subprocess_through_proxy
 from .subproc import run_subprocess
@@ -73,7 +72,7 @@ if running_in_virtualenv:
     sandbox_user = os.getenv('CODEJAIL_TEST_USER')
     sandbox_env = os.getenv('CODEJAIL_TEST_VENV')
     if sandbox_env and sandbox_user:
-        configure("python", "{}/bin/python".format(sandbox_env), sandbox_user)
+        configure("python", f"{sandbox_env}/bin/python", sandbox_user)
     # or fall back to defaults
     elif os.path.isdir(sys.prefix + "-sandbox"):
         configure("python", sys.prefix + "-sandbox/bin/python", "sandbox")

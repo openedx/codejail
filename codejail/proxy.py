@@ -9,7 +9,6 @@ import sys
 import time
 
 import six
-from six.moves import range
 
 from .subproc import run_subprocess
 
@@ -20,30 +19,25 @@ log = logging.getLogger("codejail")
 # communicate a few values, and unpack them.  Lastly, we need to be sure we can
 # handle binary data.  Serializing with repr() and deserializing the literals
 # that result give us all the properties we need.
-if six.PY2:
-    # Python 2: everything is bytes everywhere.
-    serialize_in = serialize_out = repr
-    deserialize_in = deserialize_out = ast.literal_eval
-else:
-    # Python 3: the outside of subprocess talks in bytes (the pipes from
-    # subprocess.* are all about bytes). The inside of the Python code it runs
-    # talks in text (reading from sys.stdin is text, writing to sys.stdout
-    # expects text).
-    def serialize_out(val):
-        """Send data out of the proxy process. Needs to make unicode."""
-        return repr(val)
+# Python 3: the outside of subprocess talks in bytes (the pipes from
+# subprocess.* are all about bytes). The inside of the Python code it runs
+# talks in text (reading from sys.stdin is text, writing to sys.stdout
+# expects text).
+def serialize_out(val):
+    """Send data out of the proxy process. Needs to make unicode."""
+    return repr(val)
 
-    def serialize_in(val):
-        """Send data into the proxy process. Needs to make bytes."""
-        return serialize_out(val).encode('utf8')
+def serialize_in(val):
+    """Send data into the proxy process. Needs to make bytes."""
+    return serialize_out(val).encode('utf8')
 
-    def deserialize_in(ustr):
-        """Get data into the proxy process. Needs to take unicode."""
-        return ast.literal_eval(ustr)
+def deserialize_in(ustr):
+    """Get data into the proxy process. Needs to take unicode."""
+    return ast.literal_eval(ustr)
 
-    def deserialize_out(bstr):
-        """Get data from the proxy process. Needs to take bytes."""
-        return deserialize_in(bstr.decode('utf8'))
+def deserialize_out(bstr):
+    """Get data from the proxy process. Needs to take bytes."""
+    return deserialize_in(bstr.decode('utf8'))
 
 
 ##

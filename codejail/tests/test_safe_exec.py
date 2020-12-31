@@ -3,7 +3,6 @@
 import os.path
 import textwrap
 import zipfile
-from builtins import bytes
 from io import BytesIO
 from unittest import SkipTest, TestCase
 
@@ -150,10 +149,7 @@ class SafeExecTests(TestCase):
         self.assertEqual(globs['also'], "01ff02fe")
 
     def test_extra_files_as_pythonpath_zipfile(self):
-        if six.PY2:
-            zipstring = StringIO()
-        else:
-            zipstring = BytesIO()
+        zipstring = BytesIO()
         zipf = zipfile.ZipFile(zipstring, "w")
         zipf.writestr("zipped_module1.py", bytes(textwrap.dedent("""\
             def func1(x):
