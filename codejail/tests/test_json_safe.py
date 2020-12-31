@@ -4,9 +4,6 @@ Test JSON serialization straw
 
 import unittest
 
-from six import unichr
-from six.moves import range
-
 from codejail.safe_exec import json_safe
 
 
@@ -22,7 +19,7 @@ class JsonSafeTest(unittest.TestCase):
         # Test that json_safe() handles non-surrogate unicode values.
 
         # Try a few non-ascii UTF-16 characters
-        for unicode_char in [unichr(512), unichr(2**8-1), unichr(2**16-1)]:
+        for unicode_char in [chr(512), chr(2**8-1), chr(2**16-1)]:
 
             # Try it as a dictionary value
             result = json_safe({'test': unicode_char})
@@ -37,7 +34,7 @@ class JsonSafeTest(unittest.TestCase):
 
         # Try surrogate unicode values
         for code in self.SURROGATE_RANGE:
-            unicode_char = unichr(code)
+            unicode_char = chr(code)
 
             # Try it as a dictionary value
             json_safe({'test': unicode_char})
@@ -50,7 +47,7 @@ class JsonSafeTest(unittest.TestCase):
 
         # Try surrogate unicode values
         for code in self.SURROGATE_RANGE:
-            unicode_char = unichr(code)
+            unicode_char = chr(code)
 
             # Try it is a dictionary key
             json_safe({unicode_char: 'test'})

@@ -7,8 +7,6 @@ import shutil
 import sys
 import textwrap
 
-import six
-
 from codejail import jail_code
 from codejail.util import change_directory, temp_directory
 
@@ -89,7 +87,7 @@ def safe_exec(
     extra_files = extra_files or ()
     python_path = python_path or ()
 
-    extra_names = set(name for name, contents in extra_files)
+    extra_names = {name for name, contents in extra_files}
 
     the_code.append(textwrap.dedent(
         """
@@ -182,7 +180,7 @@ def json_safe(d):
     # six.binary_type is here because bytes are sometimes ok if they represent valid utf8
     # so we consider them valid for now and try to decode them with decode_object.  If that
     # doesn't work they'll get dropped later in the process.
-    ok_types = (type(None), int, float, six.binary_type, six.text_type, list, tuple, dict)
+    ok_types = (type(None), int, float, bytes, str, list, tuple, dict)
 
     def decode_object(obj):
         """
@@ -206,7 +204,7 @@ def json_safe(d):
             return new_list
         if isinstance(obj, dict):
             new_dict = {}
-            for k, v in six.iteritems(obj):
+            for k, v in obj.items():
                 new_key = decode_object(k)
                 new_value = decode_object(v)
                 new_dict[new_key] = new_value
@@ -215,7 +213,7 @@ def json_safe(d):
 
     bad_keys = ("__builtins__",)
     jd = {}
-    for k, v in six.iteritems(d):
+    for k, v in d.items():
         if not isinstance(v, ok_types):
             continue
         if k in bad_keys:

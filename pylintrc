@@ -49,7 +49,8 @@ disable=
 # R0912: Too many branches
 # R0913: Too many arguments
 # R0914: Too many local variables
-    C0301,C0302,R0201,R0901,R0902,R0903,R0904,R0911,R0912,R0913,R0914
+    C0301,C0302,R0201,R0901,R0902,R0903,R0904,R0911,R0912,R0913,R0914,
+    unspecified-encoding,consider-using-with,consider-using-f-string,invalid-name
 
 
 [REPORTS]
