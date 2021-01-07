@@ -5,6 +5,7 @@ import os
 import shutil
 import tempfile
 
+import requests
 
 @contextlib.contextmanager
 def temp_directory():
