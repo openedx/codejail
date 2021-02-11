@@ -41,7 +41,7 @@ class SafeExecException(Exception):
 
 def safe_exec(
         code,
-        globals_dict,
+        globals_dict=None,
         files=None,
         python_path=None,
         limit_overrides_context=None,
@@ -52,8 +52,7 @@ def safe_exec(
     Execute code as "exec" does, but safely.
 
     `code` is a string of Python code.  `globals_dict` is used as the globals
-    during execution.  Modifications the code makes to `globals_dict` are
-    reflected in the dictionary on return.
+    during execution.
 
     `files` is a list of file paths, either files or directories.  They will be
     copied into the temp directory used for execution.  No attempt is made to
@@ -77,12 +76,14 @@ def safe_exec(
     temp directory and cleaned up automatically.  No subdirectories are
     supported in the filename.
 
-    Returns None.  Changes made by `code` are visible in `globals_dict`.  If
+    Returns new dictionary of globals.  If
     the code raises an exception, this function will raise `SafeExecException`
     with the stderr of the sandbox process, which usually includes the original
     exception message and traceback.
 
     """
+    if globals_dict is None:
+        globals_dict = {}
     the_code = []
 
     files = list(files or ())
@@ -167,7 +168,7 @@ def safe_exec(
             "Couldn't execute jailed code: stdout: {res.stdout!r}, "
             "stderr: {res.stderr!r} with status code: {res.status}"
         ).format(res=res))
-    globals_dict.update(json.loads(res.stdout.decode('utf-8')))
+    return json.loads(res.stdout.decode('utf-8'))
 
 
 def json_safe(d):
@@ -239,7 +240,7 @@ def json_safe(d):
 
 def not_safe_exec(
         code,
-        globals_dict,
+        globals_dict=None,
         files=None,
         python_path=None,
         limit_overrides_context=None,  # pylint: disable=unused-argument
@@ -257,6 +258,9 @@ def not_safe_exec(
     Note that `limit_overrides_context` is ignored here, because resource limits
     are not applied.
     """
+    if globals_dict is None:
+        globals_dict = {}
+    # This will be mutated by exec
     g_dict = json_safe(globals_dict)
 
     with temp_directory() as tmpdir:
@@ -285,7 +289,7 @@ def not_safe_exec(
             finally:
                 sys.path = original_path
 
-    globals_dict.update(json_safe(g_dict))
+    return json_safe(g_dict)
 
 
 # If the developer wants us to be unsafe (ALWAYS_BE_UNSAFE), or if there isn't

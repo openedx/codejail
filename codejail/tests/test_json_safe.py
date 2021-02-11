@@ -57,3 +57,9 @@ class JsonSafeTest(unittest.TestCase):
             # Different json libraries treat these bad Unicode characters
             # differently. All we care about is that no error is raised from
             # json_safe.
+
+    def test_non_mutation(self):
+        orig = {'a': ["string", b'bytes']}
+        safe = json_safe(orig)
+        self.assertEqual(orig['a'][1], b'bytes')
+        self.assertEqual(safe['a'][1], "bytes")

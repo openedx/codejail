@@ -56,70 +56,80 @@ class SafeExecTests(TestCase):
         raise NotImplementedError       # pragma: no cover
 
     def test_set_values(self):
-        globs = {}
-        self.safe_exec("a = 17", globs)
+        globs = self.safe_exec("a = 17")
         self.assertEqual(globs['a'], 17)
 
+    def test_non_mutation_shallow(self):
+        """
+        Regression test for change in 4.0.0 to not update globals_dict.
+
+        This also serves to test the ability to pass in globals.
+        """
+        initial_globals = {'a': 17}
+        final_globals = self.safe_exec("a *= 2", initial_globals)
+        self.assertEqual(initial_globals['a'], 17)
+        self.assertEqual(final_globals['a'], 34)
+
+    def test_non_mutation_deep(self):
+        """Test that even the non-safe exec doesn't mutate inner elements."""
+        listing = [1, 2, 3]
+        initial_globals = {'a': listing}
+        final_globals = self.safe_exec("a.append(4)", initial_globals)
+        self.assertEqual(listing, [1, 2, 3])
+        self.assertEqual(final_globals['a'], [1, 2, 3, 4])
+
     def test_complex_globals(self):
-        globs = {}
-        self.safe_exec(
+        globs = self.safe_exec(
             textwrap.dedent("""\
             from builtins import bytes
             test_dict = {1: bytes('a', 'utf8'), 2: 'b', 3: {1: bytes('b', 'utf8'), 2: (1, bytes('a', 'utf8'))}}
             bad_val = b'\\x99'
-            """),
-            globs
+            """)
         )
         self.assertDictEqual(globs['test_dict'], {'1': 'a', '2': 'b', '3': {'1': 'b', '2': [1, 'a']}})
         assert 'bad_val' not in globs
 
     def test_files_are_copied(self):
-        globs = {}
-        self.safe_exec(
-            "a = 'Look: ' + open('hello.txt').read()", globs,
+        globs = self.safe_exec(
+            "a = 'Look: ' + open('hello.txt').read()",
             files=[os.path.dirname(__file__) + "/hello.txt"]
         )
         self.assertEqual(globs['a'], 'Look: Hello there.\n')
 
     def test_python_path(self):
-        globs = {}
-        self.safe_exec(
-            "import module; a = module.const", globs,
+        globs = self.safe_exec(
+            "import module; a = module.const",
             python_path=[os.path.dirname(__file__) + "/pylib"]
         )
         self.assertEqual(globs['a'], 42)
 
     def test_functions_calling_each_other(self):
-        globs = {}
-        self.safe_exec(textwrap.dedent("""\
+        globs = self.safe_exec(textwrap.dedent("""\
             def f():
                 return 1723
             def g():
                 return f()
             x = g()
-            """), globs)
+            """))
         self.assertEqual(globs['x'], 1723)
 
     def test_printing_stuff_when_you_shouldnt(self):
-        globs = {}
-        self.safe_exec("from __future__ import print_function; a = 17; print('hi!')", globs)
+        globs = self.safe_exec("from __future__ import print_function; a = 17; print('hi!')")
         self.assertEqual(globs['a'], 17)
 
     def test_importing_lots_of_crap(self):
         set_limit('REALTIME', 10)
-        globs = {}
-        self.safe_exec(textwrap.dedent("""\
+        globs = self.safe_exec(textwrap.dedent("""\
             from numpy import *
             a = 1723
-            """), globs)
+            """))
         self.assertEqual(globs['a'], 1723)
 
     def test_raising_exceptions(self):
-        globs = {}
         with self.assertRaises(safe_exec.SafeExecException) as what_happened:
             self.safe_exec(textwrap.dedent("""\
                 raise ValueError("That's not how you pour soup!")
-                """), globs)
+                """))
         msg = str(what_happened.exception)
         # The result may be repr'd or not, so the backslash needs to be
         # optional in this match.
@@ -129,12 +139,11 @@ class SafeExecTests(TestCase):
         )
 
     def test_extra_files(self):
-        globs = {}
         extras = [
             ("extra.txt", b"I'm extra!\n"),
             ("also.dat", b"\x01\xff\x02\xfe"),
         ]
-        self.safe_exec(textwrap.dedent("""\
+        globs = self.safe_exec(textwrap.dedent("""\
             import six
             import io
             with io.open("extra.txt", 'r') as f:
@@ -144,7 +153,7 @@ class SafeExecTests(TestCase):
                     also = f.read().encode("hex")
                 else:
                     also = f.read().hex()
-            """), globs, extra_files=extras)
+            """), extra_files=extras)
 
         self.assertEqual(globs['extra'], "I'm extra!\n")
         self.assertEqual(globs['also'], "01ff02fe")
@@ -164,14 +173,13 @@ class SafeExecTests(TestCase):
                 return "X" + s + s + "X"
             """), 'utf-8'))
         zipf.close()
-        globs = {}
         extras = [("code.zip", zipstring.getvalue())]
-        self.safe_exec(textwrap.dedent("""\
+        globs = self.safe_exec(textwrap.dedent("""\
             import zipped_module1 as zm1
             import zipped_module2 as zm2
             a = zm1.func1(10)
             b = zm2.func2("hello")
-            """), globs, python_path=["code.zip"], extra_files=extras)
+            """), python_path=["code.zip"], extra_files=extras)
 
         self.assertEqual(globs['a'], 23)
         self.assertEqual(globs['b'], "XhellohelloX")
@@ -183,7 +191,7 @@ class TestSafeExec(SafeExecTests, TestCase):
     __test__ = True
 
     def safe_exec(self, *args, **kwargs):
-        safe_exec.safe_exec(*args, **kwargs)
+        return safe_exec.safe_exec(*args, **kwargs)
 
 
 class TestNotSafeExec(SafeExecTests, TestCase):
@@ -198,4 +206,4 @@ class TestNotSafeExec(SafeExecTests, TestCase):
             raise SkipTest
 
     def safe_exec(self, *args, **kwargs):
-        safe_exec.not_safe_exec(*args, **kwargs)
+        return safe_exec.not_safe_exec(*args, **kwargs)
