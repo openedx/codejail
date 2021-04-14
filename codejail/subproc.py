@@ -38,6 +38,7 @@ def run_subprocess(
     """
     subproc = subprocess.Popen(  # pylint: disable=subprocess-popen-preexec-fn
         cmd, cwd=cwd, env=env,
+        start_new_session=True, # Set a new session to execute the command
         preexec_fn=functools.partial(set_process_limits, rlimits or ()),
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     )
@@ -58,10 +59,6 @@ def set_process_limits(rlimits):       # pragma: no cover
     """
     Set limits on this process, to be used first in a child process.
     """
-    # Set a new session id so that this process and all its children will be
-    # in a new process group, so we can kill them all later if we need to.
-    os.setsid()
-
     for limit, value in rlimits:
         resource.setrlimit(limit, value)
 
@@ -90,4 +87,4 @@ class ProcessKillerThread(threading.Thread):
                 "Killing process %r (group %r), ran too long: %.1fs",
                 self.subproc.pid, pgid, time.time() - start
             )
-            subprocess.call(["sudo", "pkill", "-9", "-g", str(pgid)])
+            subprocess.call(["sudo", "/usr/bin/pkill", "-9", "-g", str(pgid)])

@@ -38,7 +38,8 @@ def configure(command, bin_path, user=None):
     if command == "python":
         # -E means ignore the environment variables PYTHON*
         # -B means don't try to write .pyc files.
-        cmd_argv.extend(['-E', '-B'])
+        # -u force the stdout and stderr streams to be unbuffered
+        cmd_argv.extend(['-E', '-B', '-u'])
 
     COMMANDS[command] = {
         # The start of the command line for this program.
@@ -90,7 +91,7 @@ DEFAULT_LIMITS = {
     # Size of files creatable, in bytes, defaulting to nothing can be written.
     "FSIZE": 0,
     # The number of processes and threads to allow.
-    "NPROC": 15,
+    "NPROC": 50,
     # Whether to use a proxy process or not.  None means use an environment
     # variable to decide. NOTE: using a proxy process is NOT THREAD-SAFE, only
     # one thread can use CodeJail at a time if you are using a proxy process.
@@ -239,8 +240,7 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
 
         # Make directory readable by other users ('sandbox' user needs to be
         # able to read it).
-        os.chmod(homedir, 0o775)
-
+        os.chmod(homedir, 0o751)
         # Make a subdir to use for temp files, world-writable so that the
         # sandbox user can write to it.
         tmptmp = os.path.join(homedir, "tmp")
@@ -264,6 +264,7 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
             with open(os.path.join(homedir, "jailed_code"), "wb") as jailed:
                 code_bytes = bytes(code, 'utf8')
                 jailed.write(code_bytes)
+            os.chmod(os.path.join(homedir, "jailed_code"), 0o750)
 
             argv = ["jailed_code"] + argv
 
@@ -320,7 +321,7 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
             stdin=stdin,
             realtime=effective_limits["REALTIME"],
             rlimits=create_rlimits(effective_limits),
-            )
+        )
 
         result = JailResult()
         result.status = status

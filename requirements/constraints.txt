@@ -1,5 +1,2 @@
 
-# Django LTS version
-django>=2.2,<2.3
-
 futures==3.1.1; python_version > "2.7"
