@@ -6,8 +6,8 @@ with open('README.rst') as readme:
     long_description = readme.read()
 
 setup(
-    name="codejail",
-    version="3.1.4",
+    name="edx-codejail",
+    version="3.1.5",
     license='Apache',
     description='CodeJail manages execution of untrusted code in secure sandboxes. It is designed primarily for '
                 'Python execution, but can be used for other languages as well.',
