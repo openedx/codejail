@@ -4,24 +4,65 @@
 #
 #    make upgrade
 #
-astroid==2.4.2            # via -r requirements/testing.txt, pylint
-attrs==20.3.0             # via -r requirements/testing.txt, pytest
-importlib-metadata==2.0.0  # via -r requirements/testing.txt, pluggy, pytest
-iniconfig==1.1.1          # via -r requirements/testing.txt, pytest
-isort==4.3.21             # via -r requirements/testing.txt, pylint
-lazy-object-proxy==1.4.3  # via -r requirements/testing.txt, astroid
-mccabe==0.6.1             # via -r requirements/testing.txt, pylint
-modernize==0.7            # via -r requirements/development.in
-packaging==20.4           # via -r requirements/testing.txt, pytest
-pathlib2==2.3.5           # via -r requirements/testing.txt, pytest
-pluggy==0.13.1            # via -r requirements/testing.txt, pytest
-py==1.9.0                 # via -r requirements/testing.txt, pytest
-pycodestyle==2.6.0        # via -r requirements/testing.txt
-pylint==2.6.0             # via -r requirements/testing.txt
-pyparsing==2.4.7          # via -r requirements/testing.txt, packaging
-pytest==6.1.2             # via -r requirements/testing.txt
-six==1.15.0               # via -r requirements/testing.txt, astroid, packaging, pathlib2
-toml==0.10.2              # via -r requirements/testing.txt, pylint, pytest
-typed-ast==1.4.1          # via -r requirements/testing.txt, astroid
-wrapt==1.12.1             # via -r requirements/testing.txt, astroid
-zipp==1.2.0               # via -r requirements/testing.txt, importlib-metadata
+astroid==2.4.2
+    # via
+    #   -r testing.txt
+    #   pylint
+attrs==20.3.0
+    # via
+    #   -r testing.txt
+    #   pytest
+iniconfig==1.1.1
+    # via
+    #   -r testing.txt
+    #   pytest
+isort==4.3.21
+    # via
+    #   -r testing.txt
+    #   pylint
+lazy-object-proxy==1.4.3
+    # via
+    #   -r testing.txt
+    #   astroid
+mccabe==0.6.1
+    # via
+    #   -r testing.txt
+    #   pylint
+modernize==0.7
+    # via -r development.in
+packaging==20.4
+    # via
+    #   -r testing.txt
+    #   pytest
+pluggy==0.13.1
+    # via
+    #   -r testing.txt
+    #   pytest
+py==1.10.0
+    # via
+    #   -r testing.txt
+    #   pytest
+pycodestyle==2.6.0
+    # via -r testing.txt
+pylint==2.6.0
+    # via -r testing.txt
+pyparsing==2.4.7
+    # via
+    #   -r testing.txt
+    #   packaging
+pytest==6.1.2
+    # via -r testing.txt
+six==1.15.0
+    # via
+    #   -r testing.txt
+    #   astroid
+    #   packaging
+toml==0.10.2
+    # via
+    #   -r testing.txt
+    #   pylint
+    #   pytest
+wrapt==1.12.1
+    # via
+    #   -r testing.txt
+    #   astroid
