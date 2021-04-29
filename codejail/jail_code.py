@@ -389,9 +389,7 @@ def save_artifacts(artifacts, save_path):
     os.chmod(datasets_dest_dir, 0o777)
     os.chmod(images_dest_dir, 0o777)
     for artifact_path in artifacts:
-        print(artifact_path)
         if artifact_path.endswith(('.csv', '.xlsx')):
-            print("here", artifact_path)
             path = datasets_dest_dir
         elif artifact_path.endswith(('.png')):
             path = images_dest_dir
