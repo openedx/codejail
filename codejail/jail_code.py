@@ -187,7 +187,8 @@ class JailResult:
 
 
 def jail_code(command, code=None, files=None, extra_files=None, argv=None,
-              stdin=None, limit_overrides_context=None, slug=None):
+              stdin=None, limit_overrides_context=None, slug=None, 
+              artifacts=None):
     """
     Run code in a jailed subprocess.
 
@@ -259,6 +260,8 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
             else:
                 shutil.copytree(filename, dest, symlinks=True)
 
+        if artifacts:
+            save_artifacts(artifacts, tmptmp)
         # Create the main file.
         if code:
             with open(os.path.join(homedir, "jailed_code"), "wb") as jailed:
@@ -376,3 +379,25 @@ def create_rlimits(effective_limits):
     rlimits.append((resource.RLIMIT_FSIZE, (fsize, fsize)))
 
     return rlimits
+
+
+def save_artifacts(artifacts, save_path):
+    datasets_dest_dir = os.path.join(save_path, 'datasets')
+    images_dest_dir = os.path.join(save_path, 'images')
+    os.mkdir(images_dest_dir)
+    os.mkdir(datasets_dest_dir)
+    os.chmod(datasets_dest_dir, 0o777)
+    os.chmod(images_dest_dir, 0o777)
+    for artifact_path in artifacts:
+        if artifact_path.endswith(('.csv', '.xlsx')):
+            path = datasets_dest_dir
+        if artifact_path.endswith(('.png')):
+            path = images_dest_dir
+        else:
+            continue
+        with open(artifact_path, 'r') as file:
+            content = file.read()
+            new_file = os.path.join(path, os.path.basename(artifact_path))
+        with open(new_file, 'w') as file:
+            file.write(content)
+        os.chmod(new_file, 0o777)
