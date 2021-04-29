@@ -391,7 +391,7 @@ def save_artifacts(artifacts, save_path):
     for artifact_path in artifacts:
         if artifact_path.endswith(('.csv', '.xlsx')):
             path = datasets_dest_dir
-        if artifact_path.endswith(('.png')):
+        elif artifact_path.endswith(('.png')):
             path = images_dest_dir
         else:
             continue
