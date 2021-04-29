@@ -188,7 +188,7 @@ class JailResult:
 
 def jail_code(command, code=None, files=None, extra_files=None, argv=None,
               stdin=None, limit_overrides_context=None, slug=None, 
-              live_output=None, artifacts=None):
+              artifacts=None):
     """
     Run code in a jailed subprocess.
 
@@ -330,9 +330,6 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         result.status = status
         result.stdout = stdout
         result.stderr = stderr
-
-        # if live_output:
-        #     yield result
 
         # Remove the tmptmp directory as the sandbox user since the sandbox
         # user may have written files that the application user can't delete.

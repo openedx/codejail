@@ -233,6 +233,8 @@ def json_safe(d):
             # Also ensure that the keys encode/decode correctly
             k = json.loads(json.dumps(decode_object(k), cls=GlobalEncoder, default=lambda o: repr(o)))
         except Exception as e:  # pylint: disable=broad-except
+            log.error("Failed to convert safe_request result to JSON")
+            log.error(e)
             continue
         else:
             jd[k] = v
