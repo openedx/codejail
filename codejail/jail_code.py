@@ -386,7 +386,7 @@ def save_artifacts(artifacts, save_path):
     os.mkdir(datasets_dest_dir)
     os.chmod(datasets_dest_dir, 0o777)
     for artifact_path in artifacts:
-        if artifact_path.endswith('.txt'):
+        if artifact_path.endswith('.csv'):
             path = datasets_dest_dir
         else:
             continue
