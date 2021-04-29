@@ -384,8 +384,10 @@ def create_rlimits(effective_limits):
 def save_artifacts(artifacts, save_path):
     datasets_dest_dir = os.path.join(save_path, 'datasets')
     images_dest_dir = os.path.join(save_path, 'images')
+    os.mkdir(images_dest_dir)
     os.mkdir(datasets_dest_dir)
     os.chmod(datasets_dest_dir, 0o777)
+    os.chmod(images_dest_dir, 0o777)
     for artifact_path in artifacts:
         if artifact_path.endswith(('.csv', '.xlsx')):
             path = datasets_dest_dir
