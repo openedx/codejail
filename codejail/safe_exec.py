@@ -48,6 +48,7 @@ def safe_exec(
         limit_overrides_context=None,
         slug=None,
         extra_files=None,
+        artifacts=None
 ):
     """
     Execute code as "exec" does, but safely.
@@ -156,7 +157,7 @@ def safe_exec(
     res = jail_code.jail_code(
         "python", code=jailed_code, stdin=stdin, files=files,
         limit_overrides_context=limit_overrides_context,
-        slug=slug, extra_files=extra_files,
+        slug=slug, extra_files=extra_files, artifacts=artifacts
     )
 
     if LOG_ALL_CODE:
