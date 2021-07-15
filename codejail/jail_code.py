@@ -10,7 +10,7 @@ from builtins import bytes
 
 from .proxy import run_subprocess_through_proxy
 from .subproc import run_subprocess
-from .util import temp_directory
+from .util import temp_directory, create_directory
 
 log = logging.getLogger("codejail")
 
@@ -382,19 +382,15 @@ def create_rlimits(effective_limits):
 
 
 def save_artifacts(artifacts, save_path):
-    datasets_dest_dir = os.path.join(save_path, 'datasets')
-    images_dest_dir = os.path.join(save_path, 'images')
-    os.mkdir(images_dest_dir)
-    os.mkdir(datasets_dest_dir)
-    os.chmod(datasets_dest_dir, 0o777)
-    os.chmod(images_dest_dir, 0o777)
+    datasets_dest_dir = create_directory(save_path, 'datasets')
+    images_dest_dir = create_directory(save_path, 'images')
+    videos_dest_dir = create_directory(save_path, 'videos')
     for artifact_path in artifacts:
-        if artifact_path.endswith(('.csv', '.xlsx')):
-            path = datasets_dest_dir
-        elif artifact_path.endswith(('.png')):
+        path = datasets_dest_dir
+        if artifact_path.endswith(('.png', '.jpg', '.jpeg')):
             path = images_dest_dir
-        else:
-            continue
+        elif artifact_path.endswith(('.mp4', '.mov', '.gif', '.avi', '.mpeg', '.mkv')):
+            path = videos_dest_dir
         with open(artifact_path, 'r') as file:
             content = file.read()
             new_file = os.path.join(path, os.path.basename(artifact_path))

@@ -31,3 +31,9 @@ def change_directory(new_dir):
         yield new_dir
     finally:
         os.chdir(old_dir)
+
+def create_directory(path, dir_name):
+    dest_dir = os.path.join(path, dir_name)
+    os.mkdir(dest_dir)
+    os.chmod(dest_dir, 0o777)
+    return dest_dir
