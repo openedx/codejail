@@ -8,11 +8,7 @@ import signal
 import tempfile
 import textwrap
 import time
-from builtins import bytes
 from unittest import SkipTest, TestCase, mock
-
-import six
-from six.moves import range
 
 from codejail import proxy
 from codejail.jail_code import LIMITS, is_configured, jail_code, set_limit
@@ -210,16 +206,10 @@ class TestFeatures(JailCodeHelpersMixin, TestCase):
             argv=["run.py"],
         )
         self.assertResultOk(res)
-        if six.PY2:
-            self.assertEqual(
-                res.stdout,
-                b"['also.txt', 'run.py', 'tmp']\nalso here\xff\x00\xab\n"
-            )
-        else:
-            self.assertEqual(
-                res.stdout,
-                b"['also.txt', 'run.py', 'tmp']\nb'also here\\xff\\x00\\xab'\n"
-            )
+        self.assertEqual(
+            res.stdout,
+            b"['also.txt', 'run.py', 'tmp']\nb'also here\\xff\\x00\\xab'\n"
+        )
 
     def test_we_can_remove_tmp_files(self):
         # This test is meant to create a tmp file in a temp folder as the
@@ -424,12 +414,8 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
                         with open(path) as f2:
                             print("Got this:", f2.read())
                 """)
-        if six.PY2:
-            self.assertResultOk(res)
-            self.assertIn(b"Expected exception", res.stdout)
-        else:
-            self.assertIn(b"OSError", res.stderr)
-            self.assertIn(b"File too large", res.stderr)
+        self.assertIn(b"OSError", res.stderr)
+        self.assertIn(b"File too large", res.stderr)
 
     def test_cant_write_many_small_temp_files(self):
         # We would like this to fail, but there's nothing that checks total
@@ -468,10 +454,7 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
                 """)
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, b"Reading google\n")
-        if six.PY2:
-            self.assertIn(b"IOError", res.stderr)
-        else:
-            self.assertIn(b"URLError", res.stderr)
+        self.assertIn(b"URLError", res.stderr)
 
     def test_cant_use_raw_network(self):
         res = jailpy(code="""\
@@ -487,10 +470,7 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
                 """)
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, b"Reading example.com\n")
-        if six.PY2:
-            self.assertIn(b"IOError", res.stderr)
-        else:
-            self.assertIn(b"URLError", res.stderr)
+        self.assertIn(b"URLError", res.stderr)
 
     def test_cant_fork(self):
         set_limit('NPROC', 1)
@@ -505,10 +485,7 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
         )
         # stdout should only contain the first print statement
         self.assertEqual(res.stdout, b"Forking\n")
-        if six.PY2:
-            self.assertIn(b"OSError", res.stderr)
-        else:
-            self.assertIn(b'BlockingIOError', res.stderr)
+        self.assertIn(b'BlockingIOError', res.stderr)
         self.assertNotEqual(res.status, 0)
 
     def test_cant_see_environment_variables(self):
@@ -613,8 +590,8 @@ class TestMalware(JailCodeHelpersMixin, TestCase):
         # the `new` module has been removed in Python 3, and replaced with the
         # `types` module. This test code needs to be refactored to support
         # both.
-        if six.PY3:
-            raise SkipTest('Not supported in Python 3 yet')
+        raise SkipTest('Not supported in Python 3 yet')
+        # pylint: disable=unreachable
         res = jailpy(code="""\
             from __future__ import print_function
             import new, sys

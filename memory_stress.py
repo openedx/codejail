@@ -1,6 +1,5 @@
 """Memory-stress a long-running CodeJail-using process."""
 
-from six.moves import range
 
 from codejail import safe_exec
 

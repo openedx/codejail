@@ -2,5 +2,5 @@
 
 pylint
 pytest
-isort<5  # Constraint for consistency. Most repos use isort==4.x for edx_lint compatibility.
+isort
 pycodestyle
