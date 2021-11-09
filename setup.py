@@ -1,5 +1,8 @@
 """CodeJail: manages execution of untrusted code in secure sandboxes."""
 
+import os
+import re
+
 from setuptools import setup
 
 with open('README.rst') as readme:
