@@ -128,6 +128,10 @@ Other details here that depend on your configuration:
 Using CodeJail
 --------------
 
+Start by installing codejail.
+
+    pip install edx-codejail
+    
 If your CodeJail is properly configured to use safe_exec, try these
 commands at your Python terminal::
 
