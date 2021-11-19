@@ -4,23 +4,23 @@
 #
 #    make upgrade
 #
-astroid==2.8.0            # via pylint
+astroid==2.9.0            # via pylint
 attrs==21.2.0             # via pytest
 iniconfig==1.1.1          # via pytest
-isort==5.9.3              # via -r requirements/testing.in, pylint
+isort==5.10.1             # via -r requirements/testing.in, pylint
 lazy-object-proxy==1.6.0  # via astroid
 mccabe==0.6.1             # via pylint
-packaging==21.0           # via pytest
+packaging==21.3           # via pytest
 platformdirs==2.4.0       # via pylint
 pluggy==1.0.0             # via pytest
-py==1.10.0                # via pytest
-pycodestyle==2.7.0        # via -r requirements/testing.in
-pylint==2.11.1            # via -r requirements/testing.in
-pyparsing==2.4.7          # via packaging
+py==1.11.0                # via pytest
+pycodestyle==2.8.0        # via -r requirements/testing.in
+pylint==2.12.1            # via -r requirements/testing.in
+pyparsing==3.0.6          # via packaging
 pytest==6.2.5             # via -r requirements/testing.in
 toml==0.10.2              # via pylint, pytest
-typing-extensions==3.10.0.2  # via astroid, pylint
-wrapt==1.12.1             # via astroid
+typing-extensions==4.0.0  # via astroid, pylint
+wrapt==1.13.3             # via astroid
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
