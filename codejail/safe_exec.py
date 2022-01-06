@@ -40,6 +40,13 @@ class SafeExecException(Exception):
     """
 
 
+class SafeExecTimeoutException(Exception):
+    """
+    Python code running in the sandbox exceed the timeout.
+
+    """
+
+
 def safe_exec(
         code,
         globals_dict,
@@ -165,7 +172,12 @@ def safe_exec(
         log.debug("Stdout: %s", res.stdout)
         log.debug("Stderr: %s", res.stderr)
 
-    if res.status != 0:
+    if res.status == -9:
+        raise SafeExecTimeoutException((
+            "Jailed code timeout {res.stdout!r}, "
+            "stderr: {res.stderr!r} with status code: {res.status}"
+        ).format(res=res))
+    elif res.status != 0:
         raise SafeExecException((
             "Couldn't execute jailed code: stdout: {res.stdout!r}, "
             "stderr: {res.stderr!r} with status code: {res.status}"
