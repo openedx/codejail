@@ -194,11 +194,6 @@ def json_safe(d):
     """
     # pylint: disable=invalid-name
 
-    # six.binary_type is here because bytes are sometimes ok if they represent valid utf8
-    # so we consider them valid for now and try to decode them with decode_object.  If that
-    # doesn't work they'll get dropped later in the process.
-    ok_types = (type(None), int, float, six.binary_type, six.text_type, list, tuple, dict)
-
     def decode_object(obj):
         """
         Convert an object to a JSON serializable form by decoding all byte strings.
@@ -213,6 +208,9 @@ def json_safe(d):
         """
         if isinstance(obj, bytes):
             return obj.decode('utf-8')
+        if type(obj).__module__ == 'numpy':
+            from custom_encoder import NumpyEncoder
+            return NumpyEncoder().default(obj)
         if isinstance(obj, (list, tuple)):
             new_list = []
             for i in obj:
@@ -231,8 +229,6 @@ def json_safe(d):
     bad_keys = ("__builtins__",)
     jd = {}
     for k, v in six.iteritems(d):
-        if not isinstance(v, ok_types):
-            continue
         if k in bad_keys:
             continue
         try:
