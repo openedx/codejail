@@ -26,7 +26,7 @@ jobs:
 
       - name: Run container with custom apparmor profile
         run: |
-          docker run --name=codejail --privileged -d --security-opt apparmor=apparmor_profile 838788427423.dkr.ecr.us-east-1.amazonaws.com/codejail:latest tail -f /dev/null
+          docker run --name=codejail --privileged -d --security-opt apparmor=apparmor_profile 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail:latest tail -f /dev/null
       - name: Run Non Proxy Tests
         run: |
           docker exec -t codejail bash -c 'source /venv/bin/activate && make clean && make test_no_proxy'
