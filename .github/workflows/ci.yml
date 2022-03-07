@@ -1,6 +1,8 @@
-name: Codejail AppArmor CI
-
+name: codejail-ci
 on:
+  push:
+    branches:
+      - master
   pull_request:
 
 jobs:
