@@ -7,7 +7,7 @@ on:
 
 jobs:
   codejail_ci:
-    name: AppArmor GitHub CI
+    name: tests
     runs-on: ubuntu-20.04
 
     steps:
