@@ -18,6 +18,8 @@ RUN virtualenv -p python3.8 --always-copy $CODEJAIL_TEST_VENV
 RUN virtualenv -p python3.8 venv
 ENV VIRTUAL_ENV=/venv
 
+# Add venv/bin to path
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Create Sandbox user & group
 RUN addgroup $CODEJAIL_GROUP
@@ -37,9 +39,8 @@ WORKDIR /codejail
 # Install codejail_sandbox sandbox dependencies
 RUN source $CODEJAIL_TEST_VENV/bin/activate && pip install -r requirements/sandbox.txt && deactivate
 
-# Install testing requirements
-RUN source $VIRTUAL_ENV/bin/activate && pip install -r requirements/sandbox.txt && pip install -r requirements/testing.txt
-
+# Install testing requirements in parent venv
+RUN pip install -r requirements/sandbox.txt && pip install -r requirements/testing.txt
 
 # Setup sudoers file
 ADD sudoers-file/01-sandbox /etc/sudoers.d/01-sandbox
@@ -52,6 +53,3 @@ RUN chown -R ubuntu:ubuntu ../codejail
 
 # Switch to ubuntu user
 USER ubuntu
-
-# Add venv/bin to path
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
