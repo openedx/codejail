@@ -1,4 +1,5 @@
 # Makefile for CodeJail
+#
 .PHONY: clean dev-requirements quality requirements test test_no_proxy \
         test_proxy upgrade upgrade
 
