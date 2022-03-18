@@ -8,6 +8,7 @@ class GlobalEncoder(json.JSONEncoder):
         elif type(obj).__module__ == 'pandas':
             if hasattr(obj, 'to_json'):
                 return obj.to_json(orient='records')
+            return repr(obj)
         return json.JSONEncoder.default(self, obj)
 
 
@@ -28,6 +29,4 @@ class NumpyEncoder(json.JSONEncoder):
             return obj.tolist()
         elif isinstance(obj, (np.bool_)):
             return bool(obj)
-        elif isinstance(obj, (np.void)):
-            return None
-        return json.JSONEncoder.default(self, obj)
+        return repr(obj)
