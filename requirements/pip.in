@@ -1,0 +1,6 @@
+# Core dependencies for installing other packages
+
+pip
+setuptools
+wheel
+
