@@ -22,7 +22,10 @@ test_proxy:
 upgrade: export CUSTOM_COMPILE_COMMAND=make upgrade
 upgrade: ## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
 	pip install -q -r requirements/pip_tools.txt
+	pip-compile --annotation-style=line --upgrade --alow-unsafe --rebuild -o requirements/pip.txt requirements/pip.in
 	pip-compile --annotation-style=line --upgrade -o requirements/pip_tools.txt requirements/pip_tools.in
+	pip install -qr requirements/pip.txt
+	pip install -qr requirements/pip_tools.txt
 	pip-compile --annotation-style=line --upgrade -o requirements/tox.txt requirements/tox.in
 	pip-compile --annotation-style=line --upgrade -o requirements/testing.txt requirements/testing.in
 	pip-compile --annotation-style=line --upgrade -o requirements/sandbox.txt requirements/sandbox.in
