@@ -4,23 +4,24 @@
 #
 #    make upgrade
 #
-astroid==2.9.0            # via -r requirements/testing.txt, pylint
-attrs==21.2.0             # via -r requirements/testing.txt, pytest
+astroid==2.11.5           # via -r requirements/testing.txt, pylint
+attrs==21.4.0             # via -r requirements/testing.txt, pytest
+dill==0.3.5.1             # via -r requirements/testing.txt, pylint
 iniconfig==1.1.1          # via -r requirements/testing.txt, pytest
 isort==5.10.1             # via -r requirements/testing.txt, pylint
-lazy-object-proxy==1.6.0  # via -r requirements/testing.txt, astroid
-mccabe==0.6.1             # via -r requirements/testing.txt, pylint
+lazy-object-proxy==1.7.1  # via -r requirements/testing.txt, astroid
+mccabe==0.7.0             # via -r requirements/testing.txt, pylint
 packaging==21.3           # via -r requirements/testing.txt, pytest
-platformdirs==2.4.0       # via -r requirements/testing.txt, pylint
+platformdirs==2.5.2       # via -r requirements/testing.txt, pylint
 pluggy==1.0.0             # via -r requirements/testing.txt, pytest
 py==1.11.0                # via -r requirements/testing.txt, pytest
 pycodestyle==2.8.0        # via -r requirements/testing.txt
-pylint==2.12.1            # via -r requirements/testing.txt
-pyparsing==3.0.6          # via -r requirements/testing.txt, packaging
-pytest==6.2.5             # via -r requirements/testing.txt
-toml==0.10.2              # via -r requirements/testing.txt, pylint, pytest
-typing-extensions==4.0.0  # via -r requirements/testing.txt, astroid, pylint
-wrapt==1.13.3             # via -r requirements/testing.txt, astroid
+pylint==2.13.9            # via -r requirements/testing.txt
+pyparsing==3.0.9          # via -r requirements/testing.txt, packaging
+pytest==7.1.2             # via -r requirements/testing.txt
+tomli==2.0.1              # via -r requirements/testing.txt, pylint, pytest
+typing-extensions==4.2.0  # via -r requirements/testing.txt, astroid, pylint
+wrapt==1.14.1             # via -r requirements/testing.txt, astroid
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

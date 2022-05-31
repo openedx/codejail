@@ -4,15 +4,14 @@
 #
 #    make upgrade
 #
-backports.entry-points-selectable==1.1.1  # via virtualenv
-distlib==0.3.3            # via virtualenv
-filelock==3.4.0           # via tox, virtualenv
+distlib==0.3.4            # via virtualenv
+filelock==3.7.0           # via tox, virtualenv
 packaging==21.3           # via tox
-platformdirs==2.4.0       # via virtualenv
+platformdirs==2.5.2       # via virtualenv
 pluggy==1.0.0             # via tox
 py==1.11.0                # via tox
-pyparsing==3.0.6          # via packaging
+pyparsing==3.0.9          # via packaging
 six==1.16.0               # via tox, virtualenv
 toml==0.10.2              # via tox
-tox==3.24.4               # via -r requirements/tox.in
-virtualenv==20.10.0       # via tox
+tox==3.25.0               # via -r requirements/tox.in
+virtualenv==20.14.1       # via tox

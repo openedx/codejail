@@ -1,2 +1,5 @@
 # Django LTS version
 django>=3.2,<4.0
+
+# Numpy minor version upgrades break on edx-platform
+numpy==1.18.5
