@@ -4,10 +4,10 @@
 #
 #    make upgrade
 #
-asgiref==3.4.1            # via django
-django==3.2.9             # via -c requirements/constraints.txt, -r requirements/sandbox.in
+asgiref==3.5.2            # via django
+django==3.2.13            # via -c requirements/common_constraints.txt, -c requirements/constraints.txt, -r requirements/sandbox.in
 future==0.18.2            # via -r requirements/sandbox.in
-numpy==1.21.4             # via -r requirements/sandbox.in
-pytz==2021.3              # via django
+numpy==1.22.4             # via -r requirements/sandbox.in
+pytz==2022.1              # via django
 six==1.16.0               # via -r requirements/sandbox.in
 sqlparse==0.4.2           # via django
