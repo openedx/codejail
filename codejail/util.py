@@ -37,3 +37,11 @@ def create_directory(path, dir_name):
     os.mkdir(dest_dir)
     os.chmod(dest_dir, 0o777)
     return dest_dir
+
+
+def chmod_recursive_directory(dir_path, perm):
+    for root, dirs, files in os.walk(dir_path):
+        for d in dirs:
+            os.chmod(os.path.join(root, d), perm)
+        for f in files:
+            os.chmod(os.path.join(root, f), perm)
