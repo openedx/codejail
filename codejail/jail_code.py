@@ -6,6 +6,7 @@ import os.path
 import resource
 import shutil
 import sys
+import zipfile
 from builtins import bytes
 
 from .proxy import run_subprocess_through_proxy
@@ -393,7 +394,6 @@ def save_artifacts(artifacts, save_path):
             path = videos_dest_dir
 
         if artifact_path.endswith('.zip'):
-            import zipfile
             with zipfile.ZipFile(artifact_path, 'r') as zip_ref:
                 zip_ref.extractall(path)
             chmod_recursive_directory(path, 0o777)
