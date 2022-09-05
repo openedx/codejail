@@ -6,11 +6,12 @@ import os.path
 import resource
 import shutil
 import sys
+import zipfile
 from builtins import bytes
 
 from .proxy import run_subprocess_through_proxy
 from .subproc import run_subprocess
-from .util import temp_directory, create_directory
+from .util import temp_directory, create_directory, chmod_recursive_directory
 
 log = logging.getLogger("codejail")
 
@@ -391,9 +392,16 @@ def save_artifacts(artifacts, save_path):
             path = images_dest_dir
         elif artifact_path.endswith(('.mp4', '.mov', '.gif', '.avi', '.mpeg', '.mkv')):
             path = videos_dest_dir
-        with open(artifact_path, 'r') as file:
-            content = file.read()
-            new_file = os.path.join(path, os.path.basename(artifact_path))
-        with open(new_file, 'w') as file:
-            file.write(content)
-        os.chmod(new_file, 0o777)
+
+        if artifact_path.endswith('.zip'):
+            with zipfile.ZipFile(artifact_path, 'r') as zip_ref:
+                zip_ref.extractall(path)
+            chmod_recursive_directory(path, 0o777)
+        else:
+
+            with open(artifact_path, 'r') as file:
+                content = file.read()
+                new_file = os.path.join(path, os.path.basename(artifact_path))
+            with open(new_file, 'w') as file:
+                file.write(content)
+            os.chmod(new_file, 0o777)
