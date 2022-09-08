@@ -258,6 +258,7 @@ def not_safe_exec(
         limit_overrides_context=None,  # pylint: disable=unused-argument
         slug=None,  # pylint: disable=unused-argument
         extra_files=None,
+        artifacts=None
 ):
     """
     Another implementation of `safe_exec`, but not safe.
@@ -276,17 +277,20 @@ def not_safe_exec(
         with change_directory(tmpdir):
             # pylint: disable=invalid-name
             # Copy the files here.
+            tmptmp = os.path.join(tmpdir, "tmp")
             for filename in files or ():
                 dest = os.path.join(tmpdir, os.path.basename(filename))
                 shutil.copyfile(filename, dest)
             for filename, contents in extra_files or ():
-                dest = os.path.join(tmpdir, filename)
+                dest = os.path.join(tmptmp, filename)
                 with open(dest, "wb") as f:
                     f.write(contents)
 
             original_path = sys.path
             if python_path:
                 sys.path.extend(python_path)
+            if artifacts:
+                jail_code.save_artifacts(artifacts, tmpdir)
             try:
                 exec(code, g_dict)  # pylint: disable=exec-used
             except Exception as e:
