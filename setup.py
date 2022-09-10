@@ -35,7 +35,7 @@ setup(
     keywords='edx codejail',
     author='edX',
     author_email="oscm@edx.org",
-    url='https://github.com/edx/codejail',
+    url='https://github.com/openedx/codejail',
     packages=['codejail'],
     install_requires=['six'],
     zip_safe=False,
