@@ -144,7 +144,7 @@ def safe_exec(
 
     the_code.append(textwrap.dedent(
         """
-        from custom_encoder import GlobalEncoder
+        from codejail.custom_encoder import GlobalEncoder
         g_dict = json_safe(g_dict)
         """
         # Write the globals back to the calling process.
@@ -209,7 +209,7 @@ def json_safe(d):
         if isinstance(obj, bytes):
             return obj.decode('utf-8')
         if type(obj).__module__ == 'numpy':
-            from custom_encoder import NumpyEncoder
+            from codejail.custom_encoder import NumpyEncoder
             return NumpyEncoder().default(obj)
         if isinstance(obj, (list, tuple)):
             new_list = []
