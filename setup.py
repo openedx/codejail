@@ -2,6 +2,9 @@
 import os
 import re
 
+import os
+import re
+
 from setuptools import setup
 
 with open('README.rst') as readme:
