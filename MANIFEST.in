@@ -1,0 +1,7 @@
+include CHANGELOG.rst
+include LICENSE.txt
+include README.rst
+include requirements/*
+include apparmor-profiles/*
+include sudoers-file/*
+recursive-include {{cookiecutter.sub_dir_name}} *.html *.png *.gif *.js *.css *.jpg *.jpeg *.svg
