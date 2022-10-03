@@ -2,7 +2,7 @@
 import os
 import re
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 with open('README.rst') as readme:
     long_description = readme.read()
@@ -36,7 +36,12 @@ setup(
     author='edX',
     author_email="oscm@edx.org",
     url='https://github.com/openedx/codejail',
-    packages=['codejail'],
+    scripts=['proxy_main.py', 'memory_stress.py'],
+    packages=find_packages(
+        include=['codejail', 'codejail.*'],
+        exclude=["*tests"],
+    ),
+    include_package_data=True,
     install_requires=['six'],
     zip_safe=False,
     classifiers=[
