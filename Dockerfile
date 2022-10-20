@@ -35,17 +35,17 @@ RUN chown -R $CODEJAIL_TEST_USER:$CODEJAIL_GROUP $CODEJAIL_TEST_VENV
 WORKDIR /codejail
 
 # Clone Requirement files
-COPY ./requirements/sandbox.txt ./codejail/requirements/sandbox.txt
-COPY ./requirements/testing.txt ./codejail/requirements/testing.txt
+COPY ./requirements/sandbox.txt /codejail/requirements/sandbox.txt
+COPY ./requirements/testing.txt /codejail/requirements/testing.txt
 
 # Install codejail_sandbox sandbox dependencies
-RUN source $CODEJAIL_TEST_VENV/bin/activate && pip install -r requirements/sandbox.txt && deactivate
+RUN source $CODEJAIL_TEST_VENV/bin/activate && pip install -r /codejail/requirements/sandbox.txt && deactivate
 
 # Install testing requirements in parent venv
-RUN pip install -r requirements/sandbox.txt && pip install -r requirements/testing.txt
+RUN pip install -r /codejail/requirements/sandbox.txt && pip install -r /codejail/requirements/testing.txt
 
 # Clone Codejail Repo
-COPY . ./codejail
+COPY . /codejail
 
 # Setup sudoers file
 COPY sudoers-file/01-sandbox /etc/sudoers.d/01-sandbox
