@@ -19,6 +19,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.TOOLS_EDX_ECR_USER_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - name: Set Branch name
+        id: extract-branch-name
+        run: echo "BRANCH=${{ github.head_ref || github.ref_name }}" >> $GITHUB_OUTPUT
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
@@ -29,6 +33,19 @@ jobs:
       - name: Run container with custom apparmor profile
         run: |
           docker run --name=codejail --privileged -d --security-opt apparmor=apparmor_profile 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail:latest tail -f /dev/null
+
+      - name: Pull and checkout latest code changes
+        run: |
+          docker exec -t codejail bash -c 'git pull'
+          docker exec -t codejail bash -c 'git checkout ${{ steps.extract-branch-name.outputs.BRANCH }}'
+
+      - name: Install latest requirements
+        run: |
+          docker exec -t codejail bash -c 'pip install -r requirements/sandbox.txt requirements/testing.txt'
+      
+      - name: Install latest Sandbox requirements
+        run: |
+          docker exec -t codejail bash -c 'source /home/sandbox/codejail_sandbox-python3.8/bin/activate && pip install -r requirements/sandbox.txt && deactivate'
       
       - name: Run Non Proxy Tests
         run: |
