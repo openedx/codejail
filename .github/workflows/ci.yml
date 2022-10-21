@@ -30,12 +30,12 @@ jobs:
         run: docker pull 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail:latest
 
       - name: Build latest code changes into CI image
-        run: docker build --cache-from 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail /
-              -t 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail .
+        run: docker build --cache-from 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail \
+            -t 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail .
 
       - name: Run container with custom apparmor profile and codejail CI image
-        run: docker run --name=codejail --privileged -d --security-opt apparmor=apparmor_profile /
-              257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail tail -f /dev/null
+        run: docker run --name=codejail --privileged -d --security-opt apparmor=apparmor_profile \
+            257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail tail -f /dev/null
 
       - name: Run Non Proxy Tests
         run: docker exec -t codejail bash -c 'make clean && make test_no_proxy'
