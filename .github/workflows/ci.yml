@@ -29,24 +29,17 @@ jobs:
 
       - name: Parse custom apparmor profile
         run: sudo apparmor_parser -r -W apparmor-profiles/home.sandbox.codejail_sandbox-python3.8.bin.python
+        
+      - name: Pull codejail CI image
+        run: docker pull 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail:latest
+
+      - name: Build latest changes into codejail Image
+        run: docker build -t openedx-codejail .
 
       - name: Run container with custom apparmor profile
         run: |
-          docker run --name=codejail --privileged -d --security-opt apparmor=apparmor_profile 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail:latest tail -f /dev/null
+          docker run --name=codejail --privileged -d --security-opt apparmor=apparmor_profile openedx-codejail:latest tail -f /dev/null
 
-      - name: Pull and checkout latest code changes
-        run: |
-          docker exec -t codejail bash -c 'git pull'
-          docker exec -t codejail bash -c 'git checkout ${{ steps.extract-branch-name.outputs.BRANCH }}'
-
-      - name: Install latest requirements
-        run: |
-          docker exec -t codejail bash -c 'pip install -r requirements/sandbox.txt requirements/testing.txt'
-      
-      - name: Install latest Sandbox requirements
-        run: |
-          docker exec -t codejail bash -c 'source /home/sandbox/codejail_sandbox-python3.8/bin/activate && pip install -r requirements/sandbox.txt && deactivate'
-      
       - name: Run Non Proxy Tests
         run: |
           docker exec -t codejail bash -c 'make clean && make test_no_proxy'
