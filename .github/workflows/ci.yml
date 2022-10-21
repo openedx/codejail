@@ -31,24 +31,19 @@ jobs:
         run: sudo apparmor_parser -r -W apparmor-profiles/home.sandbox.codejail_sandbox-python3.8.bin.python
         
       - name: Pull codejail CI image
-        run: |
-          docker pull 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail:latest
-          docker image ls
+        run: docker pull 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail:latest
 
       - name: Build latest changes into codejail Image
-        run: docker build -t openedx-codejail .
+        run: docker build -t 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail .
 
       - name: Run container with custom apparmor profile
-        run: |
-          docker run --name=codejail --privileged -d --security-opt apparmor=apparmor_profile openedx-codejail:latest tail -f /dev/null
+        run: docker run --name=codejail --privileged -d --security-opt apparmor=apparmor_profile openedx-codejail:latest tail -f /dev/null
 
       - name: Run Non Proxy Tests
-        run: |
-          docker exec -t codejail bash -c 'make clean && make test_no_proxy'
+        run: docker exec -t codejail bash -c 'make clean && make test_no_proxy'
           
       - name: Run Proxy Tests
-        run: |
-          docker exec -t codejail bash -c 'make clean && make test_proxy'
+        run: docker exec -t codejail bash -c 'make clean && make test_proxy'
 
       - name: Run Quality Tests
         run: docker exec -t codejail bash -c 'make quality'
