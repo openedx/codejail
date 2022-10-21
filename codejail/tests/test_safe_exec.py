@@ -11,7 +11,6 @@ from codejail.jail_code import set_limit
 
 
 class TestJsonSafe(TestCase):
-    # pylint: disable=missing-class-docstring
     def test_decodable_dict(self):
         test_dict = {1: bytes('a', 'utf8'), 2: 'b', 3: {1: bytes('b', 'utf8'), 2: (1, bytes('a', 'utf8'))}}
         cleaned_dict = safe_exec.json_safe(test_dict)
