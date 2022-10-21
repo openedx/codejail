@@ -31,7 +31,9 @@ jobs:
         run: sudo apparmor_parser -r -W apparmor-profiles/home.sandbox.codejail_sandbox-python3.8.bin.python
         
       - name: Pull codejail CI image
-        run: docker pull 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail:latest
+        run: |
+          docker pull 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail:latest
+          docker image ls
 
       - name: Build latest changes into codejail Image
         run: docker build -t openedx-codejail .
