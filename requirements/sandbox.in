@@ -3,6 +3,5 @@
 # of sandboxes used for testing codejail
 
 django
-future
 numpy
 six
