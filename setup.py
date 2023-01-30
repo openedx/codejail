@@ -36,7 +36,7 @@ setup(
     author='edX',
     author_email="oscm@edx.org",
     url='https://github.com/openedx/codejail',
-    scripts=['proxy_main.py', 'memory_stress.py'],
+    scripts=['memory_stress.py'],
     packages=find_packages(
         include=['codejail', 'codejail.*'],
         exclude=["*tests"],
