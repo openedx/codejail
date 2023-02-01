@@ -111,23 +111,19 @@ def get_proxy():
 
     # If we need a proxy, make a proxy.
     if PROXY_PROCESS is None:
-        # Start the proxy by invoking proxy_main.py in our root directory.
-        root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        proxy_main_py = os.path.join(root, "proxy_main.py")
-
         # Run proxy_main.py with the same Python that is running us. "-u" makes
         # the stdin and stdout unbuffered. We pass the log level of the
         # "codejail" log so that the proxy can send back an appropriate level
         # of detail in the log messages.
         log_level = log.getEffectiveLevel()
-        cmd = [sys.executable, '-u', proxy_main_py, str(log_level)]
+        cmd = [sys.executable, '-u', '-m', "codejail.proxy_main", str(log_level)]
 
         PROXY_PROCESS = subprocess.Popen(
             args=cmd,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            )
+        )
         log.info("Started CodeJail proxy process (pid %d)", PROXY_PROCESS.pid)
 
     return PROXY_PROCESS
