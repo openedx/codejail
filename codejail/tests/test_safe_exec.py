@@ -94,7 +94,7 @@ class SafeExecTests(TestCase):
 
     def test_printing_stuff_when_you_shouldnt(self):
         globs = {}
-        self.safe_exec("from __future__ import print_function; a = 17; print('hi!')", globs)
+        self.safe_exec("a = 17; print('hi!')", globs)
         self.assertEqual(globs['a'], 17)
 
     def test_importing_lots_of_crap(self):
