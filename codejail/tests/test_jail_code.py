@@ -67,7 +67,7 @@ class TestFeatures(JailCodeHelpersMixin, TestCase):
 
     def test_hello_world(self):
         res = jailpy(code="""
-            from __future__ import print_function; print('Hello, world!')
+            print('Hello, world!')
         """)
         self.assertResultOk(res)
         self.assertEqual(res.stdout, b'Hello, world!\n')
@@ -76,7 +76,6 @@ class TestFeatures(JailCodeHelpersMixin, TestCase):
         set_limit('REALTIME', 2)
         res = jailpy(
             code="""
-                from __future__ import print_function
                 import sys
                 print(':'.join(sys.argv[1:]))
             """,
@@ -100,7 +99,6 @@ class TestFeatures(JailCodeHelpersMixin, TestCase):
     def test_stdin_is_provided(self):
         res = jailpy(
             code="""
-                from __future__ import print_function
                 import json, sys
                 print(sum(json.load(sys.stdin)))
             """,
@@ -112,7 +110,6 @@ class TestFeatures(JailCodeHelpersMixin, TestCase):
     def test_stdin_can_be_large_and_binary(self):
         res = jailpy(
             code="""
-                from __future__ import print_function
                 import sys
                 print(sum(ord(c) for c in sys.stdin.read()))
             """,
@@ -152,7 +149,6 @@ class TestFeatures(JailCodeHelpersMixin, TestCase):
     def test_files_are_copied(self):
         res = jailpy(
             code="""
-                from __future__ import print_function
                 print('Look:', open('hello.txt').read())
             """,
             files=[file_here("hello.txt")]
@@ -163,7 +159,6 @@ class TestFeatures(JailCodeHelpersMixin, TestCase):
     def test_directories_are_copied(self):
         res = jailpy(
             code="""\
-                from __future__ import print_function
                 import os
                 res = []
                 for path, dirs, files in os.walk("."):
@@ -195,7 +190,6 @@ class TestFeatures(JailCodeHelpersMixin, TestCase):
         res = jailpy(
             extra_files=[
                 ("run.py", bytes(textwrap.dedent("""\
-                            from __future__ import print_function
                             import os
                             print(sorted(os.listdir('.')))
                             print(open('also.txt', 'rb').read())
@@ -221,7 +215,6 @@ class TestFeatures(JailCodeHelpersMixin, TestCase):
         set_limit('FSIZE', 1000)
         res = jailpy(
             code="""\
-                from __future__ import print_function
                 import os, shutil, tempfile
                 temp_dir = tempfile.mkdtemp()
                 with open("{}/myfile.txt".format(temp_dir), "w") as f:
@@ -246,7 +239,7 @@ class TestFeatures(JailCodeHelpersMixin, TestCase):
     def test_slugs_get_logged(self, log_log):
         jailpy(
             code="""
-                from __future__ import print_function; print('Hello, world!')
+                print('Hello, world!')
             """,
             slug="HELLO"
         )
@@ -271,7 +264,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
         set_limit('VMEM', 80000000)
         res = jailpy(
             code="""
-                from __future__ import print_function
                 print(len(bytearray(100000000)))
             """
         )
@@ -284,7 +276,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
         set_limit('VMEM', 160000000)
         res = jailpy(
             code="""
-                from __future__ import print_function
                 print(len(bytearray(100000000)))
             """
         )
@@ -297,7 +288,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
         set_limit('VMEM', 0)
         res = jailpy(
             code="""
-                from __future__ import print_function
                 print(len(bytearray(50000000)))
             """
         )
@@ -310,7 +300,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
         set_limit('REALTIME', 10)
         res = jailpy(
             code="""
-                from __future__ import print_function
                 from six.moves import range
                 print(sum(range(2**31-1)))
             """
@@ -326,7 +315,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
         set_limit('REALTIME', 1)
         res = jailpy(
             code="""
-                from __future__ import print_function
                 import time
                 time.sleep(1.5)
                 print('Done!')
@@ -344,7 +332,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
         set_limit('REALTIME', 2)
         res = jailpy(
             code="""
-                from __future__ import print_function
                 import time
                 time.sleep(1.5)
                 print('Done!')
@@ -358,7 +345,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
         set_limit('REALTIME', 0)
         res = jailpy(
             code="""
-                from __future__ import print_function
                 import time
                 time.sleep(1.5)
                 print('Done!')
@@ -369,7 +355,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
 
     def test_cant_write_files(self):
         res = jailpy(code="""\
-                from __future__ import print_function
                 print("Trying")
                 with open("mydata.txt", "w") as f:
                     f.write("hello")
@@ -383,7 +368,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
     def test_can_write_temp_files(self):
         set_limit('FSIZE', 1000)
         res = jailpy(code="""\
-                from __future__ import print_function
                 import os, tempfile
                 print("Trying mkstemp")
                 f, path = tempfile.mkstemp()
@@ -399,7 +383,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
     def test_cant_write_large_temp_files(self):
         set_limit('FSIZE', 1000)
         res = jailpy(code="""\
-                from __future__ import print_function
                 import os, tempfile
                 from six.moves import range
                 print("Trying mkstemp")
@@ -424,7 +407,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
         # pylint: disable=unreachable
         set_limit('FSIZE', 1000)
         res = jailpy(code="""\
-                from __future__ import print_function
                 import os, tempfile
                 print("Trying mkstemp 250")
                 for i in range(250):
@@ -442,7 +424,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
 
     def test_cant_use_network(self):
         res = jailpy(code="""\
-                from __future__ import print_function
                 try:
                     from urllib import urlopen
                 except ImportError:
@@ -458,7 +439,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
 
     def test_cant_use_raw_network(self):
         res = jailpy(code="""\
-                from __future__ import print_function
                 try:
                     from urllib import urlopen
                 except ImportError:
@@ -476,7 +456,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
         set_limit('NPROC', 1)
         res = jailpy(
             code="""\
-                from __future__ import print_function
                 import os
                 print("Forking")
                 child_ppid = os.fork()
@@ -492,7 +471,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
         os.environ['HONEY_BOO_BOO'] = 'Look!'
         res = jailpy(
             code="""\
-                from __future__ import print_function
                 import os
                 for name, value in os.environ.items():
                     print("%s: %r" % (name, value))
@@ -505,7 +483,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
         # We can read 10 bytes just fine.
         res = jailpy(
             code="""
-                from __future__ import print_function
                 x = open('/dev/urandom', 'rb').read(10)
                 print(len(x))
             """
@@ -516,7 +493,6 @@ class TestLimits(JailCodeHelpersMixin, TestCase):
         # If we try to read all of it, we'll be killed by the real-time limit.
         res = jailpy(
             code="""
-                from __future__ import print_function
                 x = open('/dev/urandom', 'rb').read()
                 print('Done!')
             """
@@ -556,7 +532,6 @@ class TestSymlinks(JailCodeHelpersMixin, TestCase):
         # the symlink.
         res = jailpy(
             code="""\
-                from __future__ import print_function
                 print(open('copied/here.txt').read())        # can read
                 print(open('copied/herelink.txt').read())    # can read
                 print(open('copied/link.txt').read())        # can't read
@@ -570,7 +545,6 @@ class TestSymlinks(JailCodeHelpersMixin, TestCase):
         # Run some code in the sandbox, with a copied file which is a symlink.
         res = jailpy(
             code="""\
-                from __future__ import print_function
                 print(open('here.txt').read())       # can read
                 print(open('herelink.txt').read())   # can read
                 print(open('link.txt').read())       # can't read
@@ -593,7 +567,6 @@ class TestMalware(JailCodeHelpersMixin, TestCase):
         raise SkipTest('Not supported in Python 3 yet')
         # pylint: disable=unreachable
         res = jailpy(code="""\
-            from __future__ import print_function
             import new, sys
             bad_code = new.code(0,0,0,0,"KABOOM",(),(),(),"","",0,"")
             crash_me = new.function(bad_code, {})
@@ -608,7 +581,6 @@ class TestMalware(JailCodeHelpersMixin, TestCase):
 
     def test_read_etc_passwd(self):
         res = jailpy(code="""\
-            from __future__ import print_function
             bytes = len(open('/etc/passwd').read())
             print('Gotcha', bytes)
             """)
@@ -618,7 +590,6 @@ class TestMalware(JailCodeHelpersMixin, TestCase):
 
     def test_find_other_sandboxes(self):
         res = jailpy(code="""
-            from __future__ import print_function
             import os
             places = [
                 "..", "/tmp", "/", "/home", "/etc", "/var"
@@ -651,7 +622,7 @@ class TestProxyProcess(JailCodeHelpersMixin, TestCase):
     def run_ok(self):
         """Run some code to see that it works."""
         num = int(time.time()*100000)
-        res = jailpy(code="from __future__ import print_function; print('Look: %d')" % num)
+        res = jailpy(code="print('Look: %d')" % num)
         self.assertResultOk(res)
         self.assertEqual(res.stdout, b'Look: %d\n' % num)
 
