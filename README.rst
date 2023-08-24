@@ -203,3 +203,8 @@ run the code, and returns the output and exit status of the process.
 Python code, and runs it using jail_code, modifying the globals dictionary as a
 side-effect.  safe_exec does this by serializing the globals into and out of
 the subprocess as JSON.
+
+Reporting Security Issues
+-------------------------
+
+Please do not report security issues in public. Please email security@edx.org.
