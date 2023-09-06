@@ -3,3 +3,4 @@ include README.rst
 include requirements/*
 include apparmor-profiles/*
 include sudoers-file/*
+include requirements/constraints.txt
