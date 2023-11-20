@@ -167,7 +167,7 @@ system, you must set the following environment variables for testing::
 
 Run the tests with the Makefile::
 
-    $ make tests
+    $ make test
 
 If CodeJail is running unsafely, many of the tests will be automatically
 skipped, or will fail, depending on whether CodeJail thinks it should be in

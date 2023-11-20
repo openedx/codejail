@@ -4,7 +4,7 @@ Utility functions to support Django integration for codejail.
 Split out from `django_integration` to allow testing without installing Django.
 """
 
-from . import jail_code
+from . import jail_code, safe_exec
 
 
 def apply_django_settings(code_jail_settings):
@@ -29,3 +29,5 @@ def apply_django_settings(code_jail_settings):
                 value=value,
                 limit_overrides_context=context,
             )
+    if code_jail_settings.get('always_unsafe') is True:
+        safe_exec.ALWAYS_UNSAFE = True

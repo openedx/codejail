@@ -7,6 +7,8 @@ import shutil
 import sys
 import textwrap
 
+from django.conf import settings
+
 from codejail import jail_code
 from codejail.util import change_directory, temp_directory
 
@@ -23,8 +25,18 @@ log = logging.getLogger("codejail")
 
 # Set this to True to log all the code and globals being executed.
 LOG_ALL_CODE = False
-# Set this to True to use the unsafe code, so that you can debug it.
-ALWAYS_BE_UNSAFE = False
+
+# .. toggle_name: CODE_JAIL['always_unsafe']
+# .. toggle_implementation: DjangoSetting
+# .. toggle_default: False
+# .. toggle_description: Run all codejail executions insecurely. Calls to both ``safe_exec`` and
+#   ``not_safe_exec`` will run without a sandbox.
+# .. toggle_warning: This should only ever be enabled in a development environment. Enabling this
+#   in a production environment or even a shared testing environment would allow an attacker to
+#   completely take over the server.
+# .. toggle_use_cases: open_edx
+# .. toggle_creation_date: 2023-11-20
+ALWAYS_UNSAFE = False  # Overridden by codejail.django_integration_utils
 
 
 class SafeExecException(Exception):
@@ -286,11 +298,7 @@ def not_safe_exec(
     globals_dict.update(json_safe(g_dict))
 
 
-# If the developer wants us to be unsafe (ALWAYS_BE_UNSAFE), or if there isn't
-# a configured jail for Python, then we'll be UNSAFE.
-UNSAFE = ALWAYS_BE_UNSAFE or not jail_code.is_configured("python")
-
-if UNSAFE:   # pragma: no cover
+if ALWAYS_UNSAFE:   # pragma: no cover
     # Make safe_exec actually call not_safe_exec, but log that we're doing so.
 
     def safe_exec(*args, **kwargs):                 # pylint: disable=E0102
