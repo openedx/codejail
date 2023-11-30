@@ -140,7 +140,7 @@ commands at your Python terminal::
     import codejail.safe_exec
     jailed_globals = {}
     codejail.safe_exec.safe_exec("output=open('/etc/passwd').read()", jailed_globals)
-    jailed_globals
+    print(jailed_globals)  # should be unreachable if codejail is working properly
 
 This should fail with an exception. 
 
