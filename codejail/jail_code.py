@@ -282,6 +282,8 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
             rm_cmd.extend(['sudo', '-u', user])
 
         # Point TMPDIR at our temp directory.
+        # FIXME: This breaks command execution unless user param has been set.
+        #   Issue: https://github.com/openedx/codejail/issues/162
         cmd.extend(['TMPDIR=tmp'])
         # Start with the command line dictated by "python" or whatever.
         cmd.extend(COMMANDS[command]['cmdline_start'])
