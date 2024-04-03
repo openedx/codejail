@@ -8,7 +8,11 @@ on:
 jobs:
   codejail_ci:
     name: tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ '3.8', '3.11' ]
 
     steps:
       - uses: actions/checkout@v2
