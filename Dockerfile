@@ -1,21 +1,28 @@
 FROM ubuntu:focal
 SHELL ["/bin/bash", "-c"]
 
+ARG python_version=3.8
+
 # Install Codejail Packages
-RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y vim python3-virtualenv python3-pip
-RUN apt-get install -y sudo git
+ENV TZ=Etc/UTC
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y software-properties-common
+RUN add-apt-repository -y ppa:deadsnakes/ppa && apt-get update && apt-get upgrade -y
+RUN apt-get install -y vim python${python_version} python${python_version}-dev python${python_version}-distutils
+RUN apt-get install -y sudo git make curl build-essential
+RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python${python_version}
+RUN pip install virtualenv
 
 # Define Environment Variables
 ENV CODEJAIL_GROUP=sandbox
 ENV CODEJAIL_SANDBOX_CALLER=ubuntu
 ENV CODEJAIL_TEST_USER=sandbox
-ENV CODEJAIL_TEST_VENV=/home/sandbox/codejail_sandbox-python3.8
+ENV CODEJAIL_TEST_VENV=/home/sandbox/codejail_sandbox-python${python_version}
 
 # Create Virtualenv for sandbox user
-RUN virtualenv -p python3.8 --always-copy $CODEJAIL_TEST_VENV
+RUN virtualenv -p python${python_version} --always-copy $CODEJAIL_TEST_VENV
 
-RUN virtualenv -p python3.8 venv
+RUN virtualenv -p python${python_version} venv
 ENV VIRTUAL_ENV=/venv
 
 # Add venv/bin to path
@@ -48,7 +55,7 @@ RUN pip install -r /codejail/requirements/sandbox.txt && pip install -r /codejai
 COPY . /codejail
 
 # Setup sudoers file
-COPY sudoers-file/01-sandbox /etc/sudoers.d/01-sandbox
+COPY sudoers-file/01-sandbox-python-${python_version} /etc/sudoers.d/01-sandbox
 
 # Change Sudoers file permissions
 RUN chmod 0440 /etc/sudoers.d/01-sandbox
