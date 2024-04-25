@@ -89,12 +89,14 @@ class TestFeatures(JailCodeHelpersMixin, TestCase):
         res = jailpy(code="""raise Exception('FAIL')""")
         self.assertNotEqual(res.status, 0)
         self.assertEqual(res.stdout, b"")
-        self.assertEqual(res.stderr, bytes(textwrap.dedent("""\
-            Traceback (most recent call last):
-              File "jailed_code", line 1, in <module>
-                raise Exception('FAIL')
+
+        regex = textwrap.dedent("""
+            (?m)Traceback [(]most recent call last[)]:
+              File "(/.*?/)?jailed_code", line 1, in <module>
+                raise Exception[(]'FAIL'[)]
             Exception: FAIL
-            """), 'utf-8'))
+            """).strip() + "\n"
+        self.assertRegex(res.stderr.decode('utf-8'), regex)
 
     def test_stdin_is_provided(self):
         res = jailpy(
