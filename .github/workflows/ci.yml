@@ -31,7 +31,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Parse custom apparmor profile
-        run: sudo apparmor_parser -r -W apparmor-profiles/home.sandbox.codejail_sandbox-python${{ matrix.python_version }}.bin.python
+        run: sudo apparmor_parser -r -W apparmor-profiles/home.sandbox.codejail_sandbox-python3.bin.python
 
       - name: Pull codejail CI image
         run: docker pull 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail:latest
