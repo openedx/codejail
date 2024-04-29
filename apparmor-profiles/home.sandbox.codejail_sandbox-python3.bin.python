@@ -1,0 +1,54 @@
+#include <tunables/global>
+
+profile apparmor_profile /home/sandbox/codejail_sandbox-python{3.[0-9],3.[1-9][0-9]}/bin/python {
+    #include <abstractions/base>
+    #include <abstractions/python>
+
+    /usr/{local/,}lib{,32,64}/python{2.[4-7],3,3.[0-9],3.[1-9][0-9]}/**.{pyc,so,so.*[0-9]} mr,
+    /usr/{local/,}lib{,32,64}/python{2.[4-7],3,3.[0-9],3.[1-9][0-9]}/**.{egg,py,pth}       r,
+    /usr/{local/,}lib{,32,64}/python{2.[4-7],3,3.[0-9],3.[1-9][0-9]}/{site,dist}-packages/ r,
+    /usr/{local/,}lib{,32,64}/python{2.[4-7],3,3.[0-9],3.[1-9][0-9]}/{site,dist}-packages/**/ r,
+    /usr/{local/,}lib{,32,64}/python{2.[4-7],3,3.[0-9],3.[1-9][0-9]}/{site,dist}-packages/*.dist-info/{METADATA,namespace_packages.txt} r,
+    /usr/{local/,}lib{,32,64}/python{2.[4-7],3,3.[0-9],3.[1-9][0-9]}/{site,dist}-packages/*.VERSION r,
+    /usr/{local/,}lib{,32,64}/python{2.[4-7],3,3.[0-9],3.[1-9][0-9]}/{site,dist}-packages/*.egg-info/PKG-INFO r,
+    /usr/{local/,}lib{,32,64}/python3.{1,}[0-9]/lib-dynload/*.so            mr,
+
+    # Site-wide configuration
+    /etc/python{2.[4-7],3.[0-9],3.[1-9][0-9]}/** r,
+
+    # shared python paths
+    /usr/share/{pyshared,pycentral,python-support}/**      r,
+    /{var,usr}/lib/{pyshared,pycentral,python-support}/**  r,
+    /usr/lib/{pyshared,pycentral,python-support}/**.so     mr,
+    /var/lib/{pyshared,pycentral,python-support}/**.pyc    mr,
+    /usr/lib/python3/dist-packages/**.so          mr,
+
+    # wx paths
+    /usr/lib/wx/python/*.pth r,
+
+    # python build configuration and headers
+    /usr/include/python{2.[4-7],3.[0-9],3.[1-9][0-9]}*/pyconfig.h r,
+
+    # Include additions to the abstraction
+    include if exists <abstractions/python.d>
+
+    /home/sandbox/codejail_sandbox-python{3.[0-9],3.[1-9][0-9]}/** mr,
+    /tmp/codejail-*/ rix,
+    /tmp/codejail-*/** wrix,
+
+    # Whitelist particiclar shared objects from the system
+    # python installation
+    #
+    /usr/lib/python{3.[0-9],3.[1-9][0-9]}/lib-dynload/_json.so mr,
+    /usr/lib/python{3.[0-9],3.[1-9][0-9]}/lib-dynload/_ctypes.so mr,
+    /usr/lib/python{3.[0-9],3.[1-9][0-9]}/lib-dynload/_heapq.so mr,
+    /usr/lib/python{3.[0-9],3.[1-9][0-9]}/lib-dynload/_io.so mr,
+    /usr/lib/python{3.[0-9],3.[1-9][0-9]}/lib-dynload/_csv.so mr,
+    /usr/lib/python{3.[0-9],3.[1-9][0-9]}/lib-dynload/datetime.so mr,
+    /usr/lib/python{3.[0-9],3.[1-9][0-9]}/lib-dynload/_elementtree.so mr,
+    /usr/lib/python{3.[0-9],3.[1-9][0-9]}/lib-dynload/pyexpat.so mr,
+    #
+    # Allow access to selections from /proc
+    #
+    /proc/*/mounts r,
+}
