@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: codejail
+  description: A library for managing the execution of untrusted code in secure sandboxes.
+  annotations:
+    openedx.org/arch-interest-groups: moisesgsalas
+spec:
+  owner: user:moisesgsalas
+  type: library
+  lifecycle: production
