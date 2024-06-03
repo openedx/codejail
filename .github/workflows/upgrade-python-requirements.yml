@@ -16,8 +16,7 @@ jobs:
   call-upgrade-python-requirements-workflow:
     uses: openedx/.github/.github/workflows/upgrade-python-requirements.yml@master
     with:
-    # If copying manually, also provide your default branch name in quotes here
-      branch: ${{ github.event.inputs.branch || "master" }}
+      branch: "master"
       # optional parameters below; fill in if you'd like github or email notifications
       # user_reviewers: ""
       # team_reviewers: ""
