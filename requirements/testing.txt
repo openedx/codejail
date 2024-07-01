@@ -4,18 +4,18 @@
 #
 #    make upgrade
 #
-astroid==3.1.0            # via pylint
+astroid==3.2.2            # via pylint
 dill==0.3.8               # via pylint
 exceptiongroup==1.2.1     # via pytest
 iniconfig==2.0.0          # via pytest
 isort==5.13.2             # via -r requirements/testing.in, pylint
 mccabe==0.7.0             # via pylint
-packaging==24.0           # via pytest
-platformdirs==4.2.1       # via pylint
+packaging==24.1           # via pytest
+platformdirs==4.2.2       # via pylint
 pluggy==1.5.0             # via pytest
-pycodestyle==2.11.1       # via -r requirements/testing.in
-pylint==3.1.0             # via -r requirements/testing.in
-pytest==8.1.1             # via -r requirements/testing.in
+pycodestyle==2.12.0       # via -r requirements/testing.in
+pylint==3.2.5             # via -r requirements/testing.in
+pytest==8.2.2             # via -r requirements/testing.in
 tomli==2.0.1              # via pylint, pytest
-tomlkit==0.12.4           # via pylint
-typing-extensions==4.11.0  # via astroid, pylint
+tomlkit==0.12.5           # via pylint
+typing-extensions==4.12.2  # via astroid, pylint
