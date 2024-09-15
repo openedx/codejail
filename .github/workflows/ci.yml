@@ -8,14 +8,32 @@ on:
 jobs:
   codejail_ci:
     name: tests
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        os:
+        - ubuntu-20.04
+        - ubuntu-22.04
+        - ubuntu-24.04
         include:
           - python_version: '3.8'
             docker_tag: latest
-          - python_version: '3.11'
+
+          - os: 'ubuntu-20.04'
+            ubuntu_image: ubuntu:focal
             docker_tag: '3.11'
+            python_version: '3.11'
+
+          - os: 'ubuntu-22.04'
+            ubuntu_image: ubuntu:jammy
+            docker_tag: '3.11'
+            python_version: '3.11'
+
+          - os: 'ubuntu-24.04'
+            ubuntu_image: ubuntu:noble
+            docker_tag: '3.11'
+            python_version: '3.11'
 
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +58,8 @@ jobs:
         run: |
           docker build --cache-from 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail \
             -t 257477529851.dkr.ecr.us-east-1.amazonaws.com/openedx-codejail \
-            --build-arg python_version=${{ matrix.python_version }} .
+            --build-arg python_version=${{ matrix.python_version }} \
+            --build-arg ubuntu_image=${{ matrix.ubuntu_image }} .
 
       - name: Run container with custom apparmor profile and codejail CI image
         run: |

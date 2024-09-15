@@ -1,4 +1,6 @@
-FROM ubuntu:focal
+ARG ubuntu_image=ubuntu:focal
+
+FROM $ubuntu_image
 SHELL ["/bin/bash", "-c"]
 
 ARG python_version=3.8
@@ -62,6 +64,9 @@ RUN chmod 0440 /etc/sudoers.d/01-sandbox
 
 # Change Repo ownership
 RUN chown -R ubuntu:ubuntu ../codejail
+
+# # Remove password from ubuntu user
+# RUN passwd -d ubuntu
 
 # Switch to ubuntu user
 USER ubuntu
