@@ -28,7 +28,7 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Parse custom apparmor profile
         run: sudo apparmor_parser -r -W apparmor-profiles/home.sandbox.codejail_sandbox-python3.bin.python
