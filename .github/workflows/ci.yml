@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.TOOLS_EDX_ECR_USER_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.TOOLS_EDX_ECR_USER_AWS_SECRET_ACCESS_KEY }}
