@@ -33,8 +33,8 @@ profile apparmor_profile /home/sandbox/codejail_sandbox-python{3.[0-9],3.[1-9][0
     include if exists <abstractions/python.d>
 
     /home/sandbox/codejail_sandbox-python{3.[0-9],3.[1-9][0-9]}/** mr,
-    /tmp/codejail-*/ rix,
-    /tmp/codejail-*/** wrix,
+    /tmp/codejail-*/ rux,
+    /tmp/codejail-*/** wrux,
 
     # Whitelist particiclar shared objects from the system
     # python installation

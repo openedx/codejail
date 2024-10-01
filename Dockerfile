@@ -1,4 +1,6 @@
-FROM ubuntu:focal
+ARG ubuntu_image=ubuntu:focal
+
+FROM $ubuntu_image
 SHELL ["/bin/bash", "-c"]
 
 ARG python_version=3.8
@@ -33,8 +35,8 @@ RUN addgroup $CODEJAIL_GROUP
 RUN adduser --disabled-login --disabled-password $CODEJAIL_TEST_USER --ingroup $CODEJAIL_GROUP
 
 # Switch to non root user inside Docker container
-RUN addgroup ubuntu
-RUN adduser --disabled-login --disabled-password ubuntu --ingroup ubuntu
+#RUN addgroup ubuntu
+#RUN adduser --disabled-login --disabled-password ubuntu --ingroup ubuntu
 
 # Give Ownership of sandbox env to sandbox group and user
 RUN chown -R $CODEJAIL_TEST_USER:$CODEJAIL_GROUP $CODEJAIL_TEST_VENV
@@ -63,5 +65,8 @@ RUN chmod 0440 /etc/sudoers.d/01-sandbox
 # Change Repo ownership
 RUN chown -R ubuntu:ubuntu ../codejail
 
+# # Remove password from ubuntu user
+RUN passwd -d ubuntu
+
 # Switch to ubuntu user
-USER ubuntu
+#USER ubuntu
