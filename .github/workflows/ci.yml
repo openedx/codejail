@@ -12,10 +12,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - python_version: '3.8'
-            docker_tag: latest
           - python_version: '3.11'
-            docker_tag: '3.11'
+            docker_tag: latest
 
     steps:
       - uses: actions/checkout@v4
