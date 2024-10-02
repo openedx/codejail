@@ -8,12 +8,19 @@ on:
 jobs:
   codejail_ci:
     name: tests
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
           - python_version: '3.11'
             ubuntu_version: '20.04'
+            os: "ubuntu-20.04"
+          - python_version: '3.11'
+            ubuntu_version: '22.04'
+            os: "ubuntu-22.04"
+          - python_version: '3.11'
+            ubuntu_version: '24.04'
+            os: "ubuntu-24.04"
 
     steps:
       - uses: actions/checkout@v4
