@@ -1,7 +1,9 @@
-FROM ubuntu:focal
+ARG ubuntu_version="20.04"
+
+FROM ubuntu:${ubuntu_version}
 SHELL ["/bin/bash", "-c"]
 
-ARG python_version=3.8
+ARG python_version="3.8"
 
 # Install Codejail Packages
 ENV TZ=Etc/UTC

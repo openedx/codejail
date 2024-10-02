@@ -13,7 +13,7 @@ jobs:
       matrix:
         include:
           - python_version: '3.11'
-            docker_tag: latest
+            ubuntu_version: '20.04'
 
     steps:
       - uses: actions/checkout@v4
@@ -25,7 +25,8 @@ jobs:
           docker build -t openedx-codejail \
             --cache-to type=gha \
             --cache-from type=gha \
-            --build-arg python_version=${{ matrix.python_version }} .
+            --build-arg python_version=${{ matrix.python_version }} \
+            --build-arg ubuntu_version=${{ matrix.ubuntu_version }} .
 
       - name: Run container with custom apparmor profile and codejail CI image
         run: |
