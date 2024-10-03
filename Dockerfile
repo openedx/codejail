@@ -1,7 +1,9 @@
-FROM ubuntu:focal
+ARG ubuntu_version="20.04"
+
+FROM ubuntu:${ubuntu_version}
 SHELL ["/bin/bash", "-c"]
 
-ARG python_version=3.8
+ARG python_version="3.8"
 
 # Install Codejail Packages
 ENV TZ=Etc/UTC
@@ -33,8 +35,8 @@ RUN addgroup $CODEJAIL_GROUP
 RUN adduser --disabled-login --disabled-password $CODEJAIL_TEST_USER --ingroup $CODEJAIL_GROUP
 
 # Switch to non root user inside Docker container
-RUN addgroup ubuntu
-RUN adduser --disabled-login --disabled-password ubuntu --ingroup ubuntu
+RUN getent group ubuntu || groupadd ubuntu
+RUN getent passwd ubuntu || adduser --disabled-login --disabled-password ubuntu --ingroup ubuntu
 
 # Give Ownership of sandbox env to sandbox group and user
 RUN chown -R $CODEJAIL_TEST_USER:$CODEJAIL_GROUP $CODEJAIL_TEST_VENV
