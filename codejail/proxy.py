@@ -71,7 +71,7 @@ def run_subprocess_through_proxy(*args, **kwargs):  # pylint: disable=inconsiste
             proxy_stdout = proxy.stdout.readline()
             if not proxy_stdout:
                 # EOF: the proxy must have died.
-                raise Exception("Proxy process died unexpectedly!")
+                raise Exception("Proxy process died unexpectedly!")  # pylint: disable=broad-exception-raised
             status, stdout, stderr, log_calls = deserialize_out(proxy_stdout.rstrip())
 
             # Write all the log messages to the log, and return.
