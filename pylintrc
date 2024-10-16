@@ -7,9 +7,6 @@
 # pygtk.require().
 #init-hook=
 
-# Profiled execution.
-profile=no
-
 # Add files or directories to the blacklist. They should be base names, not
 # paths.
 ignore=CVS, migrations
@@ -40,7 +37,6 @@ disable=
 
 # Might use these when the code is in better shape
 # C0302: Too many lines in module
-# R0201: Method could be a function
 # R0901: Too many ancestors
 # R0902: Too many instance attributes
 # R0903: Too few public methods (1/2)
@@ -49,7 +45,7 @@ disable=
 # R0912: Too many branches
 # R0913: Too many arguments
 # R0914: Too many local variables
-    C0301,C0302,R0201,R0901,R0902,R0903,R0904,R0911,R0912,R0913,R0914,
+    C0301,C0302,R0901,R0902,R0903,R0904,R0911,R0912,R0913,R0914,
     unspecified-encoding,consider-using-with,consider-using-f-string,invalid-name
 
 
@@ -58,14 +54,6 @@ disable=
 # Set the output format. Available formats are text, parseable, colorized, msvs
 # (visual studio) and html
 output-format=text
-
-# Include message's id in output
-include-ids=yes
-
-# Put messages in a separate file for each module / package specified on the
-# command line instead of printing them on stdout. Reports (if any) will be
-# written in a file name "pylint_global.[txt|html]".
-files-output=no
 
 # Tells whether to display a full report or only the messages
 reports=no
@@ -77,10 +65,6 @@ reports=no
 # (RP0004).
 evaluation=10.0 - ((float(5 * error + warning + refactor + convention) / statement) * 10)
 
-# Add a comment according to your evaluation note. This is used by the global
-# evaluation report (RP0004).
-comment=no
-
 
 [TYPECHECK]
 
@@ -91,10 +75,6 @@ ignore-mixin-members=yes
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set).
 ignored-classes=SQLObject
-
-# When zope mode is activated, add a predefined set of Zope acquired attributes
-# to generated-members.
-zope=no
 
 # List of members which are set dynamically and missed by pylint inference
 # system, and so shouldn't trigger E0201 when accessed. Python regular
@@ -114,12 +94,6 @@ generated-members=
 
 
 [BASIC]
-
-# Required attributes for module, separated by a comma
-required-attributes=
-
-# List of builtins function names that should not be used, separated by a comma
-bad-functions=map,filter,apply,input
 
 # Regular expression which should only match correct module names
 module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
@@ -238,9 +212,6 @@ max-locals=15
 # Maximum number of return / yield for function / method body
 max-returns=6
 
-# Maximum number of branch for function / method body
-max-branchs=12
-
 # Maximum number of statements in function / method body
 max-statements=50
 
@@ -259,10 +230,6 @@ max-public-methods=20
 
 [CLASSES]
 
-# List of interface methods to ignore, separated by a comma. This is used for
-# instance to not check methods defines in Zope's Interface base class.
-ignore-iface-methods=isImplementedBy,deferred,extends,names,namesAndDescriptions,queryDescriptionFor,getBases,getDescriptionFor,getDoc,getName,getTaggedValue,getTaggedValueTags,isEqualOrExtendedBy,setTaggedValue,isImplementedByInstancesOf,adaptWith,is_implemented_by
-
 # List of method names used to declare (i.e. assign) instance attributes.
 defining-attr-methods=__init__,__new__,setUp
 
@@ -274,4 +241,4 @@ valid-classmethod-first-arg=cls
 
 # Exceptions that will emit a warning when being caught. Defaults to
 # "Exception"
-overgeneral-exceptions=Exception
+overgeneral-exceptions=builtins.Exception
