@@ -184,6 +184,7 @@ class JailResult:
         self.stdout = self.stderr = self.status = None
 
 
+# pylint: disable=too-many-positional-arguments
 def jail_code(command, code=None, files=None, extra_files=None, argv=None,
               stdin=None, limit_overrides_context=None, slug=None):
     """
@@ -229,6 +230,7 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
     # pylint: disable=too-many-statements
 
     if not is_configured(command):
+        # pylint: disable=broad-exception-raised
         raise Exception("jail_code needs to be configured for %r" % command)
 
     # We make a temp directory to serve as the home of the sandboxed code.
