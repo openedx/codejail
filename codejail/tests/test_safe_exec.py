@@ -101,6 +101,8 @@ class SafeExecTests(TestCase):
         set_limit('REALTIME', 10)
         globs = {}
         self.safe_exec(textwrap.dedent("""\
+            import os
+            os.environ['OPENBLAS_NUM_THREADS'] = '1'
             from numpy import *
             a = 1723
             """), globs)
