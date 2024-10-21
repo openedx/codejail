@@ -4,6 +4,16 @@ profile apparmor_profile /home/sandbox/codejail_sandbox-python{3.[0-9],3.[1-9][0
     #include <abstractions/base>
     #include <abstractions/python>
 
+    # Deny network access and socket operations
+    # Note: If this profile is being run on a docker container
+    # then this directive might not be sufficient.  Docker network
+    # interfaces are created in a different namespace from the one that
+    # apparmor can monitor and manage and so apparmor can't always deny
+    # network access to the container.  Please be sure to test
+    # network access from within your container for the jailed process
+    # to be sure that everything is secure.
+    deny network,
+
     /usr/{local/,}lib{,32,64}/python{2.[4-7],3,3.[0-9],3.[1-9][0-9]}/**.{pyc,so,so.*[0-9]} mr,
     /usr/{local/,}lib{,32,64}/python{2.[4-7],3,3.[0-9],3.[1-9][0-9]}/**.{egg,py,pth}       r,
     /usr/{local/,}lib{,32,64}/python{2.[4-7],3,3.[0-9],3.[1-9][0-9]}/{site,dist}-packages/ r,
