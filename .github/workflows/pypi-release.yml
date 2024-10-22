@@ -7,7 +7,7 @@ on:
 jobs:
 
   push:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -15,7 +15,7 @@ jobs:
       - name: setup python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.5
+          python-version: 3.11
 
       - name: Install pip
         run: pip install pip
