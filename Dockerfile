@@ -1,7 +1,9 @@
-FROM ubuntu:focal
+ARG ubuntu_version="20.04"
+
+FROM ubuntu:${ubuntu_version}
 SHELL ["/bin/bash", "-c"]
 
-ARG python_version=3.8
+ARG python_version="3.8"
 
 # Install Codejail Packages
 ENV TZ=Etc/UTC
@@ -33,8 +35,15 @@ RUN addgroup $CODEJAIL_GROUP
 RUN adduser --disabled-login --disabled-password $CODEJAIL_TEST_USER --ingroup $CODEJAIL_GROUP
 
 # Switch to non root user inside Docker container
-RUN addgroup ubuntu
-RUN adduser --disabled-login --disabled-password ubuntu --ingroup ubuntu
+RUN getent group ubuntu || groupadd ubuntu
+RUN getent passwd ubuntu || adduser --disabled-login --disabled-password ubuntu --ingroup ubuntu
+
+# Remove using PAM to set limits for sudo.
+# We want codejail to manage the limits so we remove this line from the sudo pam config
+# if we don't the forked process gets limits based on /etc/security/limits.conf which by
+# default does not set any limits on the forked process.
+# This line was not there on Ubuntu 20.04 but was added in 22.04
+RUN sed -i '/pam_limits.so/d' /etc/pam.d/sudo
 
 # Give Ownership of sandbox env to sandbox group and user
 RUN chown -R $CODEJAIL_TEST_USER:$CODEJAIL_GROUP $CODEJAIL_TEST_VENV

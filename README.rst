@@ -19,11 +19,11 @@ using the same API, but will not guard against malicious code.  This allows the
 same code to be used on safe-configured or non-safe-configured developer's
 machines.
 
-A CodeJail sandbox consists of several pieces: 
+A CodeJail sandbox consists of several pieces:
 
 #) Sandbox environment. For a Python setup, this would be Python and
    associated core packages. This is denoted throughout this document
-   as **<SANDENV>**. This is read-only. 
+   as **<SANDENV>**. This is read-only.
 
 #) Sandbox packages. These are additional packages needed for a given
    run. For example, this might be a grader written by an instructor
@@ -34,7 +34,7 @@ A CodeJail sandbox consists of several pieces:
 #) Untrusted packages. This is typically the code submitted by the
    student to be tested on the server, as well as any data the code
    may need to modify. This is denoted throughout this document as
-   **<UNTRUSTED_PACK>**. This is currently read-only, but may need to 
+   **<UNTRUSTED_PACK>**. This is currently read-only, but may need to
    be read-write for some applications.
 
 #) OS packages. These are standard system libraries needed to run
@@ -47,6 +47,20 @@ account under which the code runs, which has access to create
 sandboxes. This will be referred to as **<SANDBOX_CALLER>**. The
 second account is the account under which the sandbox runs. This is
 typically the account 'sandbox.'
+
+Supported Versions
+------------------
+
+This library currently is tested to work with the following versions
+
+Python:
+
+* 3.11
+
+Ubuntu:
+
+* 20.04
+* 22.04
 
 Installation
 ------------
@@ -129,6 +143,10 @@ Other details here that depend on your configuration:
 
 7. Reactivate your project's main virtualenv again.
 
+8. Disable using PAM to set rlimits::
+
+    sed -i '/pam_limits.so/d' /etc/pam.d/sudo
+
 Using CodeJail
 --------------
 
@@ -142,7 +160,7 @@ commands at your Python terminal::
     codejail.safe_exec.safe_exec("output=open('/etc/passwd').read()", jailed_globals)
     print(jailed_globals)  # should be unreachable if codejail is working properly
 
-This should fail with an exception. 
+This should fail with an exception.
 
 If you need to change the packages installed into your sandbox's virtualenv,
 you'll need to disable AppArmor, because your sandboxed Python doesn't have

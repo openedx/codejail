@@ -11,6 +11,7 @@ import time
 log = logging.getLogger("codejail")
 
 
+# pylint: disable=too-many-positional-arguments
 def run_subprocess(
         cmd, stdin=None, cwd=None, env=None, rlimits=None, realtime=None,
         slug=None,

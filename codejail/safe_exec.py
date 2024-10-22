@@ -37,6 +37,7 @@ class SafeExecException(Exception):
     """
 
 
+# pylint: disable=too-many-positional-arguments
 def safe_exec(
         code,
         globals_dict,
@@ -235,6 +236,7 @@ def json_safe(d):
     return json.loads(json.dumps(jd))
 
 
+# pylint: disable=too-many-positional-arguments
 def not_safe_exec(
         code,
         globals_dict,
