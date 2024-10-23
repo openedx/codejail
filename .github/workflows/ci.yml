@@ -21,14 +21,19 @@ jobs:
             os: "ubuntu-22.04"
           # Disabling this for now because it's failing and we need to figure out
           # next steps to fix this.
-          # - python_version: '3.11'
-          #   ubuntu_version: '24.04'
-          #   os: "ubuntu-24.04"
+          - python_version: '3.11'
+            ubuntu_version: '24.04'
+            os: "ubuntu-24.04"
 
     steps:
       - uses: actions/checkout@v4
-      - name: Parse custom apparmor profile
-        run: sudo apparmor_parser -r -W apparmor-profiles/home.sandbox.codejail_sandbox-python3.bin.python
+      - name: Parse custom apparmor profile with default feature ABI
+        if: ${{ matrix.ubuntu_version == '20.04' }}
+        run: sudo apparmor_parser -r -W apparmor-profiles/home.sandbox.codejail_sandbox-python3.bin.python-default-abi
+
+      - name: Parse custom apparmor profile with ABI 3.0
+        if: ${{ matrix.ubuntu_version != '20.04' }}
+        run: sudo apparmor_parser -r -W apparmor-profiles/home.sandbox.codejail_sandbox-python3.bin.python-abi3
 
       - name: Build latest code changes into CI image
         run: |
