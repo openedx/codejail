@@ -61,6 +61,7 @@ Ubuntu:
 
 * 20.04
 * 22.04
+* 24.04
 
 Installation
 ------------
@@ -136,6 +137,35 @@ Other details here that depend on your configuration:
         /tmp/codejail-*/ rix,
         /tmp/codejail-*/** wrix,
     }
+
+   Depending on your OS and AppArmor version you may need to specify a policy
+   ABI to ensure the restrictions are being correctly applied. Modern ubuntu
+   versions using AppArmor V3 should use the 3.0 ABI in order to enable
+   network confinment rules. A profile using the ABI 3.0 would look as
+   follows::
+
+     $ sudo vim /etc/apparmor.d/home.chris.ve.myproj-sandbox.bin.python
+
+     abi <abi/3.0>,
+     #include <tunables/global>
+
+     <SANDENV>/bin/python {
+         #include <abstractions/base>
+         #include <abstractions/python>
+
+         <CODEJAIL_CHECKOUT>/** mr,
+         <SANDENV>/** mr,
+         # If you have code that the sandbox must be able to access, add lines
+         # pointing to those directories:
+         /the/path/to/your/sandbox-packages/** r,
+
+         /tmp/codejail-*/ rix,
+         /tmp/codejail-*/** wrix,
+     }
+
+   You can also look at the
+   ``apparmor-profiles/home.sandbox.codejail_sandbox-python3.bin.python-abi3``
+   file which is used for testing for a full profile example.
 
 6. Parse the profiles::
 
