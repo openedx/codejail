@@ -13,5 +13,5 @@ packaging==24.1           # via pyproject-api, tox
 platformdirs==4.3.6       # via tox, virtualenv
 pluggy==1.5.0             # via tox
 pyproject-api==1.8.0      # via tox
-tox==4.22.0               # via -r requirements/tox.in
-virtualenv==20.26.6       # via tox
+tox==4.23.2               # via -r requirements/tox.in
+virtualenv==20.27.0       # via tox
