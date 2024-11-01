@@ -5,7 +5,7 @@
 #    make upgrade
 #
 asgiref==3.8.1            # via django
-django==3.2.25            # via -c requirements/common_constraints.txt, -c requirements/constraints.txt, -r requirements/sandbox.in
+django==3.2.25            # via -c /home/runner/work/codejail/codejail/requirements/common_constraints.txt, -c /home/runner/work/codejail/codejail/requirements/constraints.txt, -r requirements/sandbox.in
 numpy==2.1.2              # via -r requirements/sandbox.in
 pytz==2024.2              # via django
 six==1.16.0               # via -r requirements/sandbox.in
