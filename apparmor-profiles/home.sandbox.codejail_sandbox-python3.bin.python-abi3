@@ -1,5 +1,5 @@
+abi <abi/3.0>,
 #include <tunables/global>
-
 profile apparmor_profile /home/sandbox/codejail_sandbox-python{3.[0-9],3.[1-9][0-9]}/bin/python {
     #include <abstractions/base>
     #include <abstractions/python>
