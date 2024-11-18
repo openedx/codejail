@@ -9,4 +9,4 @@ django==3.2.25            # via -c requirements/common_constraints.txt, -c requi
 numpy==2.1.3              # via -r requirements/sandbox.in
 pytz==2024.2              # via django
 six==1.16.0               # via -r requirements/sandbox.in
-sqlparse==0.5.1           # via django
+sqlparse==0.5.2           # via django
