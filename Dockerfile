@@ -64,7 +64,7 @@ RUN pip install -r /codejail/requirements/sandbox.txt && pip install -r /codejai
 COPY . /codejail
 
 # Setup sudoers file
-COPY sudoers-file/01-sandbox-python-${python_version} /etc/sudoers.d/01-sandbox
+COPY sudoers-file/01-sandbox-python /etc/sudoers.d/01-sandbox
 
 # Change Sudoers file permissions
 RUN chmod 0440 /etc/sudoers.d/01-sandbox
