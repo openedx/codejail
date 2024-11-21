@@ -13,6 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         python_version: ['3.11', '3.12']
+        ubuntu_version: ['20.04','22.04','24.04']
         include:
           - ubuntu_version: '20.04'
             os: "ubuntu-20.04"
@@ -25,11 +26,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Parse custom apparmor profile with default feature ABI
         if: ${{ matrix.ubuntu_version == '20.04' }}
-        run: sudo apparmor_parser -r -W apparmor-profiles/home.sandbox.codejail_sandbox-python3.bin.python-default-abi
+        run: sudo apparmor_parser -r -W apparmor-profiles/home.sandbox.codejail-sandbox-venv.bin.python-default-abi
 
       - name: Parse custom apparmor profile with ABI 3.0
         if: ${{ matrix.ubuntu_version != '20.04' }}
-        run: sudo apparmor_parser -r -W apparmor-profiles/home.sandbox.codejail_sandbox-python3.bin.python-abi3
+        run: sudo apparmor_parser -r -W apparmor-profiles/home.sandbox.codejail-sandbox-venv.bin.python-abi3
 
       - name: Build latest code changes into CI image
         run: |
