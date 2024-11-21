@@ -19,7 +19,7 @@ RUN pip install virtualenv
 ENV CODEJAIL_GROUP=sandbox
 ENV CODEJAIL_SANDBOX_CALLER=ubuntu
 ENV CODEJAIL_TEST_USER=sandbox
-ENV CODEJAIL_TEST_VENV=/home/sandbox/codejail_sandbox-python${python_version}
+ENV CODEJAIL_TEST_VENV=/home/sandbox/codejail-sandbox-venv
 
 # Create Virtualenv for sandbox user
 RUN virtualenv -p python${python_version} --always-copy $CODEJAIL_TEST_VENV
