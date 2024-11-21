@@ -47,5 +47,7 @@ isort: ## apply automatic import sorting
 requirements: dev-requirements
 
 dev-requirements:
+	pip install -q -r requirements/pip.txt
+	pip install -q -r requirements/pip_tools.txt
 	pip install -r requirements/sandbox.txt
 	pip install -r requirements/development.txt
