@@ -12,15 +12,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        python_version: ['3.11', '3.12']
         include:
-          - python_version: '3.11'
-            ubuntu_version: '20.04'
+          - ubuntu_version: '20.04'
             os: "ubuntu-20.04"
-          - python_version: '3.11'
-            ubuntu_version: '22.04'
+          - ubuntu_version: '22.04'
             os: "ubuntu-22.04"
-          - python_version: '3.11'
-            ubuntu_version: '24.04'
+          - ubuntu_version: '24.04'
             os: "ubuntu-24.04"
 
     steps:
