@@ -51,6 +51,7 @@ RUN chown -R $CODEJAIL_TEST_USER:$CODEJAIL_GROUP $CODEJAIL_TEST_VENV
 WORKDIR /codejail
 
 # Clone Requirement files
+COPY ./requirements/pip.txt /codejail/requirements/pip.txt
 COPY ./requirements/sandbox.txt /codejail/requirements/sandbox.txt
 COPY ./requirements/testing.txt /codejail/requirements/testing.txt
 
@@ -58,7 +59,9 @@ COPY ./requirements/testing.txt /codejail/requirements/testing.txt
 RUN source $CODEJAIL_TEST_VENV/bin/activate && pip install -r /codejail/requirements/sandbox.txt && deactivate
 
 # Install testing requirements in parent venv
-RUN pip install -r /codejail/requirements/sandbox.txt && pip install -r /codejail/requirements/testing.txt
+RUN pip install -r /codejail/requirements/pip.txt && \
+    pip install -r /codejail/requirements/sandbox.txt && \
+    pip install -r /codejail/requirements/testing.txt
 
 # Clone Codejail Repo
 COPY . /codejail
