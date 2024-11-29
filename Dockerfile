@@ -10,10 +10,16 @@ ENV TZ=Etc/UTC
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y software-properties-common
 RUN add-apt-repository -y ppa:deadsnakes/ppa && apt-get update && apt-get upgrade -y
-RUN apt-get install -y vim python${python_version} python${python_version}-dev python${python_version}-distutils
-RUN apt-get install -y sudo git make curl build-essential
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python${python_version}
-RUN pip install virtualenv
+RUN apt-get install -y \
+    vim \
+    python${python_version} \
+    python${python_version}-dev \
+    python${python_version}-venv \
+    sudo \
+    git \
+    make \
+    curl \
+    build-essential
 
 # Define Environment Variables
 ENV CODEJAIL_GROUP=sandbox
@@ -22,9 +28,9 @@ ENV CODEJAIL_TEST_USER=sandbox
 ENV CODEJAIL_TEST_VENV=/home/sandbox/codejail-sandbox-venv
 
 # Create Virtualenv for sandbox user
-RUN virtualenv -p python${python_version} --always-copy $CODEJAIL_TEST_VENV
+RUN python${python_version} -m venv --copies $CODEJAIL_TEST_VENV
 
-RUN virtualenv -p python${python_version} venv
+RUN python${python_version} -m venv venv
 ENV VIRTUAL_ENV=/venv
 
 # Add venv/bin to path
