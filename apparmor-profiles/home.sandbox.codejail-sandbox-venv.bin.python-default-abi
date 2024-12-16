@@ -1,6 +1,5 @@
-abi <abi/3.0>,
 #include <tunables/global>
-profile apparmor_profile /home/sandbox/codejail_sandbox-python{3.[0-9],3.[1-9][0-9]}/bin/python {
+profile apparmor_profile /home/sandbox/codejail-sandbox-venv/bin/python {
     #include <abstractions/base>
     #include <abstractions/python>
 
@@ -42,7 +41,7 @@ profile apparmor_profile /home/sandbox/codejail_sandbox-python{3.[0-9],3.[1-9][0
     # Include additions to the abstraction
     include if exists <abstractions/python.d>
 
-    /home/sandbox/codejail_sandbox-python{3.[0-9],3.[1-9][0-9]}/** mr,
+    /home/sandbox/codejail-sandbox-venv/** mr,
     /tmp/codejail-*/ rix,
     /tmp/codejail-*/** wrix,
 
