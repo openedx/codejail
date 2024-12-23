@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-astroid==3.3.6            # via pylint
+astroid==3.3.7            # via pylint
 dill==0.3.9               # via pylint
 iniconfig==2.0.0          # via pytest
 isort==5.13.2             # via -r requirements/testing.in, pylint
