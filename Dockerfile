@@ -10,21 +10,27 @@ ENV TZ=Etc/UTC
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y software-properties-common
 RUN add-apt-repository -y ppa:deadsnakes/ppa && apt-get update && apt-get upgrade -y
-RUN apt-get install -y vim python${python_version} python${python_version}-dev python${python_version}-distutils
-RUN apt-get install -y sudo git make curl build-essential
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python${python_version}
-RUN pip install virtualenv
+RUN apt-get install -y \
+    vim \
+    python${python_version} \
+    python${python_version}-dev \
+    python${python_version}-venv \
+    sudo \
+    git \
+    make \
+    curl \
+    build-essential
 
 # Define Environment Variables
 ENV CODEJAIL_GROUP=sandbox
 ENV CODEJAIL_SANDBOX_CALLER=ubuntu
 ENV CODEJAIL_TEST_USER=sandbox
-ENV CODEJAIL_TEST_VENV=/home/sandbox/codejail_sandbox-python${python_version}
+ENV CODEJAIL_TEST_VENV=/home/sandbox/codejail-sandbox-venv
 
 # Create Virtualenv for sandbox user
-RUN virtualenv -p python${python_version} --always-copy $CODEJAIL_TEST_VENV
+RUN python${python_version} -m venv --copies $CODEJAIL_TEST_VENV
 
-RUN virtualenv -p python${python_version} venv
+RUN python${python_version} -m venv venv
 ENV VIRTUAL_ENV=/venv
 
 # Add venv/bin to path
@@ -51,6 +57,7 @@ RUN chown -R $CODEJAIL_TEST_USER:$CODEJAIL_GROUP $CODEJAIL_TEST_VENV
 WORKDIR /codejail
 
 # Clone Requirement files
+COPY ./requirements/pip.txt /codejail/requirements/pip.txt
 COPY ./requirements/sandbox.txt /codejail/requirements/sandbox.txt
 COPY ./requirements/testing.txt /codejail/requirements/testing.txt
 
@@ -58,13 +65,15 @@ COPY ./requirements/testing.txt /codejail/requirements/testing.txt
 RUN source $CODEJAIL_TEST_VENV/bin/activate && pip install -r /codejail/requirements/sandbox.txt && deactivate
 
 # Install testing requirements in parent venv
-RUN pip install -r /codejail/requirements/sandbox.txt && pip install -r /codejail/requirements/testing.txt
+RUN pip install -r /codejail/requirements/pip.txt && \
+    pip install -r /codejail/requirements/sandbox.txt && \
+    pip install -r /codejail/requirements/testing.txt
 
 # Clone Codejail Repo
 COPY . /codejail
 
 # Setup sudoers file
-COPY sudoers-file/01-sandbox-python-${python_version} /etc/sudoers.d/01-sandbox
+COPY sudoers-file/01-sandbox-python /etc/sudoers.d/01-sandbox
 
 # Change Sudoers file permissions
 RUN chmod 0440 /etc/sudoers.d/01-sandbox
