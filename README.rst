@@ -59,7 +59,6 @@ Python:
 
 Ubuntu:
 
-* 20.04
 * 22.04
 * 24.04
 
@@ -88,7 +87,7 @@ Other details here that depend on your configuration:
 
 1. Create the new virtualenv, using ``--copies`` so that there's a distinct Python executable to limit::
 
-    $ sudo python3.8 -m venv --copies <SANDENV>
+    $ sudo python3.11 -m venv --copies <SANDENV>
 
    By default, the virtualenv would just symlink against the system Python, and apparmor's default configuration on some operating systems may prevent confinement from being appled to that.
 
