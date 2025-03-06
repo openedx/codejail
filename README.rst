@@ -267,7 +267,8 @@ Limitations
 * Resource limits can only be constrained using the mechanisms that Linux's
   rlimit makes available. While rlimit can limit the size of any one file that
   a process can create, and can limit the number of files it has open at any
-  one time, it cannot limit the total number of bytes written across *all* files.
+  one time, it cannot limit the total number of files written, and therefore
+  cannot limit the total number of bytes written across *all* files.
   A partial mitigation is to constrain the max execution time. (All files
   written in the sandbox will be deleted at end of execution, in any case.)
 * Sandboxes do not have strong isolation from each other. Under proper
