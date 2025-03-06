@@ -257,6 +257,25 @@ Python code, and runs it using jail_code, modifying the globals dictionary as a
 side-effect.  safe_exec does this by serializing the globals into and out of
 the subprocess as JSON.
 
+Limitations
+-----------
+
+* If codejail or AppArmor is not configured properly, codejail will default to
+  running code insecurely (no sandboxing). It is not secure by default.
+* Sandbox isolation is achieved via AppArmor confinement. Codejail facilitates
+  this, but cannot isolate execution without the use of AppArmor.
+* Resource limits can only be constrained using the mechanisms that Linux's
+  rlimit makes available. While rlimit can limit the size of any one file that
+  a process can create, and can limit the number of files it has open at any
+  one time, it cannot limit the total number of files written, and therefore
+  cannot limit the total number of bytes written across *all* files.
+  A partial mitigation is to constrain the max execution time. (All files
+  written in the sandbox will be deleted at end of execution, in any case.)
+* Sandboxes do not have strong isolation from each other. Under proper
+  configuration, untrusted code should not be able to discover other actively
+  running code executions, but if this assumption is violated then one sandbox
+  could theoretically interfere with another one.
+
 Reporting Security Issues
 -------------------------
 
