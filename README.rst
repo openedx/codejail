@@ -262,6 +262,8 @@ Limitations
 
 * If codejail or AppArmor is not configured properly, codejail will default to
   running code insecurely (no sandboxing). It is not secure by default.
+* Sandbox isolation is achieved via AppArmor confinement. Codejail facilitates
+  this, but cannot isolate execution without the use of AppArmor.
 * Resource limits can only be constrained using the mechanisms that Linux's
   rlimit makes available. While rlimit can limit the size of any one file that
   a process can create, and can limit the number of files it has open at any
