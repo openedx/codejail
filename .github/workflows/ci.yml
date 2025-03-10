@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python_version: ['3.11']
+        python_version: ['3.11', '3.12']
         ubuntu_version: ['22.04', '24.04']
         tox_env: [ "django42", "django52"]
         include:

@@ -10,7 +10,7 @@ ENV TZ=Etc/UTC
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y software-properties-common
 RUN add-apt-repository -y ppa:deadsnakes/ppa && apt-get update && apt-get upgrade -y
-RUN apt-get install -y vim python${python_version} python${python_version}-dev python${python_version}-distutils
+RUN apt-get install -y vim python${python_version} python${python_version}-dev
 RUN apt-get install -y sudo git make curl build-essential
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python${python_version}
 RUN pip install virtualenv
