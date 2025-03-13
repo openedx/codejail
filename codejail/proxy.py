@@ -1,4 +1,19 @@
-"""A proxy subprocess-making process for CodeJail."""
+"""
+A proxy subprocess-making process for CodeJail.
+
+When spawning subprocesses, fork() will fail if the memory of the parent
+can't be duplicated in the child. This means large long-lived processes
+will have problems using CodeJail repeatedly.
+
+This introduces a long-lived proxy subprocess which then spawns the
+actual subprocesses.  Because the proxy process starts small and stays
+small, it will be able to spawn subprocesses even when the parent
+process grows large.
+
+The use of the proxy process is controlled by a "PROXY" limit, which
+should be 0 or 1.  If neither is set, then the CODEJAIL_PROXY
+environment variable determines whether the proxy is used.
+"""
 
 import ast
 import logging
