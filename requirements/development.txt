@@ -4,15 +4,15 @@
 #
 #    make upgrade
 #
-astroid==3.3.8            # via -r requirements/testing.txt, pylint
+astroid==3.3.9            # via -r requirements/testing.txt, pylint
 dill==0.3.9               # via -r requirements/testing.txt, pylint
-iniconfig==2.0.0          # via -r requirements/testing.txt, pytest
-isort==6.0.0              # via -r requirements/testing.txt, pylint
+iniconfig==2.1.0          # via -r requirements/testing.txt, pytest
+isort==6.0.1              # via -r requirements/testing.txt, pylint
 mccabe==0.7.0             # via -r requirements/testing.txt, pylint
 packaging==24.2           # via -r requirements/testing.txt, pytest
-platformdirs==4.3.6       # via -r requirements/testing.txt, pylint
+platformdirs==4.3.7       # via -r requirements/testing.txt, pylint
 pluggy==1.5.0             # via -r requirements/testing.txt, pytest
 pycodestyle==2.12.1       # via -r requirements/testing.txt
-pylint==3.3.4             # via -r requirements/testing.txt
-pytest==8.3.4             # via -r requirements/testing.txt
+pylint==3.3.6             # via -r requirements/testing.txt
+pytest==8.3.5             # via -r requirements/testing.txt
 tomlkit==0.13.2           # via -r requirements/testing.txt, pylint
