@@ -265,12 +265,25 @@ Limitations
 * Sandbox isolation is achieved via AppArmor confinement. Codejail facilitates
   this, but cannot isolate execution without the use of AppArmor.
 * Resource limits can only be constrained using the mechanisms that Linux's
-  rlimit makes available. While rlimit can limit the size of any one file that
-  a process can create, and can limit the number of files it has open at any
-  one time, it cannot limit the total number of files written, and therefore
-  cannot limit the total number of bytes written across *all* files.
-  A partial mitigation is to constrain the max execution time. (All files
-  written in the sandbox will be deleted at end of execution, in any case.)
+  rlimit makes available. Some notable deficiencies:
+
+  * While rlimit's ``FSIZE`` can limit the size of any one file that
+    a process can create, and can limit the number of files it has open at any
+    one time, it cannot limit the total number of files written, and therefore
+    cannot limit the total number of bytes written across *all* files.
+    A partial mitigation is to constrain the max execution time. (All files
+    written in the sandbox will be deleted at end of execution, in any case.)
+  * The ``NPROC`` limit constrains the ability of the *current* process to
+    create new threads and processes, but the usage count (how many processes
+    already exist) is the sum across *all* processes with the same UID, even in
+    other containers on the same host where the UID may be mapped to a different
+    username. This constraint also applies to the app user due to how the
+    rlimits are applied. Even if a UIDs are chosen so they aren't used by other
+    software on the host, multiple codejail sandbox processes on the same host
+    will share this usage pool and can reduce each other's ability to create
+    processes. In this situation, ``NPROC`` will need to be set higher than it
+    would be for a single codejail instance taking a single request at a time.
+
 * Sandboxes do not have strong isolation from each other. Under proper
   configuration, untrusted code should not be able to discover other actively
   running code executions, but if this assumption is violated then one sandbox
