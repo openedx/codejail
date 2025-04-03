@@ -88,7 +88,8 @@ DEFAULT_LIMITS = {
     "VMEM": 0,
     # Size of files creatable, in bytes, defaulting to nothing can be written.
     "FSIZE": 0,
-    # The number of processes and threads to allow.
+    # The number of processes and threads to allow for the sandbox user (total
+    # across entire host).
     "NPROC": 15,
     # Whether to use a proxy process or not.  None means use an environment
     # variable to decide. NOTE: using a proxy process is NOT THREAD-SAFE, only
@@ -127,14 +128,17 @@ def set_limit(limit_name, value):
         * `"FSIZE"`: the maximum size of files creatable by the jailed code,
             in bytes.  The default is 0 (no files may be created).
 
-        * `"NPROC"`: the maximum number of process or threads creatable by the
-            jailed code.  The default is 15.
+        * `"NPROC"`: the maximum number of process or threads allowed for
+            jailed code across the entire host (combined across all instances
+            in all containers). This includes processes owned by the same UID
+            in containers where that UID is mapped to a different username.
+            The default is 15.
 
         * `"PROXY"`: 1 to use a proxy process, 0 to not use one. This isn't
             really a limit, sorry about that.
 
     Limits are process-wide, and will affect all future calls to jail_code.
-    Providing a limit of 0 will disable that limit.
+    Providing a limit of 0 will disable that limit, unless otherwise specified.
 
     """
     LIMITS[limit_name] = value
