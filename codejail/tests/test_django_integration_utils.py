@@ -2,7 +2,10 @@
 
 from unittest import TestCase
 
+from django.conf import settings
+
 from .. import jail_code
+from ..django_integration import ConfigureCodeJailMiddleware, MiddlewareNotUsed
 from ..django_integration_utils import apply_django_settings
 from .util import ResetJailCodeStateMixin
 
@@ -147,3 +150,14 @@ class ApplyDjangoSettingsTest(ResetJailCodeStateMixin, TestCase):
                 'PROXY': 1,
             }
         )
+
+
+class InitConfigureCodeJailMiddlewareTest(TestCase):
+    """Test the ConfigureCodeJailMiddleware."""
+
+    def test_instantiate_middleware(self):
+        """Ensure is disabled after running the __init__ method."""
+        settings.configure()
+        settings.CODE_JAIL = {}
+        with self.assertRaises(expected_exception=MiddlewareNotUsed):
+            ConfigureCodeJailMiddleware(get_response=lambda x: None)
