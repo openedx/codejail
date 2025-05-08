@@ -35,6 +35,8 @@ upgrade: $(COMMON_CONSTRAINTS_TXT)
 	pip-compile --annotation-style=line --upgrade -o requirements/testing.txt requirements/testing.in
 	pip-compile --annotation-style=line --upgrade -o requirements/sandbox.txt requirements/sandbox.in
 	pip-compile --annotation-style=line --upgrade -o requirements/development.txt requirements/development.in
+	# Handle Django via tox
+	sed -i '/^[dD]jango==/d' requirements/testing.txt
 
 quality: ## check coding style with pycodestyle and pylint
 	pycodestyle codejail *.py

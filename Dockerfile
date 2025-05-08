@@ -53,12 +53,13 @@ WORKDIR /codejail
 # Clone Requirement files
 COPY ./requirements/sandbox.txt /codejail/requirements/sandbox.txt
 COPY ./requirements/testing.txt /codejail/requirements/testing.txt
+COPY ./requirements/tox.txt /codejail/requirements/tox.txt
 
 # Install codejail_sandbox sandbox dependencies
 RUN source $CODEJAIL_TEST_VENV/bin/activate && pip install -r /codejail/requirements/sandbox.txt && deactivate
 
 # Install testing requirements in parent venv
-RUN pip install -r /codejail/requirements/sandbox.txt && pip install -r /codejail/requirements/testing.txt
+RUN pip install -r /codejail/requirements/sandbox.txt -r /codejail/requirements/testing.txt -r /codejail/requirements/tox.txt
 
 # Clone Codejail Repo
 COPY . /codejail
