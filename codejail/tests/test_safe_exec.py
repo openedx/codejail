@@ -183,9 +183,9 @@ class TestNotSafeExec(SafeExecTests, TestCase):
     __test__ = True
 
     def setUp(self):
-        # If safe_exec is actually an alias to not_safe_exec, then there's no
+        # If safe_exec will actually just call not_safe_exec, then there's no
         # point running these tests.
-        if safe_exec.UNSAFE:                    # pragma: no cover
+        if safe_exec.ALWAYS_BE_UNSAFE:                    # pragma: no cover
             raise SkipTest
 
     def safe_exec(self, *args, **kwargs):
