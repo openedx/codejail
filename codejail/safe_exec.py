@@ -23,7 +23,13 @@ log = logging.getLogger("codejail")
 
 # Set this to True to log all the code and globals being executed.
 LOG_ALL_CODE = False
-# Set this to True to use the unsafe code, so that you can debug it.
+
+# Set this to True to run submitted code with no confinement and no sandbox.
+#
+# WARNING: This is deeply dangerous; anyone who can submit code can take
+# over the computer immediately and entirely.
+#
+# The only purpose of this setting is for local debugging.
 ALWAYS_BE_UNSAFE = False
 
 
@@ -80,8 +86,22 @@ def safe_exec(
     the code raises an exception, this function will raise `SafeExecException`
     with the stderr of the sandbox process, which usually includes the original
     exception message and traceback.
-
     """
+    if ALWAYS_BE_UNSAFE:
+        not_safe_exec(
+            code,
+            globals_dict,
+            files=files,
+            python_path=python_path,
+            limit_overrides_context=limit_overrides_context,
+            slug=slug,
+            extra_files=extra_files,
+        )
+        return
+
+    if not jail_code.is_configured('python'):
+        raise RuntimeError("safe_exec has not been configured for Python")
+
     the_code = []
 
     files = list(files or ())
@@ -257,6 +277,11 @@ def not_safe_exec(
     Note that `limit_overrides_context` is ignored here, because resource limits
     are not applied.
     """
+    # Because it would be bad if this function were used in production,
+    # let's log a warning when it is used.  Developers can live with
+    # one more log line.
+    log.warning("DANGER: Executing code with `not_safe_exec` for %s", slug)
+
     g_dict = json_safe(globals_dict)
 
     with temp_directory() as tmpdir:
@@ -286,22 +311,3 @@ def not_safe_exec(
                 sys.path = original_path
 
     globals_dict.update(json_safe(g_dict))
-
-
-# If the developer wants us to be unsafe (ALWAYS_BE_UNSAFE), or if there isn't
-# a configured jail for Python, then we'll be UNSAFE.
-UNSAFE = ALWAYS_BE_UNSAFE or not jail_code.is_configured("python")
-
-if UNSAFE:   # pragma: no cover
-    # Make safe_exec actually call not_safe_exec, but log that we're doing so.
-
-    def safe_exec(*args, **kwargs):                 # pylint: disable=E0102
-        """An actually-unsafe safe_exec, that warns it's being used."""
-
-        # Because it would be bad if this function were used in production,
-        # let's log a warning when it is used.  Developers can live with
-        # one more log line.
-        slug = kwargs.get('slug', None)
-        log.warning("Using codejail/safe_exec.py:not_safe_exec for %s", slug)
-
-        return not_safe_exec(*args, **kwargs)

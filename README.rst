@@ -6,18 +6,11 @@ designed primarily for Python execution, but can be used for other languages as
 well.
 
 Security is enforced with AppArmor.  If your operating system doesn't support
-AppArmor, then CodeJail won't protect the execution.
+AppArmor, or if the AppArmor profile is not defined and configured correctly,
+then CodeJail will not protect the execution.
 
 CodeJail is designed to be configurable, and will auto-configure itself for
-Python execution if you install it properly.  The configuration is designed to
-be flexible: it can run in safe mode or unsafe mode.  This helps support large
-development groups where only some of the developers are involved enough with
-secure execution to configure AppArmor on their development machines.
-
-If CodeJail is not configured for safe execution, it will execution Python
-using the same API, but will not guard against malicious code.  This allows the
-same code to be used on safe-configured or non-safe-configured developer's
-machines.
+Python execution if you install it properly.
 
 A CodeJail sandbox consists of several pieces:
 
@@ -64,10 +57,12 @@ Installation
 ------------
 
 These instructions detail how to configure your operating system so that
-CodeJail can execute Python code safely.  You can run CodeJail without these
-steps, and you will have an unsafe CodeJail.  This is fine for developers'
-machines who are unconcerned with security, and simplifies the integration of
-CodeJail into your project.
+CodeJail can execute Python code safely. However, it is also possible to set
+``codejail.safe_exec.ALWAYS_BE_UNSAFE = True`` and execute submitted Python
+directly on the machine, with no security whatsoever. This may be fine for
+developers' machines who are unconcerned with security, and allows testing
+an integration with CodeJail's API. It must not be used if any input is coming
+from untrusted sources, however. **Do not use this option in production systems.**
 
 To secure Python execution, you'll be creating a new virtualenv.  This means
 you'll have two: the main virtualenv for your project, and the new one for
@@ -210,8 +205,8 @@ the rights to modify the files in its site-packages directory.
 Tests
 -----
 
-In order to target the sandboxed Python environment(s) you have created on your
-system, you must set the following environment variables for testing::
+To run tests, you must perform the standard installation steps. Then
+you must set the following environment variables::
 
     $ export CODEJAIL_TEST_USER=<owner of sandbox (usually 'sandbox')>
     $ export CODEJAIL_TEST_VENV=<SANDENV>
@@ -220,10 +215,7 @@ Run the tests with the Makefile::
 
     $ make tests
 
-If CodeJail is running unsafely, many of the tests will be automatically
-skipped, or will fail, depending on whether CodeJail thinks it should be in
-safe mode or not.
-
+Several proxy tests are skipped if proxy mode is not configured.
 
 Design
 ------
@@ -258,7 +250,7 @@ the subprocess as JSON.
 Limitations
 -----------
 
-* If codejail or AppArmor is not configured properly, codejail will default to
+* If codejail or AppArmor is not configured properly, codejail may default to
   running code insecurely (no sandboxing). It is not secure by default.
   Projects integrating codejail should consider including a runtime test suite
   that checks for proper confinement at startup before untrusted inputs are
