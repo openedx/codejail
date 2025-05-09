@@ -66,10 +66,12 @@ Installation
 ------------
 
 These instructions detail how to configure your operating system so that
-CodeJail can execute Python code safely.  You can run CodeJail without these
-steps, and you will have an unsafe CodeJail.  This is fine for developers'
-machines who are unconcerned with security, and simplifies the integration of
-CodeJail into your project.
+CodeJail can execute Python code safely. However, it is also possible to set
+``codejail.safe_exec.ALWAYS_BE_UNSAFE = True`` and execute submitted Python
+directly on the machine, with no security whatsoever. This may be fine for
+developers' machines who are unconcerned with security, and allows testing
+an integration with CodeJail's API. It must not be used if any input is coming
+from untrusted sources, however.
 
 To secure Python execution, you'll be creating a new virtualenv.  This means
 you'll have two: the main virtualenv for your project, and the new one for
