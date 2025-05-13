@@ -280,7 +280,7 @@ def not_safe_exec(
     # Because it would be bad if this function were used in production,
     # let's log a warning when it is used.  Developers can live with
     # one more log line.
-    log.warning("Using codejail/safe_exec.py:not_safe_exec for %s", slug)
+    log.warning("DANGER: Executing code with `not_safe_exec` for %s", slug)
 
     g_dict = json_safe(globals_dict)
 

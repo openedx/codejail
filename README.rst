@@ -6,18 +6,11 @@ designed primarily for Python execution, but can be used for other languages as
 well.
 
 Security is enforced with AppArmor.  If your operating system doesn't support
-AppArmor, then CodeJail won't protect the execution.
+AppArmor, or if the AppArmor profile is not defined and configured correctly,
+then CodeJail will not protect the execution.
 
 CodeJail is designed to be configurable, and will auto-configure itself for
-Python execution if you install it properly.  The configuration is designed to
-be flexible: it can run in safe mode or unsafe mode.  This helps support large
-development groups where only some of the developers are involved enough with
-secure execution to configure AppArmor on their development machines.
-
-If CodeJail is not configured for safe execution, it will execution Python
-using the same API, but will not guard against malicious code.  This allows the
-same code to be used on safe-configured or non-safe-configured developer's
-machines.
+Python execution if you install it properly.
 
 A CodeJail sandbox consists of several pieces:
 
@@ -71,7 +64,7 @@ CodeJail can execute Python code safely. However, it is also possible to set
 directly on the machine, with no security whatsoever. This may be fine for
 developers' machines who are unconcerned with security, and allows testing
 an integration with CodeJail's API. It must not be used if any input is coming
-from untrusted sources, however.
+from untrusted sources, however. **Do not use this option in production systems.**
 
 To secure Python execution, you'll be creating a new virtualenv.  This means
 you'll have two: the main virtualenv for your project, and the new one for
