@@ -207,8 +207,8 @@ the rights to modify the files in its site-packages directory.
 Tests
 -----
 
-In order to target the sandboxed Python environment(s) you have created on your
-system, you must set the following environment variables for testing::
+To run tests, you must perform the standard installation steps. Then
+you must set the following environment variables::
 
     $ export CODEJAIL_TEST_USER=<owner of sandbox (usually 'sandbox')>
     $ export CODEJAIL_TEST_VENV=<SANDENV>
@@ -217,10 +217,7 @@ Run the tests with the Makefile::
 
     $ make tests
 
-If CodeJail is running unsafely, many of the tests will be automatically
-skipped, or will fail, depending on whether CodeJail thinks it should be in
-safe mode or not.
-
+Several proxy tests are skipped if proxy mode is not configured.
 
 Design
 ------

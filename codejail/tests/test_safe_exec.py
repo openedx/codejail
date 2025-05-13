@@ -4,7 +4,7 @@ import os.path
 import textwrap
 import zipfile
 from io import BytesIO
-from unittest import SkipTest, TestCase
+from unittest import TestCase
 from unittest.mock import patch
 
 import pytest
