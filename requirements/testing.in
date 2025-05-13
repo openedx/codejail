@@ -4,3 +4,4 @@ pylint
 pytest
 isort
 pycodestyle
+django
