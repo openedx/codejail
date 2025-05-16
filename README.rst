@@ -22,31 +22,26 @@ machines.
 A CodeJail sandbox consists of several pieces:
 
 #) Sandbox environment. For a Python setup, this would be Python and
-   associated core packages. This is denoted throughout this document
-   as **<SANDENV>**. This is read-only.
+   associated core packages as a virtualenv. This is denoted throughout this document
+   as **<SANDENV>**. This is read-only, and shared across sandbox instantiations.
 
-#) Sandbox packages. These are additional packages needed for a given
-   run. For example, this might be a grader written by an instructor
-   to run over a student's code, or data that a student's code might
-   need to access. This is denoted throughout this document as
-   **<SANDPACK>**. This is read-only.
+   Sandboxed code also has access to OS libraries to the extent that the
+   AppArmor profile permits it.
 
-#) Untrusted packages. This is typically the code submitted by the
-   student to be tested on the server, as well as any data the code
-   may need to modify. This is denoted throughout this document as
-   **<UNTRUSTED_PACK>**. This is currently read-only, but may need to
-   be read-write for some applications.
+#) Sandbox execution directory. This is an ephemeral read-only directory named
+   like ``/tmp/codejail-XXXXXXXX`` containing the submitted code
+   (``./jailed_code``), optional additional files, and a writable temporary
+   directory (``./tmp``) that the submitted code can use as a scratch space.
 
-#) OS packages. These are standard system libraries needed to run
-   Python (e.g. things in /lib). This is denoted throughout this
-   document as **<OSPACK>**. This is read-only, and is specified by
-   Ubuntu's AppArmor profile.
+   The submitted code is typically the code submitted by the student to be
+   tested on the server, and the additional files are typically a
+   ``python_lib.zip`` containing grading or utility libraries.
 
 To run, CodeJail requires two user accounts. One account is the main
 account under which the code runs, which has access to create
 sandboxes. This will be referred to as **<SANDBOX_CALLER>**. The
 second account is the account under which the sandbox runs. This is
-typically the account 'sandbox.'
+typically the account ``sandbox``.
 
 Supported Versions
 ------------------
@@ -61,6 +56,9 @@ Ubuntu:
 
 * 22.04
 * 24.04
+
+(Note that the Python version used inside the sandbox may be different from the
+version used for the library itself.)
 
 Installation
 ------------
@@ -247,12 +245,12 @@ execute the provided Python program with that executable, and AppArmor will
 automatically limit the resources it can access.  CodeJail also uses setrlimit
 to limit the amount of CPU time and/or memory available to the process.
 
-``CodeJail.jail_code`` takes a program to run, files to copy into its
+``codejail.jail_code`` takes a program to run, files to copy into its
 environment, command-line arguments, and a stdin stream.  It creates a
 temporary directory, creates or copies the needed files, spawns a subprocess to
 run the code, and returns the output and exit status of the process.
 
-``CodeJail.safe_exec`` emulates Python's exec statement.  It takes a chunk of
+``codejail.safe_exec`` emulates Python's exec statement.  It takes a chunk of
 Python code, and runs it using jail_code, modifying the globals dictionary as a
 side-effect.  safe_exec does this by serializing the globals into and out of
 the subprocess as JSON.
@@ -262,6 +260,9 @@ Limitations
 
 * If codejail or AppArmor is not configured properly, codejail will default to
   running code insecurely (no sandboxing). It is not secure by default.
+  Projects integrating codejail should consider including a runtime test suite
+  that checks for proper confinement at startup before untrusted inputs are
+  accepted.
 * Sandbox isolation is achieved via AppArmor confinement. Codejail facilitates
   this, but cannot isolate execution without the use of AppArmor.
 * Resource limits can only be constrained using the mechanisms that Linux's
