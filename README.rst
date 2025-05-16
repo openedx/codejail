@@ -252,7 +252,7 @@ the subprocess as JSON.
 Limitations
 -----------
 
-* If codejail or AppArmor is not configured properly, codejail will default to
+* If codejail or AppArmor is not configured properly, codejail may default to
   running code insecurely (no sandboxing). It is not secure by default.
 * Sandbox isolation is achieved via AppArmor confinement. Codejail facilitates
   this, but cannot isolate execution without the use of AppArmor.
