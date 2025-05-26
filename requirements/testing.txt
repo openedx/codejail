@@ -5,14 +5,14 @@
 #    make upgrade
 #
 asgiref==3.8.1            # via django
-astroid==3.3.9            # via pylint
+astroid==3.3.10           # via pylint
 dill==0.4.0               # via pylint
 iniconfig==2.1.0          # via pytest
 isort==6.0.1              # via -r requirements/testing.in, pylint
 mccabe==0.7.0             # via pylint
 packaging==25.0           # via pytest
 platformdirs==4.3.8       # via pylint
-pluggy==1.5.0             # via pytest
+pluggy==1.6.0             # via pytest
 pycodestyle==2.13.0       # via -r requirements/testing.in
 pylint==3.3.7             # via -r requirements/testing.in
 pytest==8.3.5             # via -r requirements/testing.in
