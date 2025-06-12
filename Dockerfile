@@ -1,3 +1,7 @@
+# Used for running codejail unit tests.
+#
+# Sandbox path and ABI version must be kept in sync with AppArmor profile.
+
 ARG ubuntu_version="24.04"
 
 FROM ubuntu:${ubuntu_version}
@@ -19,7 +23,7 @@ RUN pip install virtualenv
 ENV CODEJAIL_GROUP=sandbox
 ENV CODEJAIL_SANDBOX_CALLER=ubuntu
 ENV CODEJAIL_TEST_USER=sandbox
-ENV CODEJAIL_TEST_VENV=/home/sandbox/codejail_sandbox-python${python_version}
+ENV CODEJAIL_TEST_VENV=/home/sandbox/codejail_sandbox
 
 # Create Virtualenv for sandbox user
 RUN virtualenv -p python${python_version} --always-copy $CODEJAIL_TEST_VENV
@@ -65,7 +69,7 @@ RUN pip install -r /codejail/requirements/sandbox.txt -r /codejail/requirements/
 COPY . /codejail
 
 # Setup sudoers file
-COPY sudoers-file/01-sandbox-python-${python_version} /etc/sudoers.d/01-sandbox
+COPY sudoers-file/01-sandbox-python /etc/sudoers.d/01-sandbox
 
 # Change Sudoers file permissions
 RUN chmod 0440 /etc/sudoers.d/01-sandbox

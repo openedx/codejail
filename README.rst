@@ -107,61 +107,17 @@ Other details here that depend on your configuration:
    (Note that the ``find`` binary can run arbitrary code, so this is not a safe sudoers file for non-codejail purposes.)
 
 5. Edit an AppArmor profile.  This is a text file specifying the limits on the
-   sandboxed Python executable.  The file must be in ``/etc/apparmor.d`` and must
+   sandboxed Python executable.  The file must be in ``/etc/apparmor.d`` and should
    be named based on the executable, with slashes replaced by dots.  For
    example, if your sandboxed Python is at ``/home/chris/ve/myproj-sandbox/bin/python``,
-   then your AppArmor profile must be ``/etc/apparmor.d/home.chris.ve.myproj-sandbox.bin.python``::
+   then your AppArmor profile must be ``/etc/apparmor.d/home.chris.ve.myproj-sandbox.bin.python``.
 
-    $ sudo vim /etc/apparmor.d/home.chris.ve.myproj-sandbox.bin.python
-
-    #include <tunables/global>
-
-    <SANDENV>/bin/python {
-        #include <abstractions/base>
-        #include <abstractions/python>
-
-        <CODEJAIL_CHECKOUT>/** mr,
-        <SANDENV>/** mr,
-        # If you have code that the sandbox must be able to access, add lines
-        # pointing to those directories:
-        /the/path/to/your/sandbox-packages/** r,
-
-        /tmp/codejail-*/ rix,
-        /tmp/codejail-*/** wrix,
-    }
-
-   Depending on your OS and AppArmor version you may need to specify a policy
-   ABI to ensure the restrictions are being correctly applied. Modern ubuntu
-   versions using AppArmor V3 should use the 3.0 ABI in order to enable
-   network confinment rules. A profile using the ABI 3.0 would look as
-   follows::
-
-     $ sudo vim /etc/apparmor.d/home.chris.ve.myproj-sandbox.bin.python
-
-     abi <abi/3.0>,
-     #include <tunables/global>
-
-     <SANDENV>/bin/python {
-         #include <abstractions/base>
-         #include <abstractions/python>
-
-         <CODEJAIL_CHECKOUT>/** mr,
-         <SANDENV>/** mr,
-         # If you have code that the sandbox must be able to access, add lines
-         # pointing to those directories:
-         /the/path/to/your/sandbox-packages/** r,
-
-         /tmp/codejail-*/ rix,
-         /tmp/codejail-*/** wrix,
-     }
-
-   You can also look at the
-   ``apparmor-profiles/home.sandbox.codejail_sandbox-python3.bin.python-abi3``
-   file which is used for testing for a full profile example.
+   See sample profile in ``apparmor-profiles/``. The profile **must be
+   customized** to match your sandbox location.
 
 6. Parse the profiles::
 
-    $ sudo apparmor_parser <APPARMOR_FILE>
+    $ sudo apparmor_parser --replace --warn=all --warn=no-debug-cache --Werror <APPARMOR_FILE>
 
 7. Reactivate your project's main virtualenv again.
 
