@@ -1,0 +1,77 @@
+# Used for running codejail unit tests, but should also be maintained as a
+# general example.
+#
+# Sandbox path must be kept in sync with Dockerfile.
+
+
+# AppArmor profile for running codejail.
+#
+# Changes to this profile must be coordinated carefully with changes to the
+# filesystem layout -- in particular, the sandbox path must match, otherwise
+# the profile will provide no security at all.
+#
+#                         #=========#
+#                         # WARNING #
+#                         #=========#
+#
+# Failure to apply a secure apparmor profile *will* likely result in a
+# full compromise of the host by an attacker. AppArmor is *mandatory*
+# for using codejail -- this is not just for hardening.
+#
+# This profile is written for AppArmor 3 or higher (Ubuntu 22.04 or higher).
+
+
+
+# Require that the system understands the feature set that this policy was written
+# for. If we didn't include this, then on Ubuntu >= 22.04, AppArmor might assume
+# the wrong feature set was requested, and some rules might become too permissive.
+# See https://github.com/netblue30/firejail/issues/3659#issuecomment-711074899
+#
+# This should also be set to match the installed AppArmor version.
+abi <abi/3.0>,
+
+# Sets standard variables used by abstractions/base, later. Controlled
+# by OS, see /etc/apparmor.d/tunables/global for contents.
+include <tunables/global>
+
+# `mediate_deleted` instructs apparmor to continue to make policy decisions
+# in cases where a confined executable has a file descriptor even after the
+# file is removed from the filesystem. It's unclear if this is important for
+# sandboxing, but it doesn't seem like it would loosen security or interfere
+# with functionality to include it.
+#
+# `no_attach_disconnected` is default, but is explicitly indicated
+# here because `attach_disconnected` is very commonly used in
+# example profiles despite being a security risk (due to allowing
+# disconnected objects to masquerade as other, trusted paths in the
+# filesystem).
+profile openedx_codejail_sandbox /home/sandbox/codejail_sandbox/bin/python flags=(mediate_deleted, no_attach_disconnected) {
+
+    # Allow access to a variety of commonly needed, generally safe things
+    # (such as reading /usr/lib, /dev/random, free memory levels, etc.)
+    #
+    # Manpage: "Includes files that should be readable and writable in all profiles."
+    #
+    # We could instead list these directives explicitly out of caution but
+    # it would get pretty verbose.
+    include <abstractions/base>
+
+    # Read and run binaries and libraries in the virtualenv. This
+    # includes the sandbox's copy of Python as well as any
+    # dependencies that have been installed for inclusion in
+    # sandboxes.
+    #
+    # m: executable mapping, required for shared libraries used by some
+    #    Python dependencies with C compontents, eg `nltk`.
+    /home/sandbox/codejail_sandbox/** mr,
+
+    # Allow access to the temporary directories that are set up by
+    # codejail, one for each code-exec call. Each /tmp/code-XXXXX
+    # contains one execution.
+    /tmp/codejail-*/ rix,
+    /tmp/codejail-*/** wrix,
+
+    # Allow receiving a kill signal from the webapp when the execution
+    # runs beyond time limits.
+    signal (receive) set=(kill),
+}
