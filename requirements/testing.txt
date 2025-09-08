@@ -16,6 +16,6 @@ pluggy==1.6.0             # via pytest
 pycodestyle==2.14.0       # via -r requirements/testing.in
 pygments==2.19.2          # via pytest
 pylint==3.3.8             # via -r requirements/testing.in
-pytest==8.4.1             # via -r requirements/testing.in
+pytest==8.4.2             # via -r requirements/testing.in
 sqlparse==0.5.3           # via django
 tomlkit==0.13.3           # via pylint

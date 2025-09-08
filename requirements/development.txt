@@ -7,7 +7,7 @@
 asgiref==3.9.1            # via -r requirements/testing.txt, django
 astroid==3.3.11           # via -r requirements/testing.txt, pylint
 dill==0.4.0               # via -r requirements/testing.txt, pylint
-django==4.2.23            # via -c requirements/common_constraints.txt, -r requirements/testing.txt
+django==4.2.24            # via -c requirements/common_constraints.txt, -r requirements/testing.txt
 iniconfig==2.1.0          # via -r requirements/testing.txt, pytest
 isort==6.0.1              # via -r requirements/testing.txt, pylint
 mccabe==0.7.0             # via -r requirements/testing.txt, pylint
@@ -17,6 +17,6 @@ pluggy==1.6.0             # via -r requirements/testing.txt, pytest
 pycodestyle==2.14.0       # via -r requirements/testing.txt
 pygments==2.19.2          # via -r requirements/testing.txt, pytest
 pylint==3.3.8             # via -r requirements/testing.txt
-pytest==8.4.1             # via -r requirements/testing.txt
+pytest==8.4.2             # via -r requirements/testing.txt
 sqlparse==0.5.3           # via -r requirements/testing.txt, django
 tomlkit==0.13.3           # via -r requirements/testing.txt, pylint
