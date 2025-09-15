@@ -4,5 +4,5 @@
 #
 #    make upgrade
 #
-numpy==2.3.2              # via -r requirements/sandbox.in
+numpy==2.3.3              # via -r requirements/sandbox.in
 six==1.17.0               # via -r requirements/sandbox.in
