@@ -21,9 +21,9 @@ jobs:
             python_version: '3.11'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Parse custom apparmor profile with ABI 3.0
-        run: sudo apparmor_parser -r -W apparmor-profiles/home.sandbox.codejail_sandbox-python3.bin.python-abi3
+        run: sudo apparmor_parser -r -W apparmor-profiles/home.sandbox.codejail_sandbox.bin.python-abi3
 
       - name: Build latest code changes into CI image
         run: |
@@ -35,7 +35,7 @@ jobs:
 
       - name: Run container with custom apparmor profile and codejail CI image
         run: |
-          docker run --name=codejail --privileged -d --security-opt apparmor=apparmor_profile \
+          docker run --name=codejail --privileged -d --security-opt apparmor=openedx_codejail_sandbox \
             openedx-codejail tail -f /dev/null
 
       - name: Run Tests

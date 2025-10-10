@@ -6,47 +6,35 @@ designed primarily for Python execution, but can be used for other languages as
 well.
 
 Security is enforced with AppArmor.  If your operating system doesn't support
-AppArmor, then CodeJail won't protect the execution.
+AppArmor, or if the AppArmor profile is not defined and configured correctly,
+then CodeJail will not protect the execution.
 
 CodeJail is designed to be configurable, and will auto-configure itself for
-Python execution if you install it properly.  The configuration is designed to
-be flexible: it can run in safe mode or unsafe mode.  This helps support large
-development groups where only some of the developers are involved enough with
-secure execution to configure AppArmor on their development machines.
-
-If CodeJail is not configured for safe execution, it will execution Python
-using the same API, but will not guard against malicious code.  This allows the
-same code to be used on safe-configured or non-safe-configured developer's
-machines.
+Python execution if you install it properly.
 
 A CodeJail sandbox consists of several pieces:
 
 #) Sandbox environment. For a Python setup, this would be Python and
-   associated core packages. This is denoted throughout this document
-   as **<SANDENV>**. This is read-only.
+   associated core packages as a virtualenv. This is denoted throughout this document
+   as **<SANDENV>**. This is read-only, and shared across sandbox instantiations.
 
-#) Sandbox packages. These are additional packages needed for a given
-   run. For example, this might be a grader written by an instructor
-   to run over a student's code, or data that a student's code might
-   need to access. This is denoted throughout this document as
-   **<SANDPACK>**. This is read-only.
+   Sandboxed code also has access to OS libraries to the extent that the
+   AppArmor profile permits it.
 
-#) Untrusted packages. This is typically the code submitted by the
-   student to be tested on the server, as well as any data the code
-   may need to modify. This is denoted throughout this document as
-   **<UNTRUSTED_PACK>**. This is currently read-only, but may need to
-   be read-write for some applications.
+#) Sandbox execution directory. This is an ephemeral read-only directory named
+   like ``/tmp/codejail-XXXXXXXX`` containing the submitted code
+   (``./jailed_code``), optional additional files, and a writable temporary
+   directory (``./tmp``) that the submitted code can use as a scratch space.
 
-#) OS packages. These are standard system libraries needed to run
-   Python (e.g. things in /lib). This is denoted throughout this
-   document as **<OSPACK>**. This is read-only, and is specified by
-   Ubuntu's AppArmor profile.
+   The submitted code is typically the code submitted by the student to be
+   tested on the server, and the additional files are typically a
+   ``python_lib.zip`` containing grading or utility libraries.
 
 To run, CodeJail requires two user accounts. One account is the main
 account under which the code runs, which has access to create
 sandboxes. This will be referred to as **<SANDBOX_CALLER>**. The
 second account is the account under which the sandbox runs. This is
-typically the account 'sandbox.'
+typically the account ``sandbox``.
 
 Supported Versions
 ------------------
@@ -62,14 +50,19 @@ Ubuntu:
 * 22.04
 * 24.04
 
+(Note that the Python version used inside the sandbox may be different from the
+version used for the library itself.)
+
 Installation
 ------------
 
 These instructions detail how to configure your operating system so that
-CodeJail can execute Python code safely.  You can run CodeJail without these
-steps, and you will have an unsafe CodeJail.  This is fine for developers'
-machines who are unconcerned with security, and simplifies the integration of
-CodeJail into your project.
+CodeJail can execute Python code safely. However, it is also possible to set
+``codejail.safe_exec.ALWAYS_BE_UNSAFE = True`` and execute submitted Python
+directly on the machine, with no security whatsoever. This may be fine for
+developers' machines who are unconcerned with security, and allows testing
+an integration with CodeJail's API. It must not be used if any input is coming
+from untrusted sources, however. **Do not use this option in production systems.**
 
 To secure Python execution, you'll be creating a new virtualenv.  This means
 you'll have two: the main virtualenv for your project, and the new one for
@@ -114,61 +107,17 @@ Other details here that depend on your configuration:
    (Note that the ``find`` binary can run arbitrary code, so this is not a safe sudoers file for non-codejail purposes.)
 
 5. Edit an AppArmor profile.  This is a text file specifying the limits on the
-   sandboxed Python executable.  The file must be in ``/etc/apparmor.d`` and must
+   sandboxed Python executable.  The file must be in ``/etc/apparmor.d`` and should
    be named based on the executable, with slashes replaced by dots.  For
    example, if your sandboxed Python is at ``/home/chris/ve/myproj-sandbox/bin/python``,
-   then your AppArmor profile must be ``/etc/apparmor.d/home.chris.ve.myproj-sandbox.bin.python``::
+   then your AppArmor profile must be ``/etc/apparmor.d/home.chris.ve.myproj-sandbox.bin.python``.
 
-    $ sudo vim /etc/apparmor.d/home.chris.ve.myproj-sandbox.bin.python
-
-    #include <tunables/global>
-
-    <SANDENV>/bin/python {
-        #include <abstractions/base>
-        #include <abstractions/python>
-
-        <CODEJAIL_CHECKOUT>/** mr,
-        <SANDENV>/** mr,
-        # If you have code that the sandbox must be able to access, add lines
-        # pointing to those directories:
-        /the/path/to/your/sandbox-packages/** r,
-
-        /tmp/codejail-*/ rix,
-        /tmp/codejail-*/** wrix,
-    }
-
-   Depending on your OS and AppArmor version you may need to specify a policy
-   ABI to ensure the restrictions are being correctly applied. Modern ubuntu
-   versions using AppArmor V3 should use the 3.0 ABI in order to enable
-   network confinment rules. A profile using the ABI 3.0 would look as
-   follows::
-
-     $ sudo vim /etc/apparmor.d/home.chris.ve.myproj-sandbox.bin.python
-
-     abi <abi/3.0>,
-     #include <tunables/global>
-
-     <SANDENV>/bin/python {
-         #include <abstractions/base>
-         #include <abstractions/python>
-
-         <CODEJAIL_CHECKOUT>/** mr,
-         <SANDENV>/** mr,
-         # If you have code that the sandbox must be able to access, add lines
-         # pointing to those directories:
-         /the/path/to/your/sandbox-packages/** r,
-
-         /tmp/codejail-*/ rix,
-         /tmp/codejail-*/** wrix,
-     }
-
-   You can also look at the
-   ``apparmor-profiles/home.sandbox.codejail_sandbox-python3.bin.python-abi3``
-   file which is used for testing for a full profile example.
+   See sample profile in ``apparmor-profiles/``. The profile **must be
+   customized** to match your sandbox location.
 
 6. Parse the profiles::
 
-    $ sudo apparmor_parser <APPARMOR_FILE>
+    $ sudo apparmor_parser --replace --warn=all --warn=no-debug-cache --Werror <APPARMOR_FILE>
 
 7. Reactivate your project's main virtualenv again.
 
@@ -212,8 +161,8 @@ the rights to modify the files in its site-packages directory.
 Tests
 -----
 
-In order to target the sandboxed Python environment(s) you have created on your
-system, you must set the following environment variables for testing::
+To run tests, you must perform the standard installation steps. Then
+you must set the following environment variables::
 
     $ export CODEJAIL_TEST_USER=<owner of sandbox (usually 'sandbox')>
     $ export CODEJAIL_TEST_VENV=<SANDENV>
@@ -222,10 +171,7 @@ Run the tests with the Makefile::
 
     $ make tests
 
-If CodeJail is running unsafely, many of the tests will be automatically
-skipped, or will fail, depending on whether CodeJail thinks it should be in
-safe mode or not.
-
+Several proxy tests are skipped if proxy mode is not configured.
 
 Design
 ------
@@ -247,12 +193,12 @@ execute the provided Python program with that executable, and AppArmor will
 automatically limit the resources it can access.  CodeJail also uses setrlimit
 to limit the amount of CPU time and/or memory available to the process.
 
-``CodeJail.jail_code`` takes a program to run, files to copy into its
+``codejail.jail_code`` takes a program to run, files to copy into its
 environment, command-line arguments, and a stdin stream.  It creates a
 temporary directory, creates or copies the needed files, spawns a subprocess to
 run the code, and returns the output and exit status of the process.
 
-``CodeJail.safe_exec`` emulates Python's exec statement.  It takes a chunk of
+``codejail.safe_exec`` emulates Python's exec statement.  It takes a chunk of
 Python code, and runs it using jail_code, modifying the globals dictionary as a
 side-effect.  safe_exec does this by serializing the globals into and out of
 the subprocess as JSON.
@@ -260,8 +206,11 @@ the subprocess as JSON.
 Limitations
 -----------
 
-* If codejail or AppArmor is not configured properly, codejail will default to
+* If codejail or AppArmor is not configured properly, codejail may default to
   running code insecurely (no sandboxing). It is not secure by default.
+  Projects integrating codejail should consider including a runtime test suite
+  that checks for proper confinement at startup before untrusted inputs are
+  accepted.
 * Sandbox isolation is achieved via AppArmor confinement. Codejail facilitates
   this, but cannot isolate execution without the use of AppArmor.
 * Resource limits can only be constrained using the mechanisms that Linux's

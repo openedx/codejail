@@ -4,7 +4,10 @@ import os.path
 import textwrap
 import zipfile
 from io import BytesIO
-from unittest import SkipTest, TestCase
+from unittest import TestCase
+from unittest.mock import patch
+
+import pytest
 
 from codejail import safe_exec
 from codejail.jail_code import set_limit
@@ -176,17 +179,36 @@ class TestSafeExec(SafeExecTests, TestCase):
     def safe_exec(self, *args, **kwargs):
         safe_exec.safe_exec(*args, **kwargs)
 
+    @patch('codejail.jail_code.is_configured', return_value=False)
+    def test_configuration(self, mock_is_configured):
+        """
+        When not configured for Python, raise an exception.
+        """
+        with pytest.raises(RuntimeError, match=r'safe_exec has not been configured for Python'):
+            self.safe_exec('out = 1 + 2', {})
+
+        mock_is_configured.assert_called_once_with('python')
+
+    @patch('codejail.safe_exec.not_safe_exec')
+    @patch('codejail.jail_code.is_configured', return_value=True)
+    def test_opt_unsafe(self, mock_is_configured, mock_not_safe_exec):
+        """
+        When ALWAYS_BE_UNSAFE enabled, go immediately to not_safe_exec.
+        """
+        with patch.object(safe_exec, 'ALWAYS_BE_UNSAFE', new=True):
+            self.safe_exec('out = 1 + 2', {})
+
+        mock_is_configured.assert_not_called()
+        mock_not_safe_exec.assert_called_once_with(
+            'out = 1 + 2', {},
+            files=None, python_path=None, limit_overrides_context=None, slug=None, extra_files=None,
+        )
+
 
 class TestNotSafeExec(SafeExecTests, TestCase):
     """Run SafeExecTests, with not_safe_exec."""
 
     __test__ = True
-
-    def setUp(self):
-        # If safe_exec is actually an alias to not_safe_exec, then there's no
-        # point running these tests.
-        if safe_exec.UNSAFE:                    # pragma: no cover
-            raise SkipTest
 
     def safe_exec(self, *args, **kwargs):
         safe_exec.not_safe_exec(*args, **kwargs)

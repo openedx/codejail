@@ -68,7 +68,7 @@ running_in_virtualenv = (
 )
 
 if running_in_virtualenv:
-    # On jenkins
+    # In test environment
     sandbox_user = os.getenv('CODEJAIL_TEST_USER')
     sandbox_env = os.getenv('CODEJAIL_TEST_VENV')
     if sandbox_env and sandbox_user:
