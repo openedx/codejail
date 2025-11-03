@@ -7,17 +7,22 @@ ARG ubuntu_version="24.04"
 FROM ubuntu:${ubuntu_version}
 SHELL ["/bin/bash", "-c"]
 
-ARG python_version="3.11"
+ARG python_version="3.12"
 
 # Install Codejail Packages
 ENV TZ=Etc/UTC
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y software-properties-common
 RUN add-apt-repository -y ppa:deadsnakes/ppa && apt-get update && apt-get upgrade -y
-RUN apt-get install -y vim python${python_version} python${python_version}-dev python${python_version}-distutils
+RUN apt-get install -y vim python${python_version} python${python_version}-dev python${python_version}-venv || \
+    apt-get install -y vim python${python_version} python${python_version}-dev python3-distutils
+
+
 RUN apt-get install -y sudo git make curl build-essential
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python${python_version}
-RUN pip install virtualenv
+RUN curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python${python_version} get-pip.py --break-system-packages && rm get-pip.py
+
+RUN pip install virtualenv --break-system-packages
 
 # Define Environment Variables
 ENV CODEJAIL_GROUP=sandbox

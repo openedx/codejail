@@ -12,13 +12,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python_version: ['3.11']
+        python_version: ['3.11', '3.12']
         ubuntu_version: ['22.04', '24.04']
         tox_env: [ "django42", "django52"]
         include:
           - tox_env: quality
             ubuntu_version: '24.04'
-            python_version: '3.11'
+            python_version: '3.12'
 
     steps:
       - uses: actions/checkout@v5
