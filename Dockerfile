@@ -7,7 +7,7 @@ ARG ubuntu_version="24.04"
 FROM ubuntu:${ubuntu_version}
 SHELL ["/bin/bash", "-c"]
 
-ARG python_version="3.12"
+ARG python_version="3.11"
 
 # Install Codejail Packages
 ENV TZ=Etc/UTC
