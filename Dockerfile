@@ -14,14 +14,23 @@ ENV TZ=Etc/UTC
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y software-properties-common
 RUN add-apt-repository -y ppa:deadsnakes/ppa && apt-get update && apt-get upgrade -y
+# ---------------------------------------------------------------------------
+# - The "distutils" module was removed in Python 3.12 (PEP 632).
+# - To ensure virtualenv creation still works, we now prefer python3-venv instead.
+# - Older Python versions (e.g., 3.11) still support distutils, so we keep the
+#   fallback to install python3-distutils if needed.
+# ---------------------------------------------------------------------------
 RUN apt-get install -y vim python${python_version} python${python_version}-dev python${python_version}-venv || \
     apt-get install -y vim python${python_version} python${python_version}-dev python3-distutils
-
-
 RUN apt-get install -y sudo git make curl build-essential
+# ---------------------------------------------------------------------------
+# - Ubuntu 24.04 enforces "externally-managed-environment" per PEP 668,
+#   which prevents pip from modifying system packages by default.
+# - We explicitly add "--break-system-packages" to allow pip installs inside
+#   the container environment (since it's isolated anyway).
+# ---------------------------------------------------------------------------
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python${python_version} get-pip.py --break-system-packages && rm get-pip.py
-
 RUN pip install virtualenv --break-system-packages
 
 # Define Environment Variables
