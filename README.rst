@@ -44,6 +44,7 @@ This library currently is tested to work with the following versions
 Python:
 
 * 3.11
+* 3.12
 
 Ubuntu:
 
@@ -80,7 +81,7 @@ Other details here that depend on your configuration:
 
 1. Create the new virtualenv, using ``--copies`` so that there's a distinct Python executable to limit::
 
-    $ sudo python3.11 -m venv --copies <SANDENV>
+    $ sudo python3.12 -m venv --copies <SANDENV>
 
    By default, the virtualenv would just symlink against the system Python, and apparmor's default configuration on some operating systems may prevent confinement from being appled to that.
 

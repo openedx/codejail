@@ -2,7 +2,7 @@
 import os
 import re
 
-from setuptools import find_packages, setup
+from setuptools import find_packages, setup  # pylint: disable=import-error
 
 with open('README.rst') as readme:
     long_description = readme.read()
@@ -51,7 +51,7 @@ setup(
         "Intended Audience :: Developers",
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
     ],
 )
