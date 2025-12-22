@@ -27,9 +27,7 @@ upgrade: export CUSTOM_COMPILE_COMMAND=make upgrade
 upgrade: $(COMMON_CONSTRAINTS_TXT)
 	## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
 	pip install -q -r requirements/pip_tools.txt
-	pip-compile --allow-unsafe --rebuild --annotation-style=line --upgrade -o requirements/pip.txt requirements/pip.in
-	pip-compile --annotation-style=line --upgrade -o requirements/pip_tools.txt requirements/pip_tools.in
-	pip install -q -r requirements/pip.txt
+	pip-compile --allow-unsafe --rebuild --annotation-style=line --upgrade -o requirements/pip_tools.txt requirements/pip_tools.in
 	pip install -q -r requirements/pip_tools.txt
 	pip-compile --annotation-style=line --upgrade -o requirements/tox.txt requirements/tox.in
 	pip-compile --annotation-style=line --upgrade -o requirements/testing.txt requirements/testing.in
