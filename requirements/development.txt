@@ -4,19 +4,19 @@
 #
 #    make upgrade
 #
-asgiref==3.10.0           # via -r requirements/testing.txt, django
-astroid==4.0.1            # via -r requirements/testing.txt, pylint
+asgiref==3.11.0           # via -r requirements/testing.txt, django
+astroid==4.0.2            # via -r requirements/testing.txt, pylint
 dill==0.4.0               # via -r requirements/testing.txt, pylint
-django==4.2.25            # via -c requirements/common_constraints.txt, -r requirements/testing.txt
+django==5.2.9             # via -c requirements/common_constraints.txt, -r requirements/testing.txt
 iniconfig==2.3.0          # via -r requirements/testing.txt, pytest
 isort==7.0.0              # via -r requirements/testing.txt, pylint
 mccabe==0.7.0             # via -r requirements/testing.txt, pylint
 packaging==25.0           # via -r requirements/testing.txt, pytest
-platformdirs==4.5.0       # via -r requirements/testing.txt, pylint
+platformdirs==4.5.1       # via -r requirements/testing.txt, pylint
 pluggy==1.6.0             # via -r requirements/testing.txt, pytest
 pycodestyle==2.14.0       # via -r requirements/testing.txt
 pygments==2.19.2          # via -r requirements/testing.txt, pytest
-pylint==4.0.1             # via -r requirements/testing.txt
-pytest==8.4.2             # via -r requirements/testing.txt
-sqlparse==0.5.3           # via -r requirements/testing.txt, django
+pylint==4.0.4             # via -r requirements/testing.txt
+pytest==9.0.2             # via -r requirements/testing.txt
+sqlparse==0.5.5           # via -r requirements/testing.txt, django
 tomlkit==0.13.3           # via -r requirements/testing.txt, pylint
