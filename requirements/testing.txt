@@ -4,18 +4,18 @@
 #
 #    make upgrade
 #
-asgiref==3.10.0           # via django
-astroid==4.0.1            # via pylint
+asgiref==3.11.0           # via django
+astroid==4.0.2            # via pylint
 dill==0.4.0               # via pylint
 iniconfig==2.3.0          # via pytest
 isort==7.0.0              # via -r requirements/testing.in, pylint
 mccabe==0.7.0             # via pylint
 packaging==25.0           # via pytest
-platformdirs==4.5.0       # via pylint
+platformdirs==4.5.1       # via pylint
 pluggy==1.6.0             # via pytest
 pycodestyle==2.14.0       # via -r requirements/testing.in
 pygments==2.19.2          # via pytest
-pylint==4.0.1             # via -r requirements/testing.in
-pytest==8.4.2             # via -r requirements/testing.in
-sqlparse==0.5.3           # via django
+pylint==4.0.4             # via -r requirements/testing.in
+pytest==9.0.2             # via -r requirements/testing.in
+sqlparse==0.5.5           # via django
 tomlkit==0.13.3           # via pylint
