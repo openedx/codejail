@@ -19,4 +19,4 @@ pygments==2.19.2          # via -r requirements/testing.txt, pytest
 pylint==4.0.4             # via -r requirements/testing.txt
 pytest==9.0.2             # via -r requirements/testing.txt
 sqlparse==0.5.5           # via -r requirements/testing.txt, django
-tomlkit==0.13.3           # via -r requirements/testing.txt, pylint
+tomlkit==0.14.0           # via -r requirements/testing.txt, pylint
