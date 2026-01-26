@@ -6,11 +6,11 @@
 #
 asgiref==3.11.0           # via django
 astroid==4.0.3            # via pylint
-dill==0.4.0               # via pylint
+dill==0.4.1               # via pylint
 iniconfig==2.3.0          # via pytest
 isort==7.0.0              # via -r requirements/testing.in, pylint
 mccabe==0.7.0             # via pylint
-packaging==25.0           # via pytest
+packaging==26.0           # via pytest
 platformdirs==4.5.1       # via pylint
 pluggy==1.6.0             # via pytest
 pycodestyle==2.14.0       # via -r requirements/testing.in
