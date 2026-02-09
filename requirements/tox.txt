@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-cachetools==6.2.5         # via tox
+cachetools==7.0.0         # via tox
 chardet==5.2.0            # via tox
 colorama==0.4.6           # via tox
 distlib==0.4.0            # via virtualenv

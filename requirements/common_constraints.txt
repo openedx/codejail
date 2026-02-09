@@ -18,3 +18,9 @@ Django<6.0
 # elastic search changelog: https://www.elastic.co/guide/en/enterprise-search/master/release-notes-7.14.0.html
 # See https://github.com/openedx/edx-platform/issues/35126 for more info
 elasticsearch<7.14.0
+
+# pip 26 is incompatible with pip-tools hence causing failures during the build process
+# Make upgrade command and all requirements upgrade jobs are broken due to this.
+# The constraint can be removed once a release (pip-tools > 7.5.2) is available with support for pip 26
+# Issue to track this dependency and unpin later on: https://github.com/jazzband/pip-tools/issues/2319
+pip<26.0
