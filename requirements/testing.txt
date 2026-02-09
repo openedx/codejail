@@ -4,8 +4,8 @@
 #
 #    make upgrade
 #
-asgiref==3.11.0           # via django
-astroid==4.0.3            # via pylint
+asgiref==3.11.1           # via django
+astroid==4.0.4            # via pylint
 dill==0.4.1               # via pylint
 iniconfig==2.3.0          # via pytest
 isort==7.0.0              # via -r requirements/testing.in, pylint
