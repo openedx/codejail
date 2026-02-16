@@ -12,7 +12,7 @@ iniconfig==2.3.0          # via -r requirements/testing.txt, pytest
 isort==7.0.0              # via -r requirements/testing.txt, pylint
 mccabe==0.7.0             # via -r requirements/testing.txt, pylint
 packaging==26.0           # via -r requirements/testing.txt, pytest
-platformdirs==4.5.1       # via -r requirements/testing.txt, pylint
+platformdirs==4.9.1       # via -r requirements/testing.txt, pylint
 pluggy==1.6.0             # via -r requirements/testing.txt, pytest
 pycodestyle==2.14.0       # via -r requirements/testing.txt
 pygments==2.19.2          # via -r requirements/testing.txt, pytest

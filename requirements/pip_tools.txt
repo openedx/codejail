@@ -7,7 +7,7 @@
 build==1.4.0              # via pip-tools
 click==8.3.1              # via pip-tools
 packaging==26.0           # via build, wheel
-pip-tools==7.5.2          # via -r requirements/pip_tools.in
+pip-tools==7.5.3          # via -r requirements/pip_tools.in
 pyproject-hooks==1.2.0    # via build, pip-tools
 wheel==0.46.3             # via pip-tools
 
