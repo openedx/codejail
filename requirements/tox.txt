@@ -4,14 +4,14 @@
 #
 #    make upgrade
 #
-cachetools==7.0.0         # via tox
-chardet==5.2.0            # via tox
+cachetools==7.0.1         # via tox
+chardet==6.0.0.post1      # via tox
 colorama==0.4.6           # via tox
 distlib==0.4.0            # via virtualenv
-filelock==3.20.3          # via tox, virtualenv
+filelock==3.24.3          # via tox, virtualenv
 packaging==26.0           # via pyproject-api, tox
-platformdirs==4.5.1       # via tox, virtualenv
+platformdirs==4.9.2       # via tox, virtualenv
 pluggy==1.6.0             # via tox
 pyproject-api==1.10.0     # via tox
-tox==4.34.1               # via -r requirements/tox.in
-virtualenv==20.36.1       # via tox
+tox==4.44.0               # via -r requirements/tox.in
+virtualenv==20.38.0       # via tox
