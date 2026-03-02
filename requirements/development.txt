@@ -9,7 +9,7 @@ astroid==4.0.4            # via -r requirements/testing.txt, pylint
 dill==0.4.1               # via -r requirements/testing.txt, pylint
 django==5.2.11            # via -c requirements/common_constraints.txt, -r requirements/testing.txt
 iniconfig==2.3.0          # via -r requirements/testing.txt, pytest
-isort==8.0.0              # via -r requirements/testing.txt, pylint
+isort==8.0.1              # via -r requirements/testing.txt, pylint
 mccabe==0.7.0             # via -r requirements/testing.txt, pylint
 packaging==26.0           # via -r requirements/testing.txt, pytest
 platformdirs==4.9.2       # via -r requirements/testing.txt, pylint

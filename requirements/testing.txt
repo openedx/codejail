@@ -8,7 +8,7 @@ asgiref==3.11.1           # via django
 astroid==4.0.4            # via pylint
 dill==0.4.1               # via pylint
 iniconfig==2.3.0          # via pytest
-isort==8.0.0              # via -r requirements/testing.in, pylint
+isort==8.0.1              # via -r requirements/testing.in, pylint
 mccabe==0.7.0             # via pylint
 packaging==26.0           # via pytest
 platformdirs==4.9.2       # via pylint
