@@ -43,7 +43,6 @@ This library currently is tested to work with the following versions
 
 Python:
 
-* 3.11
 * 3.12
 
 Ubuntu:

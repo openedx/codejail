@@ -7,7 +7,7 @@ ARG ubuntu_version="24.04"
 FROM ubuntu:${ubuntu_version}
 SHELL ["/bin/bash", "-c"]
 
-ARG python_version="3.11"
+ARG python_version="3.12"
 
 # Install Codejail Packages
 ENV TZ=Etc/UTC
@@ -16,9 +16,7 @@ RUN apt-get update && apt-get install -y software-properties-common
 RUN add-apt-repository -y ppa:deadsnakes/ppa && apt-get update && apt-get upgrade -y
 # ---------------------------------------------------------------------------
 # - The "distutils" module was removed in Python 3.12 (PEP 632).
-# - To ensure virtualenv creation still works, we now prefer python3-venv instead.
-# - Older Python versions (e.g., 3.11) still support distutils, so we keep the
-#   fallback to install python3-distutils if needed.
+# - To ensure virtualenv creation still works, we use python3-venv instead.
 # ---------------------------------------------------------------------------
 RUN apt-get install -y vim python${python_version} python${python_version}-dev python${python_version}-venv || \
     apt-get install -y vim python${python_version} python${python_version}-dev python3-distutils
