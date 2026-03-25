@@ -14,7 +14,7 @@ Changelog
 Unreleased
 **********
 
-*
+* Dropped Django 4.2 from CI test matrix; bumped numpy, tox, virtualenv
 
 4.1.0 - 2025-11-04
 ******************
