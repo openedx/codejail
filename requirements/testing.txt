@@ -14,7 +14,7 @@ packaging==26.0           # via pytest
 platformdirs==4.9.4       # via pylint
 pluggy==1.6.0             # via pytest
 pycodestyle==2.14.0       # via -r requirements/testing.in
-pygments==2.19.2          # via pytest
+pygments==2.20.0          # via pytest
 pylint==4.0.5             # via -r requirements/testing.in
 pytest==9.0.2             # via -r requirements/testing.in
 sqlparse==0.5.5           # via django
