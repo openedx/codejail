@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-build==1.4.2              # via pip-tools
+build==1.4.3              # via pip-tools
 click==8.3.2              # via pip-tools
 packaging==26.0           # via build, wheel
 pip-tools==7.5.3          # via -r requirements/pip_tools.in
