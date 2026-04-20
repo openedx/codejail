@@ -10,7 +10,7 @@ dill==0.4.1               # via pylint
 iniconfig==2.3.0          # via pytest
 isort==8.0.1              # via -r requirements/testing.in, pylint
 mccabe==0.7.0             # via pylint
-packaging==26.0           # via pytest
+packaging==26.1           # via pytest
 platformdirs==4.9.6       # via pylint
 pluggy==1.6.0             # via pytest
 pycodestyle==2.14.0       # via -r requirements/testing.in
