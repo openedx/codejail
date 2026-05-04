@@ -11,7 +11,7 @@ django==5.2.13            # via -c requirements/common_constraints.txt, -r requi
 iniconfig==2.3.0          # via -r requirements/testing.txt, pytest
 isort==8.0.1              # via -r requirements/testing.txt, pylint
 mccabe==0.7.0             # via -r requirements/testing.txt, pylint
-packaging==26.1           # via -r requirements/testing.txt, pytest
+packaging==26.2           # via -r requirements/testing.txt, pytest
 platformdirs==4.9.6       # via -r requirements/testing.txt, pylint
 pluggy==1.6.0             # via -r requirements/testing.txt, pytest
 pycodestyle==2.14.0       # via -r requirements/testing.txt
