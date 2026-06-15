@@ -11,7 +11,7 @@ import time
 from unittest import SkipTest, TestCase, mock
 
 from codejail import proxy
-from codejail.jail_code import LIMITS, is_configured, jail_code, set_limit
+from codejail.jail_code import LIMITS, CodeJailConfig, is_configured, jail_code, set_limit
 
 
 def jailpy(code=None, *args, **kwargs):  # pylint: disable=keyword-arg-before-vararg
@@ -659,3 +659,70 @@ class TestProxyProcess(JailCodeHelpersMixin, TestCase):
             pid = proxy.PROXY_PROCESS.pid
             self.assertNotIn(pid, pids)
             pids.add(pid)
+
+
+class TestCodeJailConfig(TestCase):
+    """Unit tests for the CodeJailConfig class.
+
+    These tests do not require a sandbox environment — they exercise the
+    configuration object in isolation without spawning any subprocesses.
+    """
+
+    def test_default_limits_are_copied(self):
+        # Two independent instances must not share the same LIMITS dict.
+        cfg1 = CodeJailConfig()
+        cfg2 = CodeJailConfig()
+        cfg1.set_limit('CPU', 999)
+        self.assertNotEqual(cfg2.LIMITS['CPU'], 999)
+
+    def test_configure_and_is_configured(self):
+        cfg = CodeJailConfig()
+        self.assertFalse(cfg.is_configured('python'))
+        cfg.configure('python', '/usr/bin/python3', user='sandbox')
+        self.assertTrue(cfg.is_configured('python'))
+        self.assertEqual(cfg.COMMANDS['python']['user'], 'sandbox')
+        self.assertIn('-E', cfg.COMMANDS['python']['cmdline_start'])
+        self.assertIn('-B', cfg.COMMANDS['python']['cmdline_start'])
+
+    def test_configure_non_python_no_extra_flags(self):
+        cfg = CodeJailConfig()
+        cfg.configure('node', '/usr/bin/node')
+        self.assertEqual(cfg.COMMANDS['node']['cmdline_start'], ['/usr/bin/node'])
+
+    def test_set_limit_and_get_effective_limits(self):
+        cfg = CodeJailConfig()
+        cfg.set_limit('CPU', 5)
+        limits = cfg.get_effective_limits()
+        self.assertEqual(limits['CPU'], 5)
+
+    def test_get_effective_limits_with_no_overrides_context(self):
+        cfg = CodeJailConfig()
+        limits = cfg.get_effective_limits()
+        self.assertEqual(set(limits.keys()), {'CPU', 'REALTIME', 'VMEM', 'FSIZE', 'NPROC', 'PROXY'})
+
+    def test_override_limit_applies_in_context(self):
+        cfg = CodeJailConfig()
+        cfg.set_limit('CPU', 1)
+        cfg.override_limit('CPU', 10, 'my_context')
+        self.assertEqual(cfg.get_effective_limits('my_context')['CPU'], 10)
+        self.assertEqual(cfg.get_effective_limits()['CPU'], 1)
+
+    def test_override_limit_unknown_context_returns_base(self):
+        cfg = CodeJailConfig()
+        cfg.set_limit('CPU', 2)
+        self.assertEqual(cfg.get_effective_limits('nonexistent')['CPU'], 2)
+
+    def test_proxy_override_is_rejected(self):
+        cfg = CodeJailConfig()
+        cfg.set_limit('PROXY', 0)
+        cfg.override_limit('PROXY', 1, 'ctx')
+        # PROXY override must be silently ignored.
+        self.assertNotIn('PROXY', cfg.LIMIT_OVERRIDES.get('ctx', {}))
+
+    def test_instances_are_isolated_from_module_globals(self):
+        # Mutating an independent instance must not touch the module-level LIMITS.
+        from codejail import jail_code as jc
+        original_cpu = jc.LIMITS['CPU']
+        cfg = CodeJailConfig()
+        cfg.set_limit('CPU', 42)
+        self.assertEqual(jc.LIMITS['CPU'], original_cpu)
