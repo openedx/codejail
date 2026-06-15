@@ -15,7 +15,7 @@ platformdirs==4.10.0      # via pylint
 pluggy==1.6.0             # via pytest
 pycodestyle==2.14.0       # via -r requirements/testing.in
 pygments==2.20.0          # via pytest
-pylint==4.0.5             # via -r requirements/testing.in
-pytest==9.0.3             # via -r requirements/testing.in
+pylint==4.0.6             # via -r requirements/testing.in
+pytest==9.1.0             # via -r requirements/testing.in
 sqlparse==0.5.5           # via django
 tomlkit==0.15.0           # via pylint
