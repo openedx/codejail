@@ -25,7 +25,7 @@ class ResetJailCodeStateMixin:
         Reset global variables back to defaults, copying and saving existing values.
         """
         super().setUp()
-        cfg = jail_code._default_config
+        cfg = jail_code._default_config  # pylint: disable=protected-access
         # pylint: disable=invalid-name
         self._COMMANDS = dict(cfg.COMMANDS)
         self._LIMITS = dict(cfg.LIMITS)
@@ -40,7 +40,7 @@ class ResetJailCodeStateMixin:
         Restore global variables to the values they had before running the test.
         """
         super().setUp()
-        cfg = jail_code._default_config
+        cfg = jail_code._default_config  # pylint: disable=protected-access
         cfg.COMMANDS.clear()
         cfg.COMMANDS.update(self._COMMANDS)
         cfg.LIMITS.clear()

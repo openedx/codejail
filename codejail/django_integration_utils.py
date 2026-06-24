@@ -16,7 +16,7 @@ def apply_django_settings(code_jail_settings, config=None):
     used, which preserves the original behaviour.  Pass an explicit instance in tests
     or multi-tenant scenarios where you need isolated configuration.
     """
-    cfg = config if config is not None else jail_code._default_config
+    cfg = config if config is not None else jail_code._default_config  # pylint: disable=protected-access
     python_bin = code_jail_settings.get('python_bin')
     if python_bin:
         user = code_jail_settings['user']

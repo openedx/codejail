@@ -721,8 +721,7 @@ class TestCodeJailConfig(TestCase):
 
     def test_instances_are_isolated_from_module_globals(self):
         # Mutating an independent instance must not touch the module-level LIMITS.
-        from codejail import jail_code as jc
-        original_cpu = jc.LIMITS['CPU']
+        original_cpu = LIMITS['CPU']
         cfg = CodeJailConfig()
         cfg.set_limit('CPU', 42)
-        self.assertEqual(jc.LIMITS['CPU'], original_cpu)
+        self.assertEqual(LIMITS['CPU'], original_cpu)
