@@ -15,70 +15,11 @@ log = logging.getLogger("codejail")
 
 # TODO: limit too much stdout data?  # pylint: disable=fixme
 
-# Configure the commands
 
-# COMMANDS is a map from an abstract command name to a list of command-line
-# pieces, such as subprocess.Popen wants.
-COMMANDS = {}
+# ---------------------------------------------------------------------------
+# Default resource limits (used by CodeJailConfig.__init__)
+# ---------------------------------------------------------------------------
 
-
-def configure(command, bin_path, user=None):
-    """
-    Configure a command for `jail_code` to use.
-
-    `command` is the abstract command you're configuring, such as "python" or
-    "node".  `bin_path` is the path to the binary.  `user`, if provided, is
-    the user name to run the command under.
-
-    """
-    cmd_argv = [bin_path]
-
-    # Command-specific arguments
-    if command == "python":
-        # -E means ignore the environment variables PYTHON*
-        # -B means don't try to write .pyc files.
-        cmd_argv.extend(['-E', '-B'])
-
-    COMMANDS[command] = {
-        # The start of the command line for this program.
-        'cmdline_start': cmd_argv,
-        # The user to run this as, perhaps None.
-        'user': user,
-    }
-
-
-def is_configured(command):
-    """
-    Has `jail_code` been configured for `command`?
-
-    Returns true if the abstract command `command` has been configured for use
-    in the `jail_code` function.
-
-    """
-    return command in COMMANDS
-
-
-# By default, look where our current Python is, and maybe there's a
-# python-sandbox alongside.  Only do this if running in a virtualenv.
-# The check for sys.real_prefix covers virtualenv
-# the equality of non-empty sys.base_prefix with sys.prefix covers venv
-running_in_virtualenv = (
-    hasattr(sys, 'real_prefix') or
-    (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix)
-)
-
-if running_in_virtualenv:
-    # In test environment
-    sandbox_user = os.getenv('CODEJAIL_TEST_USER')
-    sandbox_env = os.getenv('CODEJAIL_TEST_VENV')
-    if sandbox_env and sandbox_user:
-        configure("python", f"{sandbox_env}/bin/python", sandbox_user)
-    # or fall back to defaults
-    elif os.path.isdir(sys.prefix + "-sandbox"):
-        configure("python", sys.prefix + "-sandbox/bin/python", "sandbox")
-
-
-# The resource limits that we unless otherwise configured.
 DEFAULT_LIMITS = {
     # CPU seconds, defaulting to 1.
     "CPU": 1,
@@ -97,13 +38,154 @@ DEFAULT_LIMITS = {
     "PROXY": None,
 }
 
-# Configured resource limits.
-# Modified by calling `set_limit`.
-LIMITS = DEFAULT_LIMITS.copy()
 
-# Map from limit_overrides_contexts (strings) to dictionaries in the shape of LIMITS.
-# Modified by calling `override_limit`.
-LIMIT_OVERRIDES = {}
+# ---------------------------------------------------------------------------
+# CodeJailConfig — encapsulates all mutable codejail state
+# ---------------------------------------------------------------------------
+
+class CodeJailConfig:
+    """
+    Encapsulate codejail configuration: command paths, resource limits, and
+    per-context limit overrides.
+
+    Using instances of this class instead of the module-level globals allows
+    independent configurations to coexist in the same process — for example,
+    isolated test fixtures that do not affect each other or production state.
+
+    The module-level helper functions (``configure``, ``is_configured``,
+    ``set_limit``, etc.) all delegate to the module-level ``_default_config``
+    instance and remain fully backward-compatible.
+    """
+
+    def __init__(self):
+        # Map from abstract command name → {'cmdline_start': [...], 'user': ...}
+        self.COMMANDS = {}
+        # Active resource limits for this configuration.
+        self.LIMITS = DEFAULT_LIMITS.copy()
+        # Per-context limit overrides: {context_str: {limit_name: value}}
+        self.LIMIT_OVERRIDES = {}
+
+    def configure(self, command, bin_path, user=None):
+        """
+        Configure a command for ``jail_code`` to use.
+
+        ``command`` is the abstract command you're configuring, such as
+        "python" or "node".  ``bin_path`` is the path to the binary.
+        ``user``, if provided, is the user name to run the command under.
+        """
+        cmd_argv = [bin_path]
+        if command == "python":
+            # -E means ignore the environment variables PYTHON*
+            # -B means don't try to write .pyc files.
+            cmd_argv.extend(['-E', '-B'])
+        self.COMMANDS[command] = {
+            'cmdline_start': cmd_argv,
+            'user': user,
+        }
+
+    def is_configured(self, command):
+        """Return True if this config has been set up for ``command``."""
+        return command in self.COMMANDS
+
+    def set_limit(self, limit_name, value):
+        """
+        Set a resource limit on this configuration.
+
+        See the module-level ``set_limit`` docstring for the full list of
+        recognised limit names and their semantics.
+        """
+        self.LIMITS[limit_name] = value
+
+    def get_effective_limits(self, overrides_context=None):
+        """
+        Return the effective limits dict, merging any context-specific overrides.
+        """
+        overrides = (
+            self.LIMIT_OVERRIDES.get(overrides_context, {})
+            if overrides_context
+            else {}
+        )
+        return {**self.LIMITS, **overrides}
+
+    def override_limit(self, limit_name, value, limit_overrides_context):
+        """
+        Override a limit for a specific context on this configuration.
+
+        See the module-level ``override_limit`` docstring for semantics.
+        """
+        if limit_name == 'PROXY' and self.LIMITS['PROXY'] != value:
+            log.error(
+                'Tried to override value of PROXY to %s. '
+                'Overriding PROXY on a per-context basis is not permitted. '
+                'Will use globally-configured value instead: %s.',
+                value,
+                self.LIMITS['PROXY'],
+            )
+            return
+        if limit_overrides_context not in self.LIMIT_OVERRIDES:
+            self.LIMIT_OVERRIDES[limit_overrides_context] = {}
+        self.LIMIT_OVERRIDES[limit_overrides_context][limit_name] = value
+
+
+# ---------------------------------------------------------------------------
+# Module-level default config instance
+# ---------------------------------------------------------------------------
+
+#: The default configuration used by all module-level helper functions.
+#: Callers that need isolated state should create their own ``CodeJailConfig``
+#: and pass it as ``config=`` to ``jail_code()``.
+_default_config = CodeJailConfig()
+
+# Module-level aliases kept for backward compatibility.  These names point to
+# the *same dict objects* held by ``_default_config``, so direct mutations via
+# either path stay in sync.
+COMMANDS = _default_config.COMMANDS
+LIMITS = _default_config.LIMITS
+LIMIT_OVERRIDES = _default_config.LIMIT_OVERRIDES
+
+
+def configure(command, bin_path, user=None):
+    """
+    Configure a command for `jail_code` to use.
+
+    `command` is the abstract command you're configuring, such as "python" or
+    "node".  `bin_path` is the path to the binary.  `user`, if provided, is
+    the user name to run the command under.
+
+    """
+    _default_config.configure(command, bin_path, user)
+
+
+def is_configured(command):
+    """
+    Has `jail_code` been configured for `command`?
+
+    Returns true if the abstract command `command` has been configured for use
+    in the `jail_code` function.
+
+    """
+    return _default_config.is_configured(command)
+
+
+# ---------------------------------------------------------------------------
+# By default, look where our current Python is, and maybe there's a
+# python-sandbox alongside.  Only do this if running in a virtualenv.
+# The check for sys.real_prefix covers virtualenv
+# the equality of non-empty sys.base_prefix with sys.prefix covers venv
+running_in_virtualenv = (
+    hasattr(sys, 'real_prefix') or
+    (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix)
+)
+
+if running_in_virtualenv:
+    # In test environment
+    sandbox_user = os.getenv('CODEJAIL_TEST_USER')
+    sandbox_env = os.getenv('CODEJAIL_TEST_VENV')
+    if sandbox_env and sandbox_user:
+        configure("python", f"{sandbox_env}/bin/python", sandbox_user)
+    # or fall back to defaults
+    elif os.path.isdir(sys.prefix + "-sandbox"):
+        configure("python", sys.prefix + "-sandbox/bin/python", "sandbox")
 
 
 def set_limit(limit_name, value):
@@ -141,7 +223,7 @@ def set_limit(limit_name, value):
     Providing a limit of 0 will disable that limit, unless otherwise specified.
 
     """
-    LIMITS[limit_name] = value
+    _default_config.set_limit(limit_name, value)
 
 
 def get_effective_limits(overrides_context=None):
@@ -152,8 +234,7 @@ def get_effective_limits(overrides_context=None):
         overrides_context (str|None): Identifies which set of overrides to use.
             If None or missing from `LIMIT_OVERRIDES`, then just return `LIMITS` as-is.
     """
-    overrides = LIMIT_OVERRIDES.get(overrides_context, {}) if overrides_context else {}
-    return {**LIMITS, **overrides}
+    return _default_config.get_effective_limits(overrides_context)
 
 
 def override_limit(limit_name, value, limit_overrides_context):
@@ -166,18 +247,7 @@ def override_limit(limit_name, value, limit_overrides_context):
     executions of code is not supported. If one attempts to override PROXY, the override
     will be ignored and the globally-configured value will be used instead.
     """
-    if limit_name == 'PROXY' and LIMITS['PROXY'] != value:
-        log.error(
-            'Tried to override value of PROXY to %s. '
-            'Overriding PROXY on a per-context basis is not permitted. '
-            'Will use globally-configured value instead: %s.',
-            value,
-            LIMITS['PROXY'],
-        )
-        return
-    if limit_overrides_context not in LIMIT_OVERRIDES:
-        LIMIT_OVERRIDES[limit_overrides_context] = {}
-    LIMIT_OVERRIDES[limit_overrides_context][limit_name] = value
+    _default_config.override_limit(limit_name, value, limit_overrides_context)
 
 
 class JailResult:
@@ -190,7 +260,7 @@ class JailResult:
 
 # pylint: disable=too-many-positional-arguments
 def jail_code(command, code=None, files=None, extra_files=None, argv=None,
-              stdin=None, limit_overrides_context=None, slug=None):
+              stdin=None, limit_overrides_context=None, slug=None, config=None):
     """
     Run code in a jailed subprocess.
 
@@ -224,6 +294,11 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
     `slug` is an arbitrary string, a description that's meaningful to the
     caller, that will be used in log messages.
 
+    `config` is an optional :class:`CodeJailConfig` instance.  When provided,
+    that instance's commands and limits are used instead of the module-level
+    defaults.  This allows isolated test fixtures and multi-tenant scenarios to
+    coexist without sharing global state.
+
     Return an object with:
 
         .stdout: stdout of the program, a string
@@ -233,7 +308,9 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
     """
     # pylint: disable=too-many-statements
 
-    if not is_configured(command):
+    cfg = config if config is not None else _default_config
+
+    if not cfg.is_configured(command):
         # pylint: disable=broad-exception-raised
         raise Exception("jail_code needs to be configured for %r" % command)
 
@@ -281,7 +358,7 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         rm_cmd = []
 
         # Build the command to run.
-        user = COMMANDS[command]['user']
+        user = cfg.COMMANDS[command]['user']
         if user:
             # Run as the specified user
             cmd.extend(['sudo', '-u', user])
@@ -292,13 +369,13 @@ def jail_code(command, code=None, files=None, extra_files=None, argv=None,
         #   Issue: https://github.com/openedx/codejail/issues/162
         cmd.extend(['TMPDIR=tmp'])
         # Start with the command line dictated by "python" or whatever.
-        cmd.extend(COMMANDS[command]['cmdline_start'])
+        cmd.extend(cfg.COMMANDS[command]['cmdline_start'])
 
         # Add the code-specific command line pieces.
         cmd.extend(argv)
 
         # Determine effective resource limits.
-        effective_limits = get_effective_limits(limit_overrides_context)
+        effective_limits = cfg.get_effective_limits(limit_overrides_context)
         if slug:
             log.info(
                 "Preparing to execute jailed code %r "
