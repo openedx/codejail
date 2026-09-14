@@ -1,3 +1,5 @@
 """init"""
 
-__version__ = '4.1.1'
+from importlib.metadata import version
+
+__version__ = version("edx-codejail")
