@@ -160,6 +160,7 @@ dev = [
     { name = "pycodestyle" },
     { name = "pylint" },
     { name = "pytest" },
+    { name = "six" },
     { name = "tox" },
     { name = "tox-uv" },
 ]
@@ -170,6 +171,7 @@ django42 = [
     { name = "pycodestyle" },
     { name = "pylint" },
     { name = "pytest" },
+    { name = "six" },
 ]
 quality = [
     { name = "django", version = "5.2.17", source = { registry = "https://pypi.org/simple" } },
@@ -179,6 +181,11 @@ quality = [
     { name = "pycodestyle" },
     { name = "pylint" },
     { name = "pytest" },
+    { name = "six" },
+]
+sandbox = [
+    { name = "numpy" },
+    { name = "six" },
 ]
 test = [
     { name = "django", version = "5.2.17", source = { registry = "https://pypi.org/simple" } },
@@ -187,6 +194,7 @@ test = [
     { name = "pycodestyle" },
     { name = "pylint" },
     { name = "pytest" },
+    { name = "six" },
 ]
 test-base = [
     { name = "isort" },
@@ -194,6 +202,7 @@ test-base = [
     { name = "pycodestyle" },
     { name = "pylint" },
     { name = "pytest" },
+    { name = "six" },
 ]
 
 [package.metadata]
@@ -212,6 +221,7 @@ dev = [
     { name = "pycodestyle" },
     { name = "pylint" },
     { name = "pytest" },
+    { name = "six" },
     { name = "tox" },
     { name = "tox-uv" },
 ]
@@ -222,6 +232,7 @@ django42 = [
     { name = "pycodestyle" },
     { name = "pylint" },
     { name = "pytest" },
+    { name = "six" },
 ]
 quality = [
     { name = "django", specifier = ">=5.2,<6.0" },
@@ -231,6 +242,11 @@ quality = [
     { name = "pycodestyle" },
     { name = "pylint" },
     { name = "pytest" },
+    { name = "six" },
+]
+sandbox = [
+    { name = "numpy" },
+    { name = "six" },
 ]
 test = [
     { name = "django", specifier = ">=5.2,<6.0" },
@@ -239,6 +255,7 @@ test = [
     { name = "pycodestyle" },
     { name = "pylint" },
     { name = "pytest" },
+    { name = "six" },
 ]
 test-base = [
     { name = "isort" },
@@ -246,6 +263,7 @@ test-base = [
     { name = "pycodestyle" },
     { name = "pylint" },
     { name = "pytest" },
+    { name = "six" },
 ]
 
 [[package]]

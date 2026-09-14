@@ -36,12 +36,16 @@ Homepage = "https://github.com/openedx/codejail"
 Repository = "https://github.com/openedx/codejail"
 
 [dependency-groups]
+sandbox = [
+    "numpy",
+    "six",
+]
 test-base = [
+    {include-group = "sandbox"},
     "pylint",
     "pytest",
     "isort",
     "pycodestyle",
-    "numpy",
 ]
 test = [
     {include-group = "test-base"},

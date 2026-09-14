@@ -72,14 +72,12 @@ WORKDIR /codejail
 # Copy project files needed for dependency installation
 COPY pyproject.toml uv.lock /codejail/
 
-# Install codejail sandbox dependencies into the sandbox virtualenv
-RUN source $CODEJAIL_TEST_VENV/bin/activate && pip install numpy six && deactivate
+# Install sandbox dependencies into the sandbox virtualenv from the
+# 'sandbox' dependency group
+RUN uv pip install --python $CODEJAIL_TEST_VENV/bin/python --no-cache-dir --group sandbox
 
-# Install sandbox deps also into the test venv (codejail needs them at runtime)
-RUN pip install numpy six
-
-# Install CI dependencies (tox + tox-uv) using uv into the main venv
-RUN uv pip install --python $VIRTUAL_ENV/bin/python --no-cache-dir tox tox-uv
+# Install CI dependencies (tox + tox-uv) into the main venv from the 'ci' group
+RUN uv pip install --python $VIRTUAL_ENV/bin/python --no-cache-dir --group ci
 
 # Clone Codejail Repo
 COPY . /codejail
