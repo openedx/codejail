@@ -1,6 +1,13 @@
-include LICENSE.txt
-include README.rst
-include requirements/*
+# Exclude development, test, and documentation folders
+prune .github
+prune docs
+
+# Exclude root level configuration and build files
+exclude Makefile
+exclude conftest.py
+exclude .gitignore
+exclude tox.ini
+
+# Include operational files needed by the package
 include apparmor-profiles/*
 include sudoers-file/*
-include requirements/constraints.txt

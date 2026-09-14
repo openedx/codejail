@@ -1,0 +1,121 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm>8.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edx-codejail"
+description = "CodeJail manages execution of untrusted code in secure sandboxes. It is designed primarily for Python execution, but can be used for other languages as well."
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE*"]
+authors = [
+    {name = "Open edX Project", email = "oscm@openedx.org"},
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Operating System :: POSIX :: Linux",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+]
+keywords = [
+    "Python",
+    "edx",
+    "codejail",
+]
+
+dynamic = ["readme", "version"]
+
+dependencies = [
+    "six",
+]
+
+[project.urls]
+Homepage = "https://github.com/openedx/codejail"
+Repository = "https://github.com/openedx/codejail"
+
+[dependency-groups]
+test-base = [
+    "pylint",
+    "pytest",
+    "isort",
+    "pycodestyle",
+]
+test = [
+    {include-group = "test-base"},
+    "Django>=5.2,<6.0",
+]
+django42 = [
+    {include-group = "test-base"},
+    "Django>=4.2,<5.0",
+]
+quality = [
+    {include-group = "test"},
+    "edx-lint",
+]
+ci = [
+    "tox",
+    "tox-uv",
+]
+dev = [
+    {include-group = "quality"},
+    {include-group = "ci"},
+]
+
+[tool.setuptools]
+include-package-data = true
+script-files = ["memory_stress.py"]
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.rst"], content-type = "text/x-rst"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = [
+    "tests/hello.txt",
+]
+
+[tool.semantic_release]
+build_command = "pip install build && SETUPTOOLS_SCM_PRETEND_VERSION=$NEW_VERSION python -m build"
+
+[tool.setuptools_scm]
+version_scheme = 'only-version'
+local_scheme = 'no-local-version'
+fallback_version = "0.0.0.dev0"
+
+[tool.uv]
+package = true
+conflicts = [
+    [{group = "django42"}, {group = "test"}],
+    [{group = "django42"}, {group = "quality"}],
+    [{group = "dev"}, {group = "django42"}],
+]
+constraint-dependencies = [
+    "Django<6.0",
+    "elasticsearch<7.14.0",
+    "social-auth-app-django<6.0.0",
+    "social-auth-core<5.0.0",
+    "pip<26.2.1",
+]
+
+[tool.edx_lint]
+uv_constraints = []
+
+[tool.coverage.run]
+branch = true
+source = ["codejail"]
+omit = [
+    "*/tests/doit.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.isort]
+include_trailing_comma = true
+indent = "    "
+line_length = 120
+multi_line_output = 3

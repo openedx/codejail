@@ -4,28 +4,53 @@ on:
     branches:
       - master
   pull_request:
+  workflow_call:
 
 jobs:
   codejail_ci:
-    name: tests
+    name: ${{ matrix.tox_env }}-ubuntu${{ matrix.ubuntu_version }}
     runs-on: ubuntu-${{ matrix.ubuntu_version }}
     strategy:
       fail-fast: false
       matrix:
-        python_version: ['3.12']
-        ubuntu_version: ['22.04', '24.04']
-        tox_env: [ "django42", "django52"]
+        python_version:
+          - '3.12'
+        ubuntu_version:
+          - '22.04'
+          - '24.04'
+        tox_env:
+          - django42
+          - django52
         include:
           - tox_env: quality
             ubuntu_version: '24.04'
             python_version: '3.12'
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install uv
+        if: matrix.tox_env == 'quality'
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
+          python-version: "${{ matrix.python_version }}"
+
+      - name: Install CI dependencies
+        if: matrix.tox_env == 'quality'
+        run: uv sync --group ci
+
+      - name: Run quality checks
+        if: matrix.tox_env == 'quality'
+        run: uv run tox -e quality
+
       - name: Parse custom apparmor profile with ABI 3.0
+        if: matrix.tox_env != 'quality'
         run: sudo apparmor_parser -r -W apparmor-profiles/home.sandbox.codejail_sandbox.bin.python-abi3
 
       - name: Build latest code changes into CI image
+        if: matrix.tox_env != 'quality'
         run: |
           docker build -t openedx-codejail \
             --cache-to type=gha \
@@ -34,9 +59,11 @@ jobs:
             --build-arg ubuntu_version=${{ matrix.ubuntu_version }} .
 
       - name: Run container with custom apparmor profile and codejail CI image
+        if: matrix.tox_env != 'quality'
         run: |
           docker run --name=codejail --privileged -d --security-opt apparmor=openedx_codejail_sandbox \
             openedx-codejail tail -f /dev/null
 
       - name: Run Tests
+        if: matrix.tox_env != 'quality'
         run: docker exec -e TOXENV=${{ matrix.tox_env }} -t codejail bash -c 'tox'

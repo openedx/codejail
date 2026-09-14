@@ -1,7 +1,0 @@
--c constraints.txt
-
-pylint
-pytest
-isort
-pycodestyle
-django
