@@ -41,6 +41,7 @@ test-base = [
     "pytest",
     "isort",
     "pycodestyle",
+    "numpy",
 ]
 test = [
     {include-group = "test-base"},
