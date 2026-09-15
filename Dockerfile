@@ -32,7 +32,13 @@ RUN curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
 RUN pip install virtualenv --break-system-packages
 
 # Install uv for dependency management (install system-wide to /usr/local/bin)
-RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+# `pipefail` is required here: without it a failed curl is masked by the exit
+# status of `sh`, so the layer succeeds without installing uv and the build only
+# fails much later with "uv: command not found".
+RUN set -o pipefail && \
+    curl -LsSf --retry 5 --retry-all-errors https://astral.sh/uv/install.sh | \
+    env UV_INSTALL_DIR=/usr/local/bin sh && \
+    uv --version
 
 # Define Environment Variables
 ENV CODEJAIL_GROUP=sandbox
