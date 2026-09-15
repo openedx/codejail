@@ -1,3 +1,7 @@
+.. DEPRECATED: This changelog is no longer maintained. Release notes are
+   published only on the GitHub Releases page:
+   https://github.com/openedx/codejail/releases
+
 Changelog
 #########
 

@@ -31,6 +31,9 @@ RUN curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python${python_version} get-pip.py --break-system-packages && rm get-pip.py
 RUN pip install virtualenv --break-system-packages
 
+# Install uv for dependency management (install system-wide to /usr/local/bin)
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+
 # Define Environment Variables
 ENV CODEJAIL_GROUP=sandbox
 ENV CODEJAIL_SANDBOX_CALLER=ubuntu
@@ -66,16 +69,15 @@ RUN chown -R $CODEJAIL_TEST_USER:$CODEJAIL_GROUP $CODEJAIL_TEST_VENV
 
 WORKDIR /codejail
 
-# Clone Requirement files
-COPY ./requirements/sandbox.txt /codejail/requirements/sandbox.txt
-COPY ./requirements/testing.txt /codejail/requirements/testing.txt
-COPY ./requirements/tox.txt /codejail/requirements/tox.txt
+# Copy project files needed for dependency installation
+COPY pyproject.toml uv.lock /codejail/
 
-# Install codejail_sandbox sandbox dependencies
-RUN source $CODEJAIL_TEST_VENV/bin/activate && pip install -r /codejail/requirements/sandbox.txt && deactivate
+# Install sandbox dependencies into the sandbox virtualenv from the
+# 'sandbox' dependency group
+RUN uv pip install --python $CODEJAIL_TEST_VENV/bin/python --no-cache-dir --group sandbox
 
-# Install testing requirements in parent venv
-RUN pip install -r /codejail/requirements/sandbox.txt -r /codejail/requirements/testing.txt -r /codejail/requirements/tox.txt
+# Install CI dependencies (tox + tox-uv) into the main venv from the 'ci' group
+RUN uv pip install --python $VIRTUAL_ENV/bin/python --no-cache-dir --group ci
 
 # Clone Codejail Repo
 COPY . /codejail
