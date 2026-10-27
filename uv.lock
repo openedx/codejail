@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.12"
 conflicts = [[
     { package = "edx-codejail", group = "django42" },
@@ -609,7 +609,7 @@ version = "4.1.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "astroid" },
-    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'group-12-edx-codejail-dev' and extra == 'group-12-edx-codejail-django42') or (extra == 'group-12-edx-codejail-django42' and extra == 'group-12-edx-codejail-quality') or (extra == 'group-12-edx-codejail-django42' and extra == 'group-12-edx-codejail-test')" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
     { name = "dill" },
     { name = "isort" },
     { name = "mccabe" },
@@ -674,7 +674,7 @@ name = "pytest"
 version = "9.1.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'group-12-edx-codejail-dev' and extra == 'group-12-edx-codejail-django42') or (extra == 'group-12-edx-codejail-django42' and extra == 'group-12-edx-codejail-quality') or (extra == 'group-12-edx-codejail-django42' and extra == 'group-12-edx-codejail-test')" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
     { name = "iniconfig" },
     { name = "packaging" },
     { name = "pluggy" },
@@ -823,7 +823,7 @@ dependencies = [
     { name = "pyproject-api" },
     { name = "python-discovery" },
     { name = "tomli-w" },
-    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'group-12-edx-codejail-dev' and extra == 'group-12-edx-codejail-django42') or (extra == 'group-12-edx-codejail-django42' and extra == 'group-12-edx-codejail-quality') or (extra == 'group-12-edx-codejail-django42' and extra == 'group-12-edx-codejail-test')" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
     { name = "virtualenv" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/63/6e/677274ae411fa13f5c2ea5c633a6abfa0886e949bd2ef53c7e564a0b0b2e/tox-4.67.1.tar.gz", hash = "sha256:a68602f64421b199016127364ee47347b958391d19c2b2e53fe95673a8fe98e9", size = 347211, upload-time = "2026-10-18T07:34:04.348Z" }
@@ -902,7 +902,7 @@ wheels = [
 
 [[package]]
 name = "virtualenv"
-version = "21.14.11"
+version = "21.14.13"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "distlib" },
@@ -911,7 +911,7 @@ dependencies = [
     { name = "platformdirs" },
     { name = "python-discovery" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7f/be/4d1d59d309db76b5808fcfd78bd5996f4e7241366691c38fc331a3136398/virtualenv-21.14.11.tar.gz", hash = "sha256:593052d8477ea8c55a842387ce111bd08c72618f0c1133c302cafe335e570a57", size = 5503091, upload-time = "2026-10-18T07:06:34.716Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/70/aa/bff50daee0488e16d611258a9b6c5a1d0c9e128f8ca424e9f4e1c0444ef2/virtualenv-21.14.13.tar.gz", hash = "sha256:de5307ba4b9a0001d9c8ea02832d38f63ca432880f416c1bface61c4323fd905", size = 5570301, upload-time = "2026-10-22T20:10:16.952Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ce/6b/d85da8982b41190eafcb9df91dff9d83fc6989e98af4b5be4c8f85510c95/virtualenv-21.14.11-py3-none-any.whl", hash = "sha256:b319f8590a84e5de5f8f2c803ecd2237e9bc0ffa7c1e875e3169c107cecb7454", size = 5495268, upload-time = "2026-10-18T07:06:32.719Z" },
+    { url = "https://files.pythonhosted.org/packages/bb/a9/c10d8a44a29fb94a18b43fdf11f38caca53ae7c9406f11a72b1cb8f624f1/virtualenv-21.14.13-py3-none-any.whl", hash = "sha256:5fbb04138a4861580b78ba9110d529a26bc48fcc93c8ec36bc0202eeed96a788", size = 5557094, upload-time = "2026-10-22T20:10:15.096Z" },
 ]
